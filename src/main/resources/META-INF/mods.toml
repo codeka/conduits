@@ -9,7 +9,7 @@ loaderVersion="[39,)"
 license="mit"
 
 # A URL to refer people to when problems occur with this mod
-#issueTrackerURL="https://change.me.to.your.issue.tracker.example.invalid/" #optional
+issueTrackerURL="https://github.com/codeka/conduits/issues"
 
 # A list of mods - how many allowed here is determined by the individual mod loader
 [[mods]]
@@ -28,7 +28,7 @@ displayName="Just Conduits" #mandatory
 #updateJSONURL="https://change.me.example.invalid/updates.json"
 
 # A URL for the "homepage" for this mod, displayed in the mod UI
-#displayURL="https://change.me.to.your.mods.homepage.example.invalid/" #optional
+displayURL="https://github.com/codeka/conduits"
 
 # A file name (in the root of the mod JAR) containing a logo for display
 logoFile="examplemod.png" #optional
