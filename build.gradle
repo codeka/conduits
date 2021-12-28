@@ -1,15 +1,19 @@
 buildscript {
     repositories {
         maven { url = 'https://maven.minecraftforge.net' }
+        maven { url = 'https://maven.parchmentmc.org' }
         mavenCentral()
     }
     dependencies {
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
+        classpath group: 'org.parchmentmc', name: 'librarian', version: '1.+', changing: true
     }
 }
+
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
+apply plugin: 'org.parchmentmc.librarian.forgegradle'
 
 version = '1.0'
 group = 'com.codeka.justconduits'
@@ -22,20 +26,12 @@ println(
         'Java: ' + System.getProperty('java.version') + ' JVM: ' + System.getProperty('java.vm.version') +
                 '(' + System.getProperty('java.vendor') + ') Arch: ' + System.getProperty('os.arch'))
 minecraft {
-    // The mappings can be changed at any time and must be in the following format.
-    // Channel:   Version:
-    // snapshot   YYYYMMDD   Snapshot are built nightly.
-    // stable     #          Stables are built at the discretion of the MCP team.
-    // official   MCVersion  Official field/method names from Mojang mapping files
-    //
-    // You must be aware of the Mojang license when using the 'official' mappings.
-    // See more information here: https://github.com/MinecraftForge/MCPConfig/blob/master/Mojang.md
-    //
-    // Use non-default mappings at your own risk. They may not always work.
-    // Simply re-run your setup task after changing the mappings to update your workspace.
-    mappings channel: 'official', version: '1.18.1'
+    // We use Parchment mappings, which includes parameter names and Javadoc, in addition to the normal
+    // minecraft stuff. See: https://github-wiki-see.page/m/ParchmentMC/Parchment/wiki/Getting-Started
+    mappings channel: 'parchment', version: '2021.12.19-1.18.1'
 
-    // Currently, this location cannot be changed from the default. // Currently, this location cannot be changed from the default.
+    // Currently, this location cannot be changed from the default.
+    // Currently, this location cannot be changed from the default.
     // accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
 
     runs {
