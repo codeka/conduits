@@ -18,6 +18,7 @@ public class DataGenerators {
     }
     if (event.includeClient()) {
       generator.addProvider(new BlockStatesGenerator(generator, event.getExistingFileHelper()));
+      generator.addProvider(new ItemModelsGenerator(generator, event.getExistingFileHelper()));
       generator.addProvider(new LangGenerator(generator, "en_us"));
     }
   }
