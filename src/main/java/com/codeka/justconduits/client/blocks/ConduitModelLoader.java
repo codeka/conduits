@@ -28,7 +28,7 @@ public class ConduitModelLoader implements IModelLoader<ConduitModelLoader.Geome
   public static final ResourceLocation ID = new ResourceLocation(JustConduitsMod.MODID, "conduit_loader");
 
   private static final ResourceLocation SIMPLE_CONDUIT_TEXTURE =
-      new ResourceLocation(JustConduitsMod.MODID, "simple_item_conduit");
+      new ResourceLocation(JustConduitsMod.MODID, "blocks/simple_item_conduit");
 
   static final Material SIMPLE_CONDUIT_MATERIAL = ForgeHooksClient.getBlockMaterial(SIMPLE_CONDUIT_TEXTURE);
 

@@ -62,12 +62,8 @@ public class ConduitBakedModel implements IDynamicBakedModel {
     Transformation transformation = new Transformation(Matrix4f.createScaleMatrix(0.5f, 0.5f, 0.5f));
 
     ArrayList<BakedQuad> quads = new ArrayList<>();
-    quads.add(QuadHelper.createQuad(Direction.UP, transformation, simpleItemConduitTexture));
-    quads.add(QuadHelper.createQuad(Direction.DOWN, transformation, simpleItemConduitTexture));
-    quads.add(QuadHelper.createQuad(Direction.NORTH, transformation, simpleItemConduitTexture));
-    quads.add(QuadHelper.createQuad(Direction.SOUTH, transformation, simpleItemConduitTexture));
-    quads.add(QuadHelper.createQuad(Direction.EAST, transformation, simpleItemConduitTexture));
-    quads.add(QuadHelper.createQuad(Direction.WEST, transformation, simpleItemConduitTexture));
+    quads.addAll(QuadHelper.createCube(transformation, simpleItemConduitTexture));
+
     return quads;
   }
 
