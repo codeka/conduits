@@ -3,11 +3,13 @@ package com.codeka.justconduits.client;
 import com.codeka.justconduits.JustConduitsMod;
 import com.codeka.justconduits.client.blocks.ConduitModelLoader;
 import com.codeka.justconduits.common.ModBlocks;
+import com.codeka.justconduits.debug.DebugVoxelShapeHighlighter;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraftforge.client.model.ModelLoaderRegistry;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
@@ -18,6 +20,8 @@ public class ClientSetup {
     event.enqueueWork(() -> {
       ItemBlockRenderTypes.setRenderLayer(ModBlocks.CONDUIT.get(), RenderType.translucent());
     });
+
+    MinecraftForge.EVENT_BUS.register(DebugVoxelShapeHighlighter.class);
   }
 
   @SubscribeEvent
