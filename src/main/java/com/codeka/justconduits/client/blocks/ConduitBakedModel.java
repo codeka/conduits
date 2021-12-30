@@ -58,16 +58,17 @@ public class ConduitBakedModel implements IDynamicBakedModel {
     TextureAtlasSprite simpleItemConduitTexture = spriteGetter.apply(ConduitModelLoader.SIMPLE_CONDUIT_MATERIAL);
     Transformation transformation = new Transformation(Matrix4f.createScaleMatrix(0.5f, 0.5f, 0.5f));
 
-    ArrayList<BakedQuad> quads = new ArrayList<>();
-    quads.addAll(QuadHelper.createCube(transformation, simpleItemConduitTexture));
+    ArrayList<BakedQuad> quads = new ArrayList<>(QuadHelper.createCube(transformation, simpleItemConduitTexture));
 
-    List<Direction> connections = extraData.getData(ConduitModelProps.CONNECTIONS);
-    for (Direction dir : connections) {
-      var matrix = Matrix4f.createScaleMatrix(0.2f, 0.2f, 0.2f);
-      var normal = dir.step();
-      normal.mul(0.333f);
-      matrix.translate(normal);
-      quads.addAll(QuadHelper.createCube(new Transformation(matrix), simpleItemConduitTexture));
+    List<Connection> connections = extraData.getData(ConduitModelProps.CONNECTIONS);
+    if (connections != null) {
+      for (Connection conn : connections) {
+        var matrix = Matrix4f.createScaleMatrix(0.2f, 0.2f, 0.2f);
+        var normal = conn.getDirection().step();
+        normal.mul(0.333f);
+        matrix.translate(normal);
+        quads.addAll(QuadHelper.createCube(new Transformation(matrix), simpleItemConduitTexture));
+      }
     }
 
     return quads;

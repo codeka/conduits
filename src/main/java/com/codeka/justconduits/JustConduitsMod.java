@@ -4,6 +4,7 @@ import com.codeka.justconduits.client.ClientSetup;
 import com.codeka.justconduits.common.ModBlockEntities;
 import com.codeka.justconduits.common.ModBlocks;
 import com.codeka.justconduits.common.ModItems;
+import com.codeka.justconduits.packets.JustConduitsPacketHandler;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.InterModComms;
@@ -36,8 +37,7 @@ public class JustConduitsMod {
   }
 
   private void setup(final FMLCommonSetupEvent event) {
-    L.info("HELLO FROM PREINIT");
-    L.info("DIRT BLOCK >> {}", Blocks.DIRT.getRegistryName());
+    JustConduitsPacketHandler.init();
   }
 
   private void enqueueIMC(final InterModEnqueueEvent event) {
