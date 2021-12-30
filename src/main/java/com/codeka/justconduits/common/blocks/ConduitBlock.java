@@ -49,7 +49,7 @@ public class ConduitBlock extends Block implements EntityBlock {
 
     // Update our block entity.
     if (level.getBlockEntity(blockPos) instanceof ConduitBlockEntity conduitBlockEntity) {
-      conduitBlockEntity.onNeighborChanged(blockState, level, neighborBlockPos);
+      conduitBlockEntity.onNeighborChanged(blockState, neighborBlockPos);
     }
   }
 

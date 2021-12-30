@@ -1,6 +1,6 @@
 package com.codeka.justconduits.packets;
 
-import com.codeka.justconduits.client.blocks.Connection;
+import com.codeka.justconduits.common.blocks.ConduitConnection;
 import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
 import com.codeka.justconduits.common.blocks.ConduitBlockPacketHandler;
 import net.minecraft.core.BlockPos;
@@ -21,12 +21,14 @@ import java.util.function.Supplier;
 // TODO: can we make this more generic or something?
 public class ConduitClientStatePacket {
   private final BlockPos blockPos;
-  private final ArrayList<Connection> connections;
+  private final ArrayList<ConduitConnection> connections;
 
   public ConduitClientStatePacket(FriendlyByteBuf buffer) {
     blockPos = buffer.readBlockPos();
     connections = buffer.readCollection(ArrayList::new, (buf) -> {
-      return new Connection(buf.readEnum(Direction.class));
+      Direction dir = buf.readEnum(Direction.class);
+      ConduitConnection.ConnectionType connectionType = buf.readEnum(ConduitConnection.ConnectionType.class);
+      return new ConduitConnection(dir, connectionType);
     });
   }
 
@@ -39,6 +41,7 @@ public class ConduitClientStatePacket {
     buffer.writeBlockPos(blockPos);
     buffer.writeCollection(connections, (buf, conn) -> {
       buf.writeEnum(conn.getDirection());
+      buf.writeEnum(conn.getConnectionType());
     });
   }
 
@@ -53,9 +56,9 @@ public class ConduitClientStatePacket {
     return blockPos;
   }
 
-  public HashMap<Direction, Connection> getConnections() {
-    HashMap<Direction, Connection> conns = new HashMap<>();
-    for (Connection conn : connections) {
+  public HashMap<Direction, ConduitConnection> getConnections() {
+    HashMap<Direction, ConduitConnection> conns = new HashMap<>();
+    for (ConduitConnection conn : connections) {
       conns.put(conn.getDirection(), conn);
     }
     return conns;

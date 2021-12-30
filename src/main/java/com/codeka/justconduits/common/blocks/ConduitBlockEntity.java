@@ -1,7 +1,6 @@
 package com.codeka.justconduits.common.blocks;
 
 import com.codeka.justconduits.client.blocks.ConduitModelProps;
-import com.codeka.justconduits.client.blocks.Connection;
 import com.codeka.justconduits.common.ModBlockEntities;
 import com.codeka.justconduits.common.ModCapabilities;
 import com.codeka.justconduits.common.capabilities.network.ConduitNetworkManager;
@@ -22,6 +21,8 @@ import net.minecraftforge.client.model.data.IModelData;
 import net.minecraftforge.client.model.data.ModelDataMap;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.items.CapabilityItemHandler;
+import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.network.PacketDistributor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -38,13 +39,13 @@ public class ConduitBlockEntity extends BlockEntity {
       LazyOptional.of(() -> this.conduitNetworkManager);
 
   private boolean firstTick = true;
-  private HashMap<Direction, Connection> connections = new HashMap<>();
+  private HashMap<Direction, ConduitConnection> connections = new HashMap<>();
 
   public ConduitBlockEntity(BlockPos blockPos, BlockState blockState) {
     super(ModBlockEntities.CONDUIT.get(), blockPos, blockState);
   }
 
-  public Collection<Connection> getConnections() {
+  public Collection<ConduitConnection> getConnections() {
     return connections.values();
   }
 
@@ -55,8 +56,7 @@ public class ConduitBlockEntity extends BlockEntity {
    * nothing, then we might need to remove it from our network or split the network. If it's an inventory, we'll want
    * to make sure to attach to it, etc etc.
    */
-  public void onNeighborChanged(
-      @Nonnull BlockState blockState, @Nonnull Level level, @Nonnull BlockPos neighborBlockPos) {
+  public void onNeighborChanged(@Nonnull BlockState blockState, @Nonnull BlockPos neighborBlockPos) {
     int dx = neighborBlockPos.getX() - worldPosition.getX();
     int dy = neighborBlockPos.getY() - worldPosition.getY();
     int dz = neighborBlockPos.getZ() - worldPosition.getZ();
@@ -65,25 +65,7 @@ public class ConduitBlockEntity extends BlockEntity {
       return;
     }
 
-    boolean needUpdate = false;
-    if (level.getBlockEntity(neighborBlockPos) instanceof ConduitBlockEntity neighbor) {
-      // The other block is a conduit as well, make sure we're connected to it.
-      if (!connections.containsKey(dir)) {
-        connections.put(dir, new Connection(dir));
-        needUpdate = true;
-      }
-    } else if (connections.containsKey(dir)) {
-      // TODO: it might be something else that we want to connect to.
-      connections.remove(dir);
-      needUpdate = true;
-    }
-
-    // TODO: if it's an inventory or accepts/produces power etc etc...
-
-    if (needUpdate) {
-      sendClientUpdate();
-      level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_ALL);
-    }
+    updateNeighbor(dir, neighborBlockPos);
   }
 
   @Nonnull
@@ -118,11 +100,8 @@ public class ConduitBlockEntity extends BlockEntity {
       // Set up the initial connections.
       connections.clear();
       for (Direction dir : Direction.values()) {
-        if (requireLevel().getBlockEntity(getBlockPos().relative(dir)) instanceof ConduitBlockEntity) {
-          connections.put(dir, new Connection(dir));
-        }
+        updateNeighbor(dir, /* blockPos = */ null);
       }
-      L.atInfo().log("DEANH connections.size() = " + connections.size());
       if (!connections.isEmpty()) {
         sendClientUpdate();
         requireLevel().sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_ALL);
@@ -163,7 +142,7 @@ public class ConduitBlockEntity extends BlockEntity {
 
   /** Called on the client when we receive an update packet from the server. */
   public void onClientUpdate(ConduitClientStatePacket packet) {
-    HashMap<Direction, Connection> newConnections = packet.getConnections();
+    HashMap<Direction, ConduitConnection> newConnections = packet.getConnections();
     if (!connections.equals(newConnections)) {
       connections = newConnections;
 
@@ -181,5 +160,44 @@ public class ConduitBlockEntity extends BlockEntity {
       throw new RuntimeException("Unexpected null level");
     }
     return l;
+  }
+
+  // Note: passing null for blockPos just means we'll calculate it ourselves. You can save the calculation if you
+  // already know it.
+  private void updateNeighbor(Direction dir, @Nullable BlockPos blockPos) {
+    if (blockPos == null) {
+      blockPos = getBlockPos().relative(dir);
+    }
+
+    boolean needUpdate = false;
+    BlockEntity neighbor = requireLevel().getBlockEntity(blockPos);
+    if (neighbor == null && connections.containsKey(dir)) {
+      connections.remove(dir);
+      needUpdate = true;
+    } else if (neighbor instanceof ConduitBlockEntity) {
+      // The other block is a conduit as well, make sure we're connected to it.
+      if (!connections.containsKey(dir)) {
+        connections.put(dir, new ConduitConnection(dir, ConduitConnection.ConnectionType.CONDUIT));
+        needUpdate = true;
+      }
+    } else if (neighbor != null) {
+      // TODO: check the types of conduits we have in our bundle, we'll only connect if it's one we support.
+      LazyOptional<IItemHandler> itemHandlerOptional =
+          neighbor.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, dir.getOpposite());
+      if (itemHandlerOptional.resolve().isPresent()) {
+        IItemHandler itemHandler = itemHandlerOptional.resolve().get();
+        // TODO: use it?
+
+        connections.put(dir, new ConduitConnection(dir, ConduitConnection.ConnectionType.EXTERNAL));
+        needUpdate = true;
+      }
+
+      // TODO: it might be something else that we want to connect to.
+    }
+
+    if (needUpdate) {
+      sendClientUpdate();
+      requireLevel().sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_ALL);
+    }
   }
 }
