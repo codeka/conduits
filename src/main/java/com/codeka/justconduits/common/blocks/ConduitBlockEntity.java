@@ -57,20 +57,33 @@ public class ConduitBlockEntity extends BlockEntity {
    */
   public void onNeighborChanged(
       @Nonnull BlockState blockState, @Nonnull Level level, @Nonnull BlockPos neighborBlockPos) {
+    int dx = neighborBlockPos.getX() - worldPosition.getX();
+    int dy = neighborBlockPos.getY() - worldPosition.getY();
+    int dz = neighborBlockPos.getZ() - worldPosition.getZ();
+    Direction dir = Direction.fromNormal(dx, dy, dz);
+    if (dir == null) {
+      return;
+    }
+
+    boolean needUpdate = false;
     if (level.getBlockEntity(neighborBlockPos) instanceof ConduitBlockEntity neighbor) {
       // The other block is a conduit as well, make sure we're connected to it.
-      int dx = neighborBlockPos.getX() - worldPosition.getX();
-      int dy = neighborBlockPos.getY() - worldPosition.getY();
-      int dz = neighborBlockPos.getZ() - worldPosition.getZ();
-      Direction dir = Direction.fromNormal(dx, dy, dz);
-      if (dir != null && !connections.containsKey(dir)) {
+      if (!connections.containsKey(dir)) {
         connections.put(dir, new Connection(dir));
-        sendClientUpdate();
-        level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_ALL);
+        needUpdate = true;
       }
+    } else if (connections.containsKey(dir)) {
+      // TODO: it might be something else that we want to connect to.
+      connections.remove(dir);
+      needUpdate = true;
     }
 
     // TODO: if it's an inventory or accepts/produces power etc etc...
+
+    if (needUpdate) {
+      sendClientUpdate();
+      level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_ALL);
+    }
   }
 
   @Nonnull
