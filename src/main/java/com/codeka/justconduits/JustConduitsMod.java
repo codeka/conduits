@@ -4,9 +4,12 @@ import com.codeka.justconduits.client.ClientSetup;
 import com.codeka.justconduits.common.ModBlockEntities;
 import com.codeka.justconduits.common.ModBlocks;
 import com.codeka.justconduits.common.ModItems;
+import com.codeka.justconduits.debug.DebugCommands;
 import com.codeka.justconduits.packets.JustConduitsPacketHandler;
+import net.minecraft.commands.Commands;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.fml.InterModComms;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -30,7 +33,7 @@ public class JustConduitsMod {
     FMLJavaModLoadingContext.get().getModEventBus().addListener(this::enqueueIMC);
     FMLJavaModLoadingContext.get().getModEventBus().addListener(this::processIMC);
 
-    MinecraftForge.EVENT_BUS.register(this);
+    MinecraftForge.EVENT_BUS.addListener(this::registerCommands);
     ModItems.register();
     ModBlocks.register();
     ModBlockEntities.register();
@@ -38,6 +41,12 @@ public class JustConduitsMod {
 
   private void setup(final FMLCommonSetupEvent event) {
     JustConduitsPacketHandler.init();
+  }
+
+  private void registerCommands(final RegisterCommandsEvent event) {
+    event.getDispatcher().register(
+        Commands.literal("jc")
+            .then(DebugCommands.register(event.getDispatcher())));
   }
 
   private void enqueueIMC(final InterModEnqueueEvent event) {

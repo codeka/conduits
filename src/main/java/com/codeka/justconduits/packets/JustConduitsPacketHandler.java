@@ -1,6 +1,7 @@
 package com.codeka.justconduits.packets;
 
 import com.codeka.justconduits.JustConduitsMod;
+import com.codeka.justconduits.debug.DebugPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
@@ -26,5 +27,11 @@ public class JustConduitsPacketHandler {
         ConduitClientStatePacket::encode,
         ConduitClientStatePacket::new,
         ConduitClientStatePacket::handle);
+    CHANNEL.registerMessage(
+        id++,
+        DebugPacket.class,
+        DebugPacket::encode,
+        DebugPacket::new,
+        DebugPacket::handle);
   }
 }

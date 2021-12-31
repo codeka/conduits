@@ -29,6 +29,10 @@ import java.awt.*;
 public class DebugVoxelShapeHighlighter {
   private static final Logger L = LogManager.getLogger();
 
+  static boolean drawShape = false;
+  static boolean drawVisualShape = false;
+  static boolean drawCollisionShape = false;
+
   @SubscribeEvent
   public static void onDrawBlockHighlightEvent(DrawSelectionEvent.HighlightBlock event) {
     BlockHitResult blockHitResult = event.getTarget();
@@ -48,25 +52,21 @@ public class DebugVoxelShapeHighlighter {
     final Color RENDERSHAPE_COLOR = Color.BLUE;
     final Color COLLISIONSHAPE_COLOR = Color.GREEN;
 
-    boolean showShape = true; // DebugSettings.getDebugParameter("showshape").isPresent();
-    boolean showVisualShape = true; // DebugSettings.getDebugParameter("showrendershape").isPresent();
-    boolean showCollisionShape = true; // DebugSettings.getDebugParameter("showcollisionshape").isPresent();
-
-    if (!(showShape || showVisualShape || showCollisionShape)) return;
+    if (!(drawShape || drawVisualShape || drawCollisionShape)) return;
 
     final Camera camera = event.getCamera();
     final CollisionContext collisionContext = CollisionContext.of(camera.getEntity());
     final MultiBufferSource multiBufferSource = event.getMultiBufferSource();
     final PoseStack poseStack = event.getPoseStack();
-    if (showShape) {
+    if (drawShape) {
       VoxelShape shape = blockstate.getShape(level, blockPos, collisionContext);
       drawSelectionBox(multiBufferSource, poseStack, blockPos, camera, shape, SHAPE_COLOR);
     }
-    if (showVisualShape) {
+    if (drawVisualShape) {
       VoxelShape shape = blockstate.getVisualShape(level, blockPos, collisionContext);
       drawSelectionBox(multiBufferSource, poseStack, blockPos, camera, shape, RENDERSHAPE_COLOR);
     }
-    if (showCollisionShape) {
+    if (drawCollisionShape) {
       VoxelShape shape = blockstate.getCollisionShape(level, blockPos, collisionContext);
       drawSelectionBox(multiBufferSource, poseStack, blockPos, camera, shape, COLLISIONSHAPE_COLOR);
     }
