@@ -1,6 +1,9 @@
 package com.codeka.justconduits.common.blocks;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
@@ -12,6 +15,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Material;
 import net.minecraft.world.level.material.MaterialColor;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.apache.logging.log4j.LogManager;
@@ -70,5 +74,13 @@ public class ConduitBlock extends Block implements EntityBlock {
   @Override
   public VoxelShape getOcclusionShape(@Nonnull BlockState state, @Nonnull BlockGetter reader, @Nonnull BlockPos pos) {
     return RENDER_SHAPE;
+  }
+
+  @Nonnull
+  @Override
+  public InteractionResult use(@Nonnull BlockState blockState, @Nonnull Level level, @Nonnull BlockPos blockPos,
+                               @Nonnull Player player, @Nonnull InteractionHand hand,
+                               @Nonnull BlockHitResult blockHitResult) {
+    return InteractionResult.PASS;
   }
 }

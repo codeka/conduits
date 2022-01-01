@@ -64,16 +64,7 @@ public class ConduitBakedModel implements IDynamicBakedModel {
     List<ConduitConnection> connections = extraData.getData(ConduitModelProps.CONNECTIONS);
     if (connections != null) {
       for (ConduitConnection conn : connections) {
-        var dir = conn.getDirection();
-        var matrix = switch (conn.getConnectionType()) {
-          case CONDUIT -> Matrix4f.createScaleMatrix(0.2f, 0.2f, 0.2f);
-          case EXTERNAL -> getExternalConnectionScaleMatrix(dir);
-          default -> Matrix4f.createScaleMatrix(0.1f, 0.1f, 0.1f); //??
-        };
-        var normal = conn.getDirection().step();
-        normal.mul(0.333f);
-        matrix.translate(normal);
-        quads.addAll(QuadHelper.createCube(new Transformation(matrix), simpleItemConduitTexture));
+        quads.addAll(QuadHelper.generateQuads(conn.getVoxelShape(), simpleItemConduitTexture));
       }
     }
 

@@ -9,7 +9,8 @@ public class DebugPacket {
   public enum Action {
     DRAW_SHAPE,
     DRAW_VISUAL_SHAPE,
-    DRAW_COLLISION_SHAPE
+    DRAW_COLLISION_SHAPE,
+    DRAW_CONDUIT_SHAPE,
   }
 
   private final Action action;
@@ -33,6 +34,8 @@ public class DebugPacket {
           DebugVoxelShapeHighlighter.drawVisualShape = !DebugVoxelShapeHighlighter.drawVisualShape;
       case DRAW_COLLISION_SHAPE ->
           DebugVoxelShapeHighlighter.drawCollisionShape = !DebugVoxelShapeHighlighter.drawCollisionShape;
+      case DRAW_CONDUIT_SHAPE ->
+          DebugVoxelShapeHighlighter.drawConduitShapes = !DebugVoxelShapeHighlighter.drawConduitShapes;
     }
   }
 }

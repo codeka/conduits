@@ -1,6 +1,5 @@
 package com.codeka.justconduits.debug;
 
-import com.codeka.justconduits.packets.ConduitClientStatePacket;
 import com.codeka.justconduits.packets.JustConduitsPacketHandler;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.ArgumentBuilder;
@@ -21,7 +20,8 @@ public class DebugCommands {
             Commands.literal("highlight")
                 .then(Commands.literal("shape").executes(DebugCommands::highlightShape))
                 .then(Commands.literal("visual-shape").executes(DebugCommands::highlightVisualShape))
-                .then(Commands.literal("collision-shape").executes(DebugCommands::highlightCollisionShape)));
+                .then(Commands.literal("collision-shape").executes(DebugCommands::highlightCollisionShape))
+                .then(Commands.literal("conduit").executes(DebugCommands::highlightConduitShapes)));
   }
 
   public static int highlightShape(CommandContext<CommandSourceStack> context) {
@@ -41,6 +41,13 @@ public class DebugCommands {
   public static int highlightCollisionShape(CommandContext<CommandSourceStack> context) {
     if (context.getSource().getEntity() instanceof ServerPlayer player) {
       sendDebugPacket(player, new DebugPacket(DebugPacket.Action.DRAW_COLLISION_SHAPE));
+    }
+    return 0;
+  }
+
+  public static int highlightConduitShapes(CommandContext<CommandSourceStack> context) {
+    if (context.getSource().getEntity() instanceof ServerPlayer player) {
+      sendDebugPacket(player, new DebugPacket(DebugPacket.Action.DRAW_CONDUIT_SHAPE));
     }
     return 0;
   }

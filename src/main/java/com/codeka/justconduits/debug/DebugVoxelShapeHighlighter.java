@@ -1,5 +1,7 @@
 package com.codeka.justconduits.debug;
 
+import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
+import com.codeka.justconduits.common.blocks.ConduitConnection;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Matrix4f;
@@ -29,9 +31,15 @@ import java.awt.*;
 public class DebugVoxelShapeHighlighter {
   private static final Logger L = LogManager.getLogger();
 
+  private static final Color SHAPE_COLOR = Color.RED;
+  private static final Color VISUAL_SHAPE_COLOR = Color.BLUE;
+  private static final Color COLLISION_SHAPE_COLOR = Color.GREEN;
+  private static final Color CONDUIT_SHAPE_COLOR = Color.YELLOW;
+
   static boolean drawShape = false;
   static boolean drawVisualShape = false;
   static boolean drawCollisionShape = false;
+  static boolean drawConduitShapes = true; // TODO: turn off
 
   @SubscribeEvent
   public static void onDrawBlockHighlightEvent(DrawSelectionEvent.HighlightBlock event) {
@@ -48,29 +56,39 @@ public class DebugVoxelShapeHighlighter {
       return;
     }
 
-    final Color SHAPE_COLOR = Color.RED;
-    final Color RENDERSHAPE_COLOR = Color.BLUE;
-    final Color COLLISIONSHAPE_COLOR = Color.GREEN;
-
-    if (!(drawShape || drawVisualShape || drawCollisionShape)) return;
+    // If we're not drawing anything at all, just exit now.
+    if (!drawShape && !drawVisualShape && !drawCollisionShape && !drawConduitShapes) {
+      return;
+    }
 
     final Camera camera = event.getCamera();
     final CollisionContext collisionContext = CollisionContext.of(camera.getEntity());
     final MultiBufferSource multiBufferSource = event.getMultiBufferSource();
     final PoseStack poseStack = event.getPoseStack();
+    boolean cancelDefault = true;
     if (drawShape) {
       VoxelShape shape = blockstate.getShape(level, blockPos, collisionContext);
       drawSelectionBox(multiBufferSource, poseStack, blockPos, camera, shape, SHAPE_COLOR);
     }
     if (drawVisualShape) {
       VoxelShape shape = blockstate.getVisualShape(level, blockPos, collisionContext);
-      drawSelectionBox(multiBufferSource, poseStack, blockPos, camera, shape, RENDERSHAPE_COLOR);
+      drawSelectionBox(multiBufferSource, poseStack, blockPos, camera, shape, VISUAL_SHAPE_COLOR);
     }
     if (drawCollisionShape) {
       VoxelShape shape = blockstate.getCollisionShape(level, blockPos, collisionContext);
-      drawSelectionBox(multiBufferSource, poseStack, blockPos, camera, shape, COLLISIONSHAPE_COLOR);
+      drawSelectionBox(multiBufferSource, poseStack, blockPos, camera, shape, COLLISION_SHAPE_COLOR);
     }
-    event.setCanceled(true);
+    if (drawConduitShapes) {
+      if (level.getBlockEntity(blockPos) instanceof ConduitBlockEntity conduitBlockEntity) {
+        for (ConduitConnection connection : conduitBlockEntity.getConnections()) {
+          drawSelectionBox(
+              multiBufferSource, poseStack, blockPos, camera, connection.getVoxelShape(), CONDUIT_SHAPE_COLOR);
+        }
+      } else {
+        cancelDefault = false;
+      }
+    }
+    event.setCanceled(cancelDefault);
   }
 
   private static void drawSelectionBox(MultiBufferSource multiBufferSource, PoseStack poseStack, BlockPos blockPos,

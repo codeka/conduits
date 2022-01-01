@@ -7,6 +7,7 @@ import com.mojang.math.Vector4f;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Direction;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.client.model.pipeline.BakedQuadBuilder;
 
 import java.util.ArrayList;
@@ -17,6 +18,23 @@ import java.util.List;
 public class QuadHelper {
   public static Vector3f v(float x, float y, float z) {
     return new Vector3f(x, y, z);
+  }
+
+  /**
+   * Creates the quads for a {@link VoxelShape}.
+   *
+   * @param voxelShape A {@link VoxelShape} you want to turn into quads.
+   * @param sprite The {@link TextureAtlasSprite} to apply to all of the faces.
+   */
+  public static List<BakedQuad> generateQuads(VoxelShape voxelShape, TextureAtlasSprite sprite) {
+    ArrayList<BakedQuad> quads = new ArrayList<>();
+    voxelShape.forAllBoxes((minX, minY, minZ, maxX, maxY, maxZ) ->
+        quads.addAll(
+            createCube(
+                new Vector3f((float) minX, (float) minY, (float) minZ),
+                new Vector3f((float) maxX, (float) maxY, (float) maxZ),
+                Transformation.identity(), sprite)));
+    return quads;
   }
 
   /**
@@ -34,6 +52,30 @@ public class QuadHelper {
     quads.add(QuadHelper.createQuad(Direction.SOUTH, transformation, sprite));
     quads.add(QuadHelper.createQuad(Direction.EAST, transformation, sprite));
     quads.add(QuadHelper.createQuad(Direction.WEST, transformation, sprite));
+    return quads;
+  }
+
+  public static List<BakedQuad> createCube(Vector3f min, Vector3f max, Transformation transformation,
+                                           TextureAtlasSprite sprite) {
+    ArrayList<BakedQuad> quads = new ArrayList<>();
+    quads.add(createQuad(
+        v(min.x(), min.y(), min.z()), v(max.x(), min.y(), min.z()),
+        v(max.x(), min.y(), max.z()), v(min.x(), min.y(), max.z()), transformation, sprite));
+    quads.add(createQuad(
+        v(min.x(), max.y(), min.z()), v(min.x(), max.y(), max.z()),
+        v(max.x(), max.y(), max.z()), v(max.x(), max.y(), min.z()), transformation, sprite));
+    quads.add(createQuad(
+        v(min.x(), max.y(), min.z()), v(max.x(), max.y(), min.z()),
+        v(max.x(), min.y(), min.z()), v(min.x(), min.y(), min.z()), transformation, sprite));
+    quads.add(createQuad(
+        v(min.x(), max.y(), max.z()), v(min.x(), min.y(), max.z()),
+        v(max.x(), min.y(), max.z()), v(max.x(), max.y(), max.z()), transformation, sprite));
+    quads.add(createQuad(
+        v(max.x(), max.y(), min.z()), v(max.x(), max.y(), max.z()),
+        v(max.x(), min.y(), max.z()), v(max.x(), min.y(), min.z()), transformation, sprite));
+    quads.add(createQuad(
+        v(min.x(), max.y(), min.z()), v(min.x(), min.y(), min.z()),
+        v(min.x(), min.y(), max.z()), v(min.x(), max.y(), max.z()), transformation, sprite));
     return quads;
   }
 
@@ -55,7 +97,7 @@ public class QuadHelper {
       case WEST -> createQuad(v(0, 1, 0), v(0, 0, 0), v(0, 0, 1), v(0, 1, 1), transformation, sprite);
     };
   }
-
+  
   /**
    * Create a quad with the given four vertices. The vertices should always define a plane.
    *
