@@ -111,7 +111,8 @@ public class ConduitBlockEntity extends BlockEntity {
         .build();
   }
 
-  public InteractionResult use(Player player, InteractionHand hand, BlockHitResult blockHitResult) {
+  public InteractionResult use(Player player, InteractionHand hand, BlockHitResult blockHitResult,
+                               boolean isClientSide) {
     SelectionHelper.SelectionResult selectionResult = SelectionHelper.raycast(this, player);
     if (selectionResult == null) {
       return InteractionResult.PASS;
@@ -122,6 +123,11 @@ public class ConduitBlockEntity extends BlockEntity {
       // Ignore conduit connections, you can only use external connections.
       // TODO: if you're holding a wrench, disconnect the connectiuon.
       return InteractionResult.PASS;
+    }
+
+    // OK, this is something we can right-click on. If we're on the client, just return success so we get the animation.
+    if (isClientSide) {
+      return InteractionResult.SUCCESS;
     }
 
     L.atInfo().log("got a selection result: {}", selectionResult.connection());
