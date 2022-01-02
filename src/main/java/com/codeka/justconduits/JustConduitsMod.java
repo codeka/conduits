@@ -3,6 +3,7 @@ package com.codeka.justconduits;
 import com.codeka.justconduits.client.ClientSetup;
 import com.codeka.justconduits.common.ModBlockEntities;
 import com.codeka.justconduits.common.ModBlocks;
+import com.codeka.justconduits.common.ModContainers;
 import com.codeka.justconduits.common.ModItems;
 import com.codeka.justconduits.debug.DebugCommands;
 import com.codeka.justconduits.packets.JustConduitsPacketHandler;
@@ -37,6 +38,7 @@ public class JustConduitsMod {
     ModItems.register();
     ModBlocks.register();
     ModBlockEntities.register();
+    ModContainers.register();
   }
 
   private void setup(final FMLCommonSetupEvent event) {

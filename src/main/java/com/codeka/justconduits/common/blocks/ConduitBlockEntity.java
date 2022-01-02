@@ -13,9 +13,15 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -30,6 +36,7 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.network.PacketDistributor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -40,6 +47,8 @@ import java.util.*;
 
 public class ConduitBlockEntity extends BlockEntity {
   private static final Logger L = LogManager.getLogger();
+
+  public static final String SCREEN_CONDUIT_CONNECTION = "screen.conduit_connection";
 
   private final ConduitNetworkManager conduitNetworkManager = new ConduitNetworkManager();
   private final LazyOptional<IConduitNetworkManager> conduitNetworkManagerLazyOptional =
@@ -111,6 +120,16 @@ public class ConduitBlockEntity extends BlockEntity {
         .build();
   }
 
+  /**
+   * This is called when you right-click the block. We'll need to do a sub-hit detection to know which connection you
+   * clicked on, and then handle it appropriately.
+   *
+   * @param player The {@link Player} that performed the right-click.
+   * @param hand The {@link InteractionHand} that they used to click.
+   * @param blockHitResult The {@link BlockHitResult} that caused us to be activated.
+   * @param isClientSide If true, we're on the client side and shouldn't try to open any menus etc. But we'll still want
+   *                     to return {@link InteractionResult#SUCCESS} so we play the animation.
+   */
   public InteractionResult use(Player player, InteractionHand hand, BlockHitResult blockHitResult,
                                boolean isClientSide) {
     SelectionHelper.SelectionResult selectionResult = SelectionHelper.raycast(this, player);
@@ -121,7 +140,7 @@ public class ConduitBlockEntity extends BlockEntity {
     if (selectionResult.connection() == null
         || selectionResult.connection().getConnectionType() != ConduitConnection.ConnectionType.EXTERNAL) {
       // Ignore conduit connections, you can only use external connections.
-      // TODO: if you're holding a wrench, disconnect the connectiuon.
+      // TODO: if you're holding a wrench, disconnect the connection.
       return InteractionResult.PASS;
     }
 
@@ -130,7 +149,20 @@ public class ConduitBlockEntity extends BlockEntity {
       return InteractionResult.SUCCESS;
     }
 
-    L.atInfo().log("got a selection result: {}", selectionResult.connection());
+    MenuProvider menuProvider = new MenuProvider() {
+      @Nonnull
+      @Override
+      public Component getDisplayName() {
+        return new TranslatableComponent(SCREEN_CONDUIT_CONNECTION);
+      }
+
+      @Override
+      public AbstractContainerMenu createMenu(int containerId, @Nonnull Inventory inventory, @Nonnull Player player) {
+        return new ConduitContainerMenu(containerId, getBlockPos(), player.getInventory(), player);
+      }
+    };
+    NetworkHooks.openGui((ServerPlayer) player, menuProvider, getBlockPos());
+
     return InteractionResult.SUCCESS;
   }
 

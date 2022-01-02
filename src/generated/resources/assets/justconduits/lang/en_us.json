@@ -1,4 +1,5 @@
 {
   "block.justconduits.conduit": "Conduit",
-  "item.justconduits.simple_item_conduit": "Simple Item Conduit"
+  "item.justconduits.simple_item_conduit": "Simple Item Conduit",
+  "screen.conduit_connection": "Conduit Connection"
 }

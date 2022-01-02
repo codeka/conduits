@@ -2,9 +2,12 @@ package com.codeka.justconduits.client;
 
 import com.codeka.justconduits.JustConduitsMod;
 import com.codeka.justconduits.client.blocks.ConduitModelLoader;
+import com.codeka.justconduits.client.blocks.ConduitScreen;
 import com.codeka.justconduits.common.ModBlocks;
+import com.codeka.justconduits.common.ModContainers;
 import com.codeka.justconduits.common.blocks.ConduitBlockHighlighter;
 import com.codeka.justconduits.debug.DebugVoxelShapeHighlighter;
+import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraftforge.api.distmarker.Dist;
@@ -19,6 +22,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 public class ClientSetup {
   public static void init(FMLClientSetupEvent event) {
     event.enqueueWork(() -> {
+      MenuScreens.register(ModContainers.CONDUIT_CONTAINER_MENU.get(), ConduitScreen::new);
       ItemBlockRenderTypes.setRenderLayer(ModBlocks.CONDUIT.get(), RenderType.translucent());
     });
 
