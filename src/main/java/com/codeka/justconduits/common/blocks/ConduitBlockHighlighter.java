@@ -1,6 +1,7 @@
 package com.codeka.justconduits.common.blocks;
 
 import com.codeka.justconduits.helpers.LineHelper;
+import com.codeka.justconduits.helpers.SelectionHelper;
 import com.mojang.math.Vector3f;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -25,8 +26,6 @@ import java.awt.Color;
 public class ConduitBlockHighlighter {
   private static final Logger L = LogManager.getLogger();
 
-  private static final VoxelShape CENTER = Shapes.box(0.375f, 0.375f, 0.375f, 0.625f, 0.625f, 0.625f);
-
   @SubscribeEvent(priority = EventPriority.LOW)
   public static void onDrawBlockHighlightEvent(DrawSelectionEvent.HighlightBlock event) {
     ConduitBlockEntity conduitBlockEntity = getConduitBlockEntity(event);
@@ -34,32 +33,11 @@ public class ConduitBlockHighlighter {
       return;
     }
 
-    final Vec3 startPos = event.getCamera().getPosition();
-    final Vector3f lookVector = event.getCamera().getLookVector();
-    final double pickRange = Minecraft.getInstance().gameMode.getPickRange();
-    lookVector.mul((float) pickRange);
-    final Vec3 endPos = startPos.add(lookVector.x(), lookVector.y(), lookVector.z());
-
-    // Check the center piece.
-    BlockHitResult centerHitResult = CENTER.clip(startPos, endPos, conduitBlockEntity.getBlockPos());
-    if (centerHitResult != null) {
+    SelectionHelper.SelectionResult selection = SelectionHelper.raycast(conduitBlockEntity, event.getCamera());
+    if (selection != null) {
       LineHelper.drawSelectionBox(event.getMultiBufferSource(), event.getPoseStack(), conduitBlockEntity.getBlockPos(),
-          event.getCamera(), CENTER, Color.CYAN);
+          event.getCamera(), selection.shape(), Color.CYAN);
       event.setCanceled(true);
-      return;
-    }
-
-    // TODO: it should be the closest one that you click on.
-    for (ConduitConnection connection : conduitBlockEntity.getConnections()) {
-      BlockHitResult subHitResult = connection.getVoxelShape().clip(startPos, endPos, conduitBlockEntity.getBlockPos());
-      if (subHitResult == null) {
-        continue;
-      }
-
-      LineHelper.drawSelectionBox(event.getMultiBufferSource(), event.getPoseStack(), conduitBlockEntity.getBlockPos(),
-          event.getCamera(), connection.getVoxelShape(), Color.CYAN);
-      event.setCanceled(true);
-      return;
     }
   }
 

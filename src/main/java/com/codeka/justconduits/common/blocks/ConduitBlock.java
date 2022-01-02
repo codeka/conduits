@@ -95,6 +95,15 @@ public class ConduitBlock extends Block implements EntityBlock {
   public InteractionResult use(@Nonnull BlockState blockState, @Nonnull Level level, @Nonnull BlockPos blockPos,
                                @Nonnull Player player, @Nonnull InteractionHand hand,
                                @Nonnull BlockHitResult blockHitResult) {
+    if (level.isClientSide) {
+      // We only want this to run on the server.
+      return InteractionResult.PASS;
+    }
+
+    if (level.getBlockEntity(blockPos) instanceof ConduitBlockEntity conduitBlockEntity) {
+      return conduitBlockEntity.use(player, hand, blockHitResult);
+    }
+
     return InteractionResult.PASS;
   }
 }

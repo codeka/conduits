@@ -5,6 +5,7 @@ import com.codeka.justconduits.common.ModBlockEntities;
 import com.codeka.justconduits.common.ModCapabilities;
 import com.codeka.justconduits.common.capabilities.network.ConduitNetworkManager;
 import com.codeka.justconduits.common.capabilities.network.IConduitNetworkManager;
+import com.codeka.justconduits.helpers.SelectionHelper;
 import com.codeka.justconduits.packets.ConduitClientStatePacket;
 import com.codeka.justconduits.packets.JustConduitsPacketHandler;
 import io.netty.buffer.Unpooled;
@@ -12,10 +13,14 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.client.model.ModelDataManager;
@@ -104,6 +109,23 @@ public class ConduitBlockEntity extends BlockEntity {
     return new ModelDataMap.Builder()
         .withInitial(ConduitModelProps.CONNECTIONS, new ArrayList<>(connections.values()))
         .build();
+  }
+
+  public InteractionResult use(Player player, InteractionHand hand, BlockHitResult blockHitResult) {
+    SelectionHelper.SelectionResult selectionResult = SelectionHelper.raycast(this, player);
+    if (selectionResult == null) {
+      return InteractionResult.PASS;
+    }
+
+    if (selectionResult.connection() == null
+        || selectionResult.connection().getConnectionType() != ConduitConnection.ConnectionType.EXTERNAL) {
+      // Ignore conduit connections, you can only use external connections.
+      // TODO: if you're holding a wrench, disconnect the connectiuon.
+      return InteractionResult.PASS;
+    }
+
+    L.atInfo().log("got a selection result: {}", selectionResult.connection());
+    return InteractionResult.SUCCESS;
   }
 
   /**
