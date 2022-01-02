@@ -55,20 +55,33 @@ public class ConduitConnection {
     // TODO: this is the shape of the conduit connection only
     return switch (connectionType) {
       case CONDUIT -> Shapes.box(
-          shapeCenter.x() - (0.05f + Math.abs(normal.x()) * 0.2f),
-          shapeCenter.y() - (0.05f + Math.abs(normal.y()) * 0.2f),
-          shapeCenter.z() - (0.05f + Math.abs(normal.z()) * 0.2f),
-          shapeCenter.x() + (0.05f + Math.abs(normal.x()) * 0.2f),
-          shapeCenter.y() + (0.05f + Math.abs(normal.y()) * 0.2f),
-          shapeCenter.z() + (0.05f + Math.abs(normal.z()) * 0.2f));
-      case EXTERNAL -> Shapes.box(
-          shapeCenter.x() - (0.1f + Math.abs(normal.x()) * 0.15f),
-          shapeCenter.y() - (0.1f + Math.abs(normal.y()) * 0.15f),
-          shapeCenter.z() - (0.1f + Math.abs(normal.z()) * 0.15f),
-          shapeCenter.x() + (0.1f + Math.abs(normal.x()) * 0.15f),
-          shapeCenter.y() + (0.1f + Math.abs(normal.y()) * 0.15f),
-          shapeCenter.z() + (0.1f + Math.abs(normal.z()) * 0.15f));
+          shapeCenter.x() - (f(1.5f) + Math.abs(normal.x()) * (0.25f - f(1.5f))),
+          shapeCenter.y() - (f(1.5f) + Math.abs(normal.y()) * (0.25f - f(1.5f))),
+          shapeCenter.z() - (f(1.5f) + Math.abs(normal.z()) * (0.25f - f(1.5f))),
+          shapeCenter.x() + (f(1.5f) + Math.abs(normal.x()) * (0.25f - f(1.5f))),
+          shapeCenter.y() + (f(1.5f) + Math.abs(normal.y()) * (0.25f - f(1.5f))),
+          shapeCenter.z() + (f(1.5f) + Math.abs(normal.z()) * (0.25f - f(1.5f))));
+      case EXTERNAL -> Shapes.or(
+              Shapes.box(
+                  shapeCenter.x() - (f(1.5f) + Math.abs(normal.x()) * (0.25f - f(1.5f))),
+                  shapeCenter.y() - (f(1.5f) + Math.abs(normal.y()) * (0.25f - f(1.5f))),
+                  shapeCenter.z() - (f(1.5f) + Math.abs(normal.z()) * (0.25f - f(1.5f))),
+                  shapeCenter.x() + (f(1.5f) + Math.abs(normal.x()) * (0.25f - f(1.5f))),
+                  shapeCenter.y() + (f(1.5f) + Math.abs(normal.y()) * (0.25f - f(1.5f))),
+                  shapeCenter.z() + (f(1.5f) + Math.abs(normal.z()) * (0.25f - f(1.5f)))),
+              Shapes.box(
+                  shapeCenter.x() + normal.x() * 0.125f - (f(6) + Math.abs(normal.x()) * (0.125f - f(6))),
+                  shapeCenter.y() + normal.y() * 0.125f - (f(6) + Math.abs(normal.y()) * (0.125f - f(6))),
+                  shapeCenter.z() + normal.z() * 0.125f - (f(6) + Math.abs(normal.z()) * (0.125f - f(6))),
+                  shapeCenter.x() + normal.x() * 0.125f + (f(6) + Math.abs(normal.x()) * (0.125f - f(6))),
+                  shapeCenter.y() + normal.y() * 0.125f + (f(6) + Math.abs(normal.y()) * (0.125f - f(6))),
+                  shapeCenter.z() + normal.z() * 0.125f + (f(6) + Math.abs(normal.z()) * (0.125f - f(6))))
+          );
       default -> Shapes.empty();
     };
+  }
+
+  private static float f(float f) {
+    return f / 16.0f;
   }
 }

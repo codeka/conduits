@@ -57,8 +57,9 @@ public class ConduitBakedModel implements IDynamicBakedModel {
     }
 
     TextureAtlasSprite simpleItemConduitTexture = spriteGetter.apply(ConduitModelLoader.SIMPLE_CONDUIT_MATERIAL);
-    Transformation transformation = new Transformation(Matrix4f.createScaleMatrix(0.5f, 0.5f, 0.5f));
 
+    // TODO: this should be at the center of each actual conduit.
+    Transformation transformation = new Transformation(Matrix4f.createScaleMatrix(0.25f, 0.25f, 0.25f));
     ArrayList<BakedQuad> quads = new ArrayList<>(QuadHelper.createCube(transformation, simpleItemConduitTexture));
 
     List<ConduitConnection> connections = extraData.getData(ConduitModelProps.CONNECTIONS);
@@ -69,17 +70,6 @@ public class ConduitBakedModel implements IDynamicBakedModel {
     }
 
     return quads;
-  }
-
-  /**
-   * Gets a scale matrix for the external connection that is in the given direction.
-   */
-  private static Matrix4f getExternalConnectionScaleMatrix(Direction dir) {
-    float sx = 1.0f - Math.abs(dir.getStepX());
-    float sy = 1.0f - Math.abs(dir.getStepY());
-    float sz = 1.0f - Math.abs(dir.getStepZ());
-
-    return Matrix4f.createScaleMatrix(0.2f + sx * 0.2f, 0.2f + sy * 0.2f, 0.2f + sz * 0.2f);
   }
 
   @Override

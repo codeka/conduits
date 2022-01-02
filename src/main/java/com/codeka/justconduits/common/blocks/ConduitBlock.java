@@ -16,6 +16,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Material;
 import net.minecraft.world.level.material.MaterialColor;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.apache.logging.log4j.LogManager;
@@ -76,6 +77,19 @@ public class ConduitBlock extends Block implements EntityBlock {
     return RENDER_SHAPE;
   }
 
+  @SuppressWarnings("deprecation")
+  @Nonnull
+  @Override
+  public VoxelShape getShape(@Nonnull BlockState blockState, @Nonnull BlockGetter reader, @Nonnull BlockPos blockPos,
+                             @Nonnull CollisionContext context) {
+    if (reader.getBlockEntity(blockPos) instanceof ConduitBlockEntity conduitBlockEntity) {
+      return conduitBlockEntity.getShape();
+    }
+
+    return super.getShape(blockState, reader, blockPos, context);
+  }
+
+  @SuppressWarnings("deprecation")
   @Nonnull
   @Override
   public InteractionResult use(@Nonnull BlockState blockState, @Nonnull Level level, @Nonnull BlockPos blockPos,

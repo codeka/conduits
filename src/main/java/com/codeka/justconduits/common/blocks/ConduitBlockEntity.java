@@ -16,6 +16,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.client.model.ModelDataManager;
 import net.minecraftforge.client.model.data.IModelData;
 import net.minecraftforge.client.model.data.ModelDataMap;
@@ -41,12 +43,24 @@ public class ConduitBlockEntity extends BlockEntity {
   private boolean firstTick = true;
   private HashMap<Direction, ConduitConnection> connections = new HashMap<>();
 
+  // We make the overall shape of the block the combined shape of all the connections, etc. That way, you can access
+  // stuff behind us easily. But re-calculating that over and over is expensive, so we cache it here and only
+  // re-calculate it when a connection actually changes.
+  private VoxelShape shape;
+
   public ConduitBlockEntity(BlockPos blockPos, BlockState blockState) {
     super(ModBlockEntities.CONDUIT.get(), blockPos, blockState);
   }
 
   public Collection<ConduitConnection> getConnections() {
     return connections.values();
+  }
+
+  public VoxelShape getShape() {
+    if (shape == null) {
+      updateShape();
+    }
+    return shape;
   }
 
   /**
@@ -150,6 +164,8 @@ public class ConduitBlockEntity extends BlockEntity {
       ModelDataManager.requestModelDataRefresh(this);
       requireLevel().sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_ALL);
     }
+
+    updateShape();
   }
 
   /** Gets the {@link Level}, throws an exception if it's null. */
@@ -197,7 +213,18 @@ public class ConduitBlockEntity extends BlockEntity {
 
     if (needUpdate) {
       sendClientUpdate();
+      updateShape();
       requireLevel().sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_ALL);
     }
+  }
+
+  private void updateShape() {
+    // TODO: start with the middle bit.
+    VoxelShape shape = Shapes.box(0.375f, 0.375f, 0.375f, 0.625f, 0.625f, 0.625f);
+    for (ConduitConnection conn : connections.values()) {
+      shape = Shapes.or(shape, conn.getVoxelShape());
+    }
+
+    this.shape = shape;
   }
 }

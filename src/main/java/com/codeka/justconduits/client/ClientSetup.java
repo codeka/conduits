@@ -3,6 +3,7 @@ package com.codeka.justconduits.client;
 import com.codeka.justconduits.JustConduitsMod;
 import com.codeka.justconduits.client.blocks.ConduitModelLoader;
 import com.codeka.justconduits.common.ModBlocks;
+import com.codeka.justconduits.common.blocks.ConduitBlockHighlighter;
 import com.codeka.justconduits.debug.DebugVoxelShapeHighlighter;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
@@ -22,6 +23,7 @@ public class ClientSetup {
     });
 
     MinecraftForge.EVENT_BUS.register(DebugVoxelShapeHighlighter.class);
+    MinecraftForge.EVENT_BUS.register(ConduitBlockHighlighter.class);
   }
 
   @SubscribeEvent
