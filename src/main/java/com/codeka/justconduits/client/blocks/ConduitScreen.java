@@ -32,6 +32,9 @@ public class ConduitScreen extends AbstractContainerScreen<ConduitContainerMenu>
 
   public ConduitScreen(ConduitContainerMenu menu, Inventory playerInventory, Component title) {
     super(menu, playerInventory, title);
+    imageWidth = 180;
+    imageHeight = 190;
+
     connection = menu.getConnection();
     ConduitBlockEntity conduitBlockEntity = menu.getConduitBlockEntity();
     if (connection != null && conduitBlockEntity != null) {
@@ -44,11 +47,10 @@ public class ConduitScreen extends AbstractContainerScreen<ConduitContainerMenu>
   @Override
   protected void init() {
     super.init();
-    SimpleButton btn = new SimpleButton.Builder(leftPos + 10, topPos + 20).withMessage(new TextComponent("H")).build();
-    btn.setPressed(true);
+    CheckButton btn = new CheckButton.Builder(leftPos + 10, topPos + 20).withMessage(new TextComponent("Insert")).build();
     addRenderableWidget(btn);
 
-    btn = new CheckButton.Builder(leftPos + 10, topPos + 45).withMessage(new TextComponent("C")).build();
+    btn = new CheckButton.Builder(leftPos + 100, topPos + 20).withMessage(new TextComponent("Extract")).build();
     addRenderableWidget(btn);
   }
 

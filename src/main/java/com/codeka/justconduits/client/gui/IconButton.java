@@ -32,7 +32,7 @@ public class IconButton extends SimpleButton {
     }
   }
 
-  public static class Builder extends SimpleButton.Builder {
+  public static class Builder<T extends IconButton.Builder<?>> extends SimpleButton.Builder<T> {
     private Icon icon;
 
     public Builder(int x, int y) {
@@ -43,9 +43,9 @@ public class IconButton extends SimpleButton {
       super(x, y, width, height);
     }
 
-    public Builder withIcon(Icon icon) {
+    public T withIcon(Icon icon) {
       this.icon = icon;
-      return this;
+      return (T) this;
     }
 
     public IconButton build() {

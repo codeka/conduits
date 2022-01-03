@@ -40,7 +40,7 @@ public class ConduitContainerMenu extends AbstractContainerMenu {
     this.playerInventory = new InvWrapper(playerInventory);
     this.direction = extras.direction;
 
-    layoutPlayerInventorySlots(10, 70);
+    layoutPlayerInventorySlots(10, 108);
   }
 
   @Nullable

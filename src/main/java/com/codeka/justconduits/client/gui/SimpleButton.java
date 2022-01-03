@@ -4,7 +4,6 @@ import com.codeka.justconduits.JustConduitsMod;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
@@ -59,7 +58,7 @@ public class SimpleButton extends Button {
         getFGColor() | Mth.ceil(alpha * 255.0F) << 24);
   }
 
-  public static class Builder {
+  public static class Builder<T extends Builder<?>> {
     protected final int x;
     protected final int y;
     protected final int width;
@@ -83,19 +82,19 @@ public class SimpleButton extends Button {
       this.height = height;
     }
 
-    public Builder withMessage(Component message) {
+    public T withMessage(Component message) {
       this.message = message;
-      return this;
+      return (T) this;
     }
 
-    public Builder withOnPress(OnPress onPress) {
+    public T withOnPress(OnPress onPress) {
       this.onPress = onPress;
-      return this;
+      return (T) this;
     }
 
-    public Builder withOnTooltip(OnTooltip onTooltip) {
+    public T withOnTooltip(OnTooltip onTooltip) {
       this.onTooltip = onTooltip;
-      return this;
+      return (T) this;
     }
 
     /** This should be called in the sub-class's {@link #build} method. */
