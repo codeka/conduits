@@ -19,6 +19,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
+import net.minecraft.world.Nameable;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -40,6 +41,7 @@ import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.network.PacketDistributor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.lwjgl.system.CallbackI;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -68,6 +70,27 @@ public class ConduitBlockEntity extends BlockEntity {
 
   public Collection<ConduitConnection> getConnections() {
     return connections.values();
+  }
+
+  /** Gets the {@link ConduitConnection} in the given {@link Direction}.
+   *
+   * @param dir The {@link Direction} to look at.
+   * @return The {@link ConduitConnection} in the given direction, or null if there's no connection in that direction.
+   */
+  @Nullable
+  public ConduitConnection getConnection(Direction dir) {
+    return connections.get(dir);
+  }
+
+  /** Gets the name of the block that this connection is connected to. */
+  public Component getConnectionName(ConduitConnection connection) {
+    BlockPos blockPos = getBlockPos().relative(connection.getDirection());
+    if (requireLevel().getBlockEntity(blockPos) instanceof Nameable nameable) {
+      return nameable.hasCustomName() ? nameable.getCustomName() : nameable.getDisplayName();
+    }
+
+    BlockState blockState = requireLevel().getBlockState(getBlockPos().relative(connection.getDirection()));
+    return blockState.getBlock().getName();
   }
 
   public VoxelShape getShape() {
@@ -149,6 +172,8 @@ public class ConduitBlockEntity extends BlockEntity {
       return InteractionResult.SUCCESS;
     }
 
+    ConduitContainerMenu.MenuExtras menuExtras =
+        new ConduitContainerMenu.MenuExtras(this, selectionResult.connection());
     MenuProvider menuProvider = new MenuProvider() {
       @Nonnull
       @Override
@@ -158,10 +183,10 @@ public class ConduitBlockEntity extends BlockEntity {
 
       @Override
       public AbstractContainerMenu createMenu(int containerId, @Nonnull Inventory inventory, @Nonnull Player player) {
-        return new ConduitContainerMenu(containerId, getBlockPos(), player.getInventory(), player);
+        return new ConduitContainerMenu(containerId, player.getInventory(), player, menuExtras);
       }
     };
-    NetworkHooks.openGui((ServerPlayer) player, menuProvider, getBlockPos());
+    NetworkHooks.openGui((ServerPlayer) player, menuProvider, menuExtras);
 
     return InteractionResult.SUCCESS;
   }

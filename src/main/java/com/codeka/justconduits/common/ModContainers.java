@@ -15,7 +15,9 @@ public class ModContainers {
 
   public static final RegistryObject<MenuType<ConduitContainerMenu>> CONDUIT_CONTAINER_MENU =
       CONTAINERS.register("conduit", () -> IForgeMenuType.create(
-          (windowId, inv, data) -> new ConduitContainerMenu(windowId, data.readBlockPos(), inv, inv.player)));
+          (windowId, inv, data) ->
+              new ConduitContainerMenu(
+                  windowId, inv, inv.player, ConduitContainerMenu.MenuExtras.create(data))));
 
   public static void register() {
     CONTAINERS.register(FMLJavaModLoadingContext.get().getModEventBus());
