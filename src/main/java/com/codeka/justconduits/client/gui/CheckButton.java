@@ -6,35 +6,34 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.Consumer;
+
 /**
  * An {@link IconButton} that hard codes itself to act like a checkbox.
  *
  * There is a vanilla <code>Checkbox</code> widget, but I don't really like the look of it, so here's our own.
  */
 public class CheckButton extends IconButton {
-  private boolean isChecked;
+  private DataSource<Boolean> isChecked;
 
   public CheckButton(int x, int y, int width, int height, Component message, OnTooltip onTooltip) {
     super(x, y, width, height, message, (btn) -> ((CheckButton) btn).handlePress() ,onTooltip);
   }
 
   public void setChecked(boolean checked) {
-    isChecked = checked;
-    if (checked) {
-      setIcon(Icon.CHECKMARK);
-      setPressed(true);
-    } else {
-      setIcon(null);
-      setPressed(false);
+    if (isChecked.getValue() == checked) {
+      return;
     }
-  }
 
-  public boolean isChecked() {
-    return isChecked;
+    isChecked.setValue(checked);
   }
 
   @Override
   protected void renderIconOrText(@NotNull PoseStack poseStack) {
+    boolean showCheck = isChecked.getValue();
+    setIcon(showCheck ? Icon.CHECKMARK : null);
+    setPressed(showCheck);
+
     super.renderIconOrText(poseStack);
 
     // TODO: maybe we don't always need to render this thing?
@@ -46,11 +45,13 @@ public class CheckButton extends IconButton {
   }
 
   private void handlePress() {
-    setChecked(!isChecked);
+    setChecked(!isChecked.getValue());
     // TODO: do we have to propagate this?
   }
 
   public static class Builder extends IconButton.Builder<CheckButton.Builder> {
+    private DataSource<Boolean> checkedDataSource;
+
     public Builder(int x, int y) {
       super(x, y);
     }
@@ -59,14 +60,37 @@ public class CheckButton extends IconButton {
       super(x, y, width, height);
     }
 
+    public Builder withCheckedDataSource(DataSource<Boolean> checkedDataSource) {
+      this.checkedDataSource = checkedDataSource;
+      return this;
+    }
+
     @Override
     protected void prepare() {
       super.prepare();
+
+      if (checkedDataSource == null) {
+        checkedDataSource = new DataSource<>() {
+          private boolean value;
+
+          @Override
+          public Boolean getValue() {
+            return value;
+          }
+
+          @Override
+          public void setValue(Boolean value) {
+            this.value = value;
+          }
+        };
+      }
     }
 
     public CheckButton build() {
       prepare();
-      return new CheckButton(x, y, width, height, message, onTooltip);
+      CheckButton btn = new CheckButton(x, y, width, height, message, onTooltip);
+      btn.isChecked = checkedDataSource;
+      return btn;
     }
   }
 }

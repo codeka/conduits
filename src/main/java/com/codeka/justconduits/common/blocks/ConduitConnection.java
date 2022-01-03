@@ -2,8 +2,6 @@ package com.codeka.justconduits.common.blocks;
 
 import com.mojang.math.Vector3f;
 import net.minecraft.core.Direction;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.apache.logging.log4j.LogManager;
@@ -32,6 +30,8 @@ public class ConduitConnection {
 
   private final Direction dir;
   private final ConnectionType connectionType;
+  private boolean extractEnabled;
+  private boolean insertEnabled;
 
   public ConduitConnection(@Nonnull Direction dir, @Nonnull ConnectionType connectionType) {
     this.dir = checkNotNull(dir);
@@ -44,6 +44,22 @@ public class ConduitConnection {
 
   public ConnectionType getConnectionType() {
     return connectionType;
+  }
+
+  public boolean isExtractEnabled() {
+    return extractEnabled;
+  }
+
+  public void setExtractEnabled(boolean value) {
+    extractEnabled = value;
+  }
+
+  public boolean isInsertEnabled() {
+    return insertEnabled;
+  }
+
+  public void setInsertEnabled(boolean value) {
+    insertEnabled = value;
   }
 
   /** Calculates the {@link VoxelShape} for this connection. */

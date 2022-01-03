@@ -23,6 +23,11 @@ public class ConduitClientStatePacket {
   private final BlockPos blockPos;
   private final ArrayList<ConduitConnection> connections;
 
+  public ConduitClientStatePacket(ConduitBlockEntity conduitBlockEntity) {
+    blockPos = conduitBlockEntity.getBlockPos();
+    this.connections = new ArrayList<>(conduitBlockEntity.getConnections());
+  }
+
   public ConduitClientStatePacket(FriendlyByteBuf buffer) {
     blockPos = buffer.readBlockPos();
     connections = buffer.readCollection(ArrayList::new, (buf) -> {
@@ -30,11 +35,6 @@ public class ConduitClientStatePacket {
       ConduitConnection.ConnectionType connectionType = buf.readEnum(ConduitConnection.ConnectionType.class);
       return new ConduitConnection(dir, connectionType);
     });
-  }
-
-  public ConduitClientStatePacket(ConduitBlockEntity conduitBlockEntity) {
-    blockPos = conduitBlockEntity.getBlockPos();
-    this.connections = new ArrayList<>(conduitBlockEntity.getConnections());
   }
 
   public void encode(FriendlyByteBuf buffer) {

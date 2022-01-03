@@ -7,6 +7,7 @@ import com.codeka.justconduits.common.capabilities.network.ConduitNetworkManager
 import com.codeka.justconduits.common.capabilities.network.IConduitNetworkManager;
 import com.codeka.justconduits.helpers.SelectionHelper;
 import com.codeka.justconduits.packets.ConduitClientStatePacket;
+import com.codeka.justconduits.packets.ConduitUpdatePacket;
 import com.codeka.justconduits.packets.JustConduitsPacketHandler;
 import io.netty.buffer.Unpooled;
 import net.minecraft.core.BlockPos;
@@ -41,7 +42,6 @@ import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.network.PacketDistributor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.lwjgl.system.CallbackI;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -251,6 +251,21 @@ public class ConduitBlockEntity extends BlockEntity {
     }
 
     updateShape();
+  }
+
+  /** Called on the server when a client wants to update us in some way. */
+  public void onServerUpdate(ConduitUpdatePacket packet) {
+    ConduitConnection connection = getConnection(packet.getDirection());
+    if (connection == null) {
+      L.atError().log("No connection found when updating from client.");
+      return;
+    }
+
+    switch (packet.getUpdateType()) {
+      case INSERT_ENABLED -> connection.setInsertEnabled(packet.getBoolValue());
+      case EXTRACT_ENABLED -> connection.setExtractEnabled(packet.getBoolValue());
+      default -> L.atError().log("Unexpected update type: {}", packet.getUpdateType());
+    }
   }
 
   /** Gets the {@link Level}, throws an exception if it's null. */

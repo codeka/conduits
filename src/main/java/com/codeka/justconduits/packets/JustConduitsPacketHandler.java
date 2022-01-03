@@ -29,6 +29,12 @@ public class JustConduitsPacketHandler {
         ConduitClientStatePacket::handle);
     CHANNEL.registerMessage(
         id++,
+        ConduitUpdatePacket.class,
+        ConduitUpdatePacket::encode,
+        ConduitUpdatePacket::new,
+        ConduitUpdatePacket::handle);
+    CHANNEL.registerMessage(
+        id++,
         DebugPacket.class,
         DebugPacket::encode,
         DebugPacket::new,
