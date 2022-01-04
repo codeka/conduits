@@ -6,6 +6,8 @@ import com.codeka.justconduits.common.ModCapabilities;
 import com.codeka.justconduits.common.capabilities.network.ConduitNetworkManager;
 import com.codeka.justconduits.common.capabilities.network.IConduitNetworkManager;
 import com.codeka.justconduits.common.capabilities.network.NetworkRef;
+import com.codeka.justconduits.common.capabilities.network.NetworkRegistry;
+import com.codeka.justconduits.common.capabilities.network.item.ItemNetwork;
 import com.codeka.justconduits.helpers.SelectionHelper;
 import com.codeka.justconduits.packets.ConduitClientStatePacket;
 import com.codeka.justconduits.packets.ConduitUpdatePacket;
@@ -25,6 +27,7 @@ import net.minecraft.world.Nameable;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -36,9 +39,11 @@ import net.minecraftforge.client.model.ModelDataManager;
 import net.minecraftforge.client.model.data.IModelData;
 import net.minecraftforge.client.model.data.ModelDataMap;
 import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.extensions.IForgeItemStack;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.network.PacketDistributor;
 import org.apache.logging.log4j.LogManager;
@@ -69,6 +74,10 @@ public class ConduitBlockEntity extends BlockEntity {
   // be careful.
   // TODO: this should be per-conduit.
   private NetworkRef networkRef;
+
+  // The number of ticks left until we do another extract operation.
+  // TODO: this should be per-conduit.
+  private int ticksUntilNextExtract;
 
   public ConduitBlockEntity(BlockPos blockPos, BlockState blockState) {
     super(ModBlockEntities.CONDUIT.get(), blockPos, blockState);
@@ -232,6 +241,145 @@ public class ConduitBlockEntity extends BlockEntity {
 
       firstTick = false;
     }
+
+    if (networkRef == null) {
+      return;
+    }
+
+    // TODO: the rest of this method should be per-conduit.
+
+    // If it's not time to extract yet, then don't do anything.
+    if (ticksUntilNextExtract > 0) {
+      ticksUntilNextExtract --;
+      return;
+    }
+
+    int itemsToTransfer = 8;
+
+    // TODO: keep a flag to see if we need to tick, if there's no external connections we can skip the loop
+    for (ConduitConnection conn : connections.values()) {
+      if (conn.getConnectionType() != ConduitConnection.ConnectionType.EXTERNAL) {
+        continue;
+      }
+
+      if (!conn.isExtractEnabled()) {
+        // Item conduits only do something when extracting.
+        continue;
+      }
+
+      ItemNetwork network = NetworkRegistry.getNetwork(ItemNetwork.class, networkRef.getId());
+      if (network == null) {
+        L.atError().log("Network {} does not exist.", networkRef);
+        continue;
+      }
+
+      // find an insert-enabled connection to insert items into.
+      ArrayList<IItemHandler> candidateTargets = new ArrayList<>();
+      for (ConduitConnection outputConnection : network.getExternalConnections()) {
+        if (!outputConnection.isInsertEnabled()) {
+          // It doesn't have insert enabled, so we can't insert.
+          continue;
+        }
+
+        if (outputConnection == conn) {
+          // TODO: if self-insert is enabled, this is OK.
+          continue;
+        }
+
+        candidateTargets.add(getItemHandler(outputConnection));
+      }
+
+      // TODO: handle speed upgrades.
+      transferItems(conn, candidateTargets, /* count = */ 8);
+
+      // TODO: config this, and also handle speed upgrades.
+      ticksUntilNextExtract = 20;
+    }
+  }
+
+  /**
+   * Transfers items between the two given {@link ConduitConnection}s, if possible.
+   *
+   * @param fromConnection The {@link ConduitConnection} to transfer from.
+   * @param candidateTargets A list of {@link IItemHandler}s that we'll try to insert into.
+   * @param count The maximum number of items to transfer.
+   * @return The number of items actually transferred. This could be zero if, for example, the to connection does
+   *         not have space, etc.
+   */
+  private int transferItems(
+      @Nonnull ConduitConnection fromConnection, @Nonnull Collection<IItemHandler> candidateTargets, int count) {
+    IItemHandler fromItemHandler = getItemHandler(fromConnection);
+    if (fromItemHandler == null) {
+      return 0;
+    }
+
+    int totalTransferred = 0;
+
+    // TODO: limit the number of slots we check per tick.
+    for (int fromSlot = 0; fromSlot < fromItemHandler.getSlots(); fromSlot++) {
+      ItemStack itemStack = fromItemHandler.extractItem(fromSlot, count, /* simulate = */ true);
+      ItemStack remainingItems = itemStack;
+      for (IItemHandler toInventory : candidateTargets) {
+        remainingItems = insertItems(toInventory, remainingItems);
+        if (remainingItems.isEmpty()) {
+          break;
+        }
+      }
+
+      if (itemStack.getCount() != remainingItems.getCount()) {
+        // We actually transferred some items. Reduce the count by the number we transferred.
+        int numTransferredFromThisSlot = itemStack.getCount() - remainingItems.getCount();
+        count -= numTransferredFromThisSlot;
+        totalTransferred += numTransferredFromThisSlot;
+
+        // Actually remove the items from the source now.
+        ItemStack itemsRemoved =
+            fromItemHandler.extractItem(fromSlot, numTransferredFromThisSlot, /* simulate = */ false);
+        // Check for duped items. It shouldn't happen, if the source inventory implements its interface correctly, but
+        // it's always possible that it does something bad.
+        if (itemsRemoved.getCount() != numTransferredFromThisSlot || itemsRemoved.getItem() != itemStack.getItem()) {
+          L.atError().log(
+              "Items extracted during execute phase different from simulate phase. " +
+                  "Simulated extracting {} {}, but executed {} {}",
+              numTransferredFromThisSlot, itemStack.getDisplayName(), itemsRemoved.getCount(),
+              itemsRemoved.getDisplayName());
+        }
+      }
+
+      if (count == 0) {
+        break;
+      }
+    }
+
+    return totalTransferred;
+  }
+
+  /**
+   * Attempts to insert the items from the given {@link ItemStack} into the given inventory.
+   *
+   * @param toItemHandler The {@link IItemHandler} to insert into.
+   * @param itemStack The {@link ItemStack} to insert.
+   * @return An {@link ItemStack} of the remaining items that we weren't able to insert.
+   */
+  private ItemStack insertItems(@Nonnull IItemHandler toItemHandler, @Nonnull ItemStack itemStack) {
+    return ItemHandlerHelper.insertItem(toItemHandler, itemStack, /* simulate = */ false);
+  }
+
+  /** Helper method to return the item handler for a given conduit connection. */
+  @Nullable
+  private IItemHandler getItemHandler(ConduitConnection connection) {
+    BlockEntity toBlockEntity = connection.getConnectedBlockEntity(requireLevel());
+    if (toBlockEntity == null) {
+      return null;
+    }
+    Optional<IItemHandler> itemHandler =
+        toBlockEntity.getCapability(
+            CapabilityItemHandler.ITEM_HANDLER_CAPABILITY,
+            connection.getDirection().getOpposite()).resolve();
+    if (itemHandler.isEmpty()) {
+      return null;
+    }
+    return itemHandler.get();
   }
 
   /**

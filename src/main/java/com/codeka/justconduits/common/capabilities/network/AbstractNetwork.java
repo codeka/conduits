@@ -5,6 +5,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * Base class for a network of conduits. Each conduit will have its own network.
@@ -33,6 +34,10 @@ public abstract class AbstractNetwork {
 
   public void addExternalConnection(ConduitConnection conn) {
     externalConnections.add(conn);
+  }
+
+  public Collection<ConduitConnection> getExternalConnections() {
+    return externalConnections;
   }
 
   /**

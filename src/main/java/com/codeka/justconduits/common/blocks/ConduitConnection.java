@@ -3,6 +3,8 @@ package com.codeka.justconduits.common.blocks;
 import com.mojang.math.Vector3f;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.apache.logging.log4j.LogManager;
@@ -48,6 +50,13 @@ public class ConduitConnection {
 
   public Direction getDirection() {
     return dir;
+  }
+
+  /**
+   * Helper method to get the {@link BlockEntity} that we are actually connected to.
+   */
+  public BlockEntity getConnectedBlockEntity(Level level) {
+    return level.getBlockEntity(blockPos.relative(dir));
   }
 
   public ConnectionType getConnectionType() {
