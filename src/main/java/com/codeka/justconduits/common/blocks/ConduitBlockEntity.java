@@ -231,6 +231,8 @@ public class ConduitBlockEntity extends BlockEntity {
 
       ConduitConnection conn = getConnection(dir);
       if (conn == null) {
+        L.atInfo().log("and no existing connection here either {} {}", getBlockPos(), dir);
+
         // If we don't have a connection yet, we'll want to add one.
         conn = new ConduitConnection(dir, ConduitConnection.ConnectionType.EXTERNAL);
         connections.put(dir, conn);
@@ -342,23 +344,32 @@ public class ConduitBlockEntity extends BlockEntity {
     boolean needUpdate = false;
     BlockEntity neighbor = requireLevel().getBlockEntity(blockPos);
     if (neighbor == null && connections.containsKey(dir)) {
+      L.atInfo().log("removing connection for direction={}", dir);
       connections.remove(dir);
       needUpdate = true;
     } else if (neighbor instanceof ConduitBlockEntity) {
-      // The other block is a conduit as well, make sure we're connected to it.
-      if (!connections.containsKey(dir)) {
-        connections.put(dir, new ConduitConnection(dir, ConduitConnection.ConnectionType.CONDUIT));
+      ConduitConnection conn = connections.get(dir);
+      if (conn == null || conn.getConnectionType() != ConduitConnection.ConnectionType.CONDUIT) {
+        conn = new ConduitConnection(dir, ConduitConnection.ConnectionType.CONDUIT);
+        connections.put(dir, conn);
         needUpdate = true;
       }
     } else if (neighbor != null) {
+      ConduitConnection conn = connections.get(dir);
+      if (conn == null || conn.getConnectionType() != ConduitConnection.ConnectionType.EXTERNAL) {
+        L.atInfo().log("got no existing connection {} {}", getBlockPos(), dir);
+        conn = new ConduitConnection(dir, ConduitConnection.ConnectionType.EXTERNAL);
+        connections.put(dir, conn);
+      } else {
+        L.atInfo().log("got an existing connection");
+      }
       // TODO: check the types of conduits we have in our bundle, we'll only connect if it's one we support.
       LazyOptional<IItemHandler> itemHandlerOptional =
           neighbor.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, dir.getOpposite());
       if (itemHandlerOptional.resolve().isPresent()) {
         IItemHandler itemHandler = itemHandlerOptional.resolve().get();
-        // TODO: use it?
+        // TODO: use it? make modifications?
 
-        connections.put(dir, new ConduitConnection(dir, ConduitConnection.ConnectionType.EXTERNAL));
         needUpdate = true;
       }
 
