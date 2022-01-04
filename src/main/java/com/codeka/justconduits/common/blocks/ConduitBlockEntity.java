@@ -211,6 +211,60 @@ public class ConduitBlockEntity extends BlockEntity {
   }
 
   /**
+   * This is called when a chunk is loaded. We need to save our custom properties and so on, so that we can load them
+   * up when the chunk is re-loaded.
+   */
+  @Override
+  public void load(@Nonnull CompoundTag tag) {
+    super.load(tag);
+
+    CompoundTag connectionsTag = tag.getCompound("Connections");
+    if (connectionsTag.isEmpty()) {
+      return;
+    }
+
+    for (Direction dir : Direction.values()) {
+      CompoundTag connectionTag = connectionsTag.getCompound(dir.getName());
+      if (connectionTag.isEmpty()) {
+        continue;
+      }
+
+      ConduitConnection conn = getConnection(dir);
+      if (conn == null) {
+        // If we don't have a connection yet, we'll want to add one.
+        conn = new ConduitConnection(dir, ConduitConnection.ConnectionType.EXTERNAL);
+        connections.put(dir, conn);
+      }
+
+      conn.setExtractEnabled(connectionTag.getBoolean("ExtractEnabled"));
+      conn.setInsertEnabled(connectionTag.getBoolean("InsertEnabled"));
+    }
+  }
+
+  /**
+   * Unlike {@link #getUpdateTag()}, we use all the features of {@link CompoundTag} because we need to be compatible
+   * with different versions of the mod.
+   */
+  @Override
+  protected void saveAdditional(@Nonnull CompoundTag tag) {
+    super.saveAdditional(tag);
+
+    CompoundTag connectionsTag = new CompoundTag();
+    for (ConduitConnection conn : connections.values()) {
+      // No need to save non-external connections.
+      if (conn.getConnectionType() != ConduitConnection.ConnectionType.EXTERNAL) {
+        continue;
+      }
+      CompoundTag connectionTag = new CompoundTag();
+      connectionTag.putString("Direction", conn.getDirection().getName());
+      connectionTag.putBoolean("ExtractEnabled", conn.isExtractEnabled());
+      connectionTag.putBoolean("InsertEnabled", conn.isInsertEnabled());
+      connectionsTag.put(conn.getDirection().getName(), connectionTag);
+    }
+    tag.put("Connections", connectionsTag);
+  }
+
+  /**
    * When the chunk is loaded, we need to synchronize the client. We'll send the contents of our normal state packet
    * here.
    */
