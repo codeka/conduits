@@ -5,6 +5,7 @@ import com.codeka.justconduits.common.ModBlockEntities;
 import com.codeka.justconduits.common.ModCapabilities;
 import com.codeka.justconduits.common.capabilities.network.ConduitNetworkManager;
 import com.codeka.justconduits.common.capabilities.network.IConduitNetworkManager;
+import com.codeka.justconduits.common.capabilities.network.NetworkRef;
 import com.codeka.justconduits.helpers.SelectionHelper;
 import com.codeka.justconduits.packets.ConduitClientStatePacket;
 import com.codeka.justconduits.packets.ConduitUpdatePacket;
@@ -64,6 +65,11 @@ public class ConduitBlockEntity extends BlockEntity {
   // re-calculate it when a connection actually changes.
   private VoxelShape shape;
 
+  // The network that this conduit block entity belongs to. Will be null until we first populate it, so we'll need to
+  // be careful.
+  // TODO: this should be per-conduit.
+  private NetworkRef networkRef;
+
   public ConduitBlockEntity(BlockPos blockPos, BlockState blockState) {
     super(ModBlockEntities.CONDUIT.get(), blockPos, blockState);
   }
@@ -98,6 +104,19 @@ public class ConduitBlockEntity extends BlockEntity {
       updateShape();
     }
     return shape;
+  }
+
+  /** Gets the {@link NetworkRef} we belong to. Could be null if we haven't populated it yet. */
+  // TODO: this should be per-conduit type.
+  @Nullable
+  public NetworkRef getNetworkRef() {
+    return networkRef;
+  }
+
+  /** Called to join the given network. */
+  // TODO: this should be per-conduit type.
+  public void setNetworkRef(NetworkRef networkRef) {
+    this.networkRef = networkRef;
   }
 
   /**
@@ -206,6 +225,11 @@ public class ConduitBlockEntity extends BlockEntity {
         requireLevel().sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_ALL);
       }
 
+      // If we haven't been added to a network yet, do it now.
+      if (networkRef == null) {
+        conduitNetworkManager.init(this);
+      }
+
       firstTick = false;
     }
   }
@@ -232,7 +256,7 @@ public class ConduitBlockEntity extends BlockEntity {
       ConduitConnection conn = getConnection(dir);
       if (conn == null) {
         // If we don't have a connection yet, we'll want to add one.
-        conn = new ConduitConnection(dir, ConduitConnection.ConnectionType.EXTERNAL);
+        conn = new ConduitConnection(getBlockPos(), dir, ConduitConnection.ConnectionType.EXTERNAL);
         connections.put(dir, conn);
       }
 
@@ -350,14 +374,14 @@ public class ConduitBlockEntity extends BlockEntity {
     } else if (neighbor instanceof ConduitBlockEntity) {
       ConduitConnection conn = connections.get(dir);
       if (conn == null || conn.getConnectionType() != ConduitConnection.ConnectionType.CONDUIT) {
-        conn = new ConduitConnection(dir, ConduitConnection.ConnectionType.CONDUIT);
+        conn = new ConduitConnection(getBlockPos(), dir, ConduitConnection.ConnectionType.CONDUIT);
         connections.put(dir, conn);
         needUpdate = true;
       }
     } else if (neighbor != null) {
       ConduitConnection conn = connections.get(dir);
       if (conn == null || conn.getConnectionType() != ConduitConnection.ConnectionType.EXTERNAL) {
-        conn = new ConduitConnection(dir, ConduitConnection.ConnectionType.EXTERNAL);
+        conn = new ConduitConnection(getBlockPos(), dir, ConduitConnection.ConnectionType.EXTERNAL);
         connections.put(dir, conn);
       }
       // TODO: check the types of conduits we have in our bundle, we'll only connect if it's one we support.

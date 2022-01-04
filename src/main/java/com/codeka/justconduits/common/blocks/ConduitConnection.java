@@ -1,6 +1,7 @@
 package com.codeka.justconduits.common.blocks;
 
 import com.mojang.math.Vector3f;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -28,14 +29,21 @@ public class ConduitConnection {
     EXTERNAL
   }
 
+  private final BlockPos blockPos;
   private final Direction dir;
   private final ConnectionType connectionType;
   private boolean extractEnabled;
   private boolean insertEnabled;
 
-  public ConduitConnection(@Nonnull Direction dir, @Nonnull ConnectionType connectionType) {
+  public ConduitConnection(@Nonnull BlockPos blockPos, @Nonnull Direction dir, @Nonnull ConnectionType connectionType) {
+    this.blockPos = checkNotNull(blockPos);
     this.dir = checkNotNull(dir);
     this.connectionType = checkNotNull(connectionType);
+  }
+
+  /** Gets the {@link BlockPos} of the {@link ConduitBlockEntity} this connection belongs to. */
+  public BlockPos getBlockPos() {
+    return blockPos;
   }
 
   public Direction getDirection() {

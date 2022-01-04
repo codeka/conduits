@@ -33,7 +33,7 @@ public class ConduitClientStatePacket {
     connections = buffer.readCollection(ArrayList::new, (buf) -> {
       Direction dir = buf.readEnum(Direction.class);
       ConduitConnection.ConnectionType connectionType = buf.readEnum(ConduitConnection.ConnectionType.class);
-      return new ConduitConnection(dir, connectionType);
+      return new ConduitConnection(blockPos, dir, connectionType);
     });
   }
 
