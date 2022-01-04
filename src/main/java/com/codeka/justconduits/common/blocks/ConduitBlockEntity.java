@@ -196,8 +196,8 @@ public class ConduitBlockEntity extends BlockEntity {
    */
   public void tickServer() {
     if (firstTick) {
-      // Set up the initial connections.
-      connections.clear();
+      // Set up the initial connections. There could be some already created as we loaded up, so we'll try to keep
+      // what's already there.
       for (Direction dir : Direction.values()) {
         updateNeighbor(dir, /* blockPos = */ null);
       }
@@ -231,8 +231,6 @@ public class ConduitBlockEntity extends BlockEntity {
 
       ConduitConnection conn = getConnection(dir);
       if (conn == null) {
-        L.atInfo().log("and no existing connection here either {} {}", getBlockPos(), dir);
-
         // If we don't have a connection yet, we'll want to add one.
         conn = new ConduitConnection(dir, ConduitConnection.ConnectionType.EXTERNAL);
         connections.put(dir, conn);
@@ -322,6 +320,9 @@ public class ConduitBlockEntity extends BlockEntity {
       case EXTRACT_ENABLED -> connection.setExtractEnabled(packet.getBoolValue());
       default -> L.atError().log("Unexpected update type: {}", packet.getUpdateType());
     }
+
+    // Mark ourselves as dirty as we've just updated ourselves.
+    setChanged();
   }
 
   /** Gets the {@link Level}, throws an exception if it's null. */
@@ -344,7 +345,6 @@ public class ConduitBlockEntity extends BlockEntity {
     boolean needUpdate = false;
     BlockEntity neighbor = requireLevel().getBlockEntity(blockPos);
     if (neighbor == null && connections.containsKey(dir)) {
-      L.atInfo().log("removing connection for direction={}", dir);
       connections.remove(dir);
       needUpdate = true;
     } else if (neighbor instanceof ConduitBlockEntity) {
@@ -357,11 +357,8 @@ public class ConduitBlockEntity extends BlockEntity {
     } else if (neighbor != null) {
       ConduitConnection conn = connections.get(dir);
       if (conn == null || conn.getConnectionType() != ConduitConnection.ConnectionType.EXTERNAL) {
-        L.atInfo().log("got no existing connection {} {}", getBlockPos(), dir);
         conn = new ConduitConnection(dir, ConduitConnection.ConnectionType.EXTERNAL);
         connections.put(dir, conn);
-      } else {
-        L.atInfo().log("got an existing connection");
       }
       // TODO: check the types of conduits we have in our bundle, we'll only connect if it's one we support.
       LazyOptional<IItemHandler> itemHandlerOptional =
