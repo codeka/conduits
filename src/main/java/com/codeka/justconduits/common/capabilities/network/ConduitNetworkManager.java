@@ -26,18 +26,28 @@ public class ConduitNetworkManager implements IConduitNetworkManager {
    * @param conduitBlockEntity The {@link ConduitBlockEntity} that was just created.
    */
   public void init(ConduitBlockEntity conduitBlockEntity) {
+    L.atInfo().log("Initializing CBE @ {}", conduitBlockEntity.getBlockPos());
+
     final Level level = conduitBlockEntity.getLevel();
     if (level == null) {
       L.atError().log("ConduitBlockEntity doesn't have a level.");
       return;
     }
-    if (conduitBlockEntity.getNetworkRef() != null) {
+
+    for (ConduitHolder conduitHolder : conduitBlockEntity.getConduitHolders()) {
+      init(level, conduitBlockEntity, conduitHolder);
+    }
+
+    L.atInfo().log(" - complete.");
+  }
+
+  private void init(Level level, ConduitBlockEntity conduitBlockEntity, ConduitHolder conduitHolder) {
+    if (conduitHolder.getNetworkRef() != null) {
       L.atWarn().log("init called on ConduitBlockEntity that already belongs to a network.");
       return;
     }
 
-    // First, create a new network that consists of only this block.
-    // TODO: network per conduit type
+    // First, create a new network that consists of only this conduit.
     ItemNetwork itemNetwork = new ItemNetwork();
     NetworkRegistry.register(itemNetwork);
 
@@ -47,11 +57,16 @@ public class ConduitNetworkManager implements IConduitNetworkManager {
 
     while (!open.isEmpty()) {
       ConduitBlockEntity cbe = open.pop();
-      if (cbe.getNetworkRef() != null && cbe.getNetworkRef().getId() != itemNetwork.getNetworkRef().getId()) {
+      ConduitHolder ch = cbe.getConduitHolder(conduitHolder.getConduitType());
+      if (ch == null) {
+        continue;
+      }
+
+      if (ch.getNetworkRef() != null && ch.getNetworkRef().getId() != itemNetwork.getNetworkRef().getId()) {
         // This ConduitBlockEntity already belongs to a network. We should join this network, since it's already
         // populated.
 
-        ItemNetwork existingNetwork = NetworkRegistry.getNetwork(ItemNetwork.class, cbe.getNetworkRef().getId());
+        ItemNetwork existingNetwork = NetworkRegistry.getNetwork(ch.getNetworkRef().getId());
         if (existingNetwork == null) {
           L.atError().log("ConduitBlockEntity has a network reference that isn't registered.");
           // TODO: should we crash here? something's corrupted.
@@ -68,15 +83,19 @@ public class ConduitNetworkManager implements IConduitNetworkManager {
         continue;
       }
 
-      cbe.setNetworkRef(itemNetwork.getNetworkRef());
+      ch.setNetworkRef(itemNetwork.getNetworkRef());
 
       for (ConduitConnection conn : cbe.getConnections()) {
         switch (conn.getConnectionType()) {
           case CONDUIT -> {
             BlockEntity be = level.getBlockEntity(cbe.getBlockPos().relative(conn.getDirection()));
             if (be instanceof ConduitBlockEntity neighbor) {
-              if (neighbor.getNetworkRef() != null &&
-                  neighbor.getNetworkRef().getId() == itemNetwork.getNetworkRef().getId()) {
+              ConduitHolder neighborConduitHolder = neighbor.getConduitHolder(conduitHolder.getConduitType());
+              if (neighborConduitHolder == null) {
+                continue;
+              }
+              if (neighborConduitHolder.getNetworkRef() != null &&
+                  neighborConduitHolder.getNetworkRef().getId() == itemNetwork.getNetworkRef().getId()) {
                 // We've already added this one, skip it.
                 continue;
               }

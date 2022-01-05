@@ -1,5 +1,9 @@
 package com.codeka.justconduits.common.blocks;
 
+import com.codeka.justconduits.common.capabilities.network.ConduitType;
+import com.codeka.justconduits.common.capabilities.network.NetworkExternalConnection;
+import com.codeka.justconduits.common.capabilities.network.NetworkType;
+import com.google.common.base.Preconditions;
 import com.mojang.math.Vector3f;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -11,8 +15,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
+import java.util.HashMap;
+
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Keeps track of the information that connects one {@link ConduitBlockEntity} to another.
@@ -34,13 +43,19 @@ public class ConduitConnection {
   private final BlockPos blockPos;
   private final Direction dir;
   private final ConnectionType connectionType;
-  private boolean extractEnabled;
-  private boolean insertEnabled;
+
+  /** This will be null for any connection type that's not EXTERNAL. */
+  @Nullable
+  private HashMap<NetworkType, NetworkExternalConnection> conduitConnections;
 
   public ConduitConnection(@Nonnull BlockPos blockPos, @Nonnull Direction dir, @Nonnull ConnectionType connectionType) {
     this.blockPos = checkNotNull(blockPos);
     this.dir = checkNotNull(dir);
     this.connectionType = checkNotNull(connectionType);
+
+    if (connectionType == ConnectionType.EXTERNAL) {
+      conduitConnections = new HashMap<>();
+    }
   }
 
   /** Gets the {@link BlockPos} of the {@link ConduitBlockEntity} this connection belongs to. */
@@ -59,24 +74,29 @@ public class ConduitConnection {
     return level.getBlockEntity(blockPos.relative(dir));
   }
 
+  /**
+   * Gets the {@link NetworkExternalConnection} subclass for the given network connection. Created a new one if
+   * one does not exist yet.
+   */
+  public <T extends NetworkExternalConnection> T getNetworkExternalConnection(
+      NetworkType networkType, ConduitType conduitType) {
+    checkArgument(conduitType.getNetworkType() == networkType);
+    checkState(connectionType == ConnectionType.EXTERNAL);
+
+    // This should be non-null when connection type is EXTERNAL
+    checkNotNull(conduitConnections);
+
+    NetworkExternalConnection networkExternalConnection = conduitConnections.get(networkType);
+    if (networkExternalConnection == null) {
+      networkExternalConnection = conduitType.newNetworkExternalConnection();
+      conduitConnections.put(networkType, networkExternalConnection);
+    }
+
+    return (T) networkExternalConnection;
+  }
+
   public ConnectionType getConnectionType() {
     return connectionType;
-  }
-
-  public boolean isExtractEnabled() {
-    return extractEnabled;
-  }
-
-  public void setExtractEnabled(boolean value) {
-    extractEnabled = value;
-  }
-
-  public boolean isInsertEnabled() {
-    return insertEnabled;
-  }
-
-  public void setInsertEnabled(boolean value) {
-    insertEnabled = value;
   }
 
   /** Calculates the {@link VoxelShape} for this connection. */

@@ -103,7 +103,7 @@ public class ConduitContainerMenu extends AbstractContainerMenu {
   }
 
   private void beginTracking() {
-    // isExtractEnabled
+/*    // isExtractEnabled
     addDataSlot(new DataSlot() {
       @Override
       public int get() {
@@ -141,7 +141,7 @@ public class ConduitContainerMenu extends AbstractContainerMenu {
           conn.setInsertEnabled(value != 0);
         }
       }
-    });
+    });*/
   }
 
   // TODO: these should probably be in a base class or a helper or something.

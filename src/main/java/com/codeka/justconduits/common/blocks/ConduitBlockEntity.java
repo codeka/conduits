@@ -3,14 +3,15 @@ package com.codeka.justconduits.common.blocks;
 import com.codeka.justconduits.client.blocks.ConduitModelProps;
 import com.codeka.justconduits.common.ModBlockEntities;
 import com.codeka.justconduits.common.ModCapabilities;
+import com.codeka.justconduits.common.capabilities.network.ConduitHolder;
 import com.codeka.justconduits.common.capabilities.network.ConduitNetworkManager;
+import com.codeka.justconduits.common.capabilities.network.ConduitType;
 import com.codeka.justconduits.common.capabilities.network.IConduitNetworkManager;
-import com.codeka.justconduits.common.capabilities.network.NetworkRef;
-import com.codeka.justconduits.common.capabilities.network.NetworkRegistry;
-import com.codeka.justconduits.common.capabilities.network.item.ItemNetwork;
+import com.codeka.justconduits.common.capabilities.network.NetworkType;
 import com.codeka.justconduits.helpers.SelectionHelper;
 import com.codeka.justconduits.packets.ConduitClientStatePacket;
 import com.codeka.justconduits.packets.ConduitUpdatePacket;
+import com.codeka.justconduits.packets.IConduitTypeClientStatePacket;
 import com.codeka.justconduits.packets.JustConduitsPacketHandler;
 import io.netty.buffer.Unpooled;
 import net.minecraft.core.BlockPos;
@@ -39,7 +40,6 @@ import net.minecraftforge.client.model.ModelDataManager;
 import net.minecraftforge.client.model.data.IModelData;
 import net.minecraftforge.client.model.data.ModelDataMap;
 import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.extensions.IForgeItemStack;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
@@ -51,7 +51,11 @@ import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 public class ConduitBlockEntity extends BlockEntity {
   private static final Logger L = LogManager.getLogger();
@@ -70,17 +74,20 @@ public class ConduitBlockEntity extends BlockEntity {
   // re-calculate it when a connection actually changes.
   private VoxelShape shape;
 
-  // The network that this conduit block entity belongs to. Will be null until we first populate it, so we'll need to
-  // be careful.
-  // TODO: this should be per-conduit.
-  private NetworkRef networkRef;
+  // A collection of the conduits in this block. We map NetworkType to ConduitHolder to ensure that we cannot have more
+  // than one conduit of the same network type in our blockspace.
+  private HashMap<NetworkType, ConduitHolder> conduits = new HashMap<>();
 
-  // The number of ticks left until we do another extract operation.
-  // TODO: this should be per-conduit.
-  private int ticksUntilNextExtract;
+  // We also keep a mapping of conduit types to conduit holder. This should be kept in sync with conduits.
+  private HashMap<ConduitType, ConduitHolder> conduitsByType = new HashMap<>();
 
   public ConduitBlockEntity(BlockPos blockPos, BlockState blockState) {
     super(ModBlockEntities.CONDUIT.get(), blockPos, blockState);
+
+    // TODO: this should come from the item that placed us.
+    ConduitHolder conduitHolder = new ConduitHolder(ConduitType.SIMPLE_ITEM);
+    conduits.put(NetworkType.ITEM, conduitHolder);
+    conduitsByType.put(ConduitType.SIMPLE_ITEM, conduitHolder);
   }
 
   public Collection<ConduitConnection> getConnections() {
@@ -95,6 +102,26 @@ public class ConduitBlockEntity extends BlockEntity {
   @Nullable
   public ConduitConnection getConnection(Direction dir) {
     return connections.get(dir);
+  }
+
+  @Nullable
+  public ConduitHolder getConduitHolder(NetworkType networkType) {
+    return conduits.get(networkType);
+  }
+
+  @Nullable
+  public ConduitHolder getConduitHolder(ConduitType conduitType) {
+    return conduitsByType.get(conduitType);
+  }
+
+  /** Gets all of the {@link ConduitHolder}s we have in us. */
+  public Collection<ConduitHolder> getConduitHolders() {
+    return conduits.values();
+  }
+
+  /** Gets a collection of the {@link ConduitType}s in this block. */
+  public Collection<ConduitType> getConduitTypes() {
+    return conduitsByType.keySet();
   }
 
   /** Gets the name of the block that this connection is connected to. */
@@ -113,19 +140,6 @@ public class ConduitBlockEntity extends BlockEntity {
       updateShape();
     }
     return shape;
-  }
-
-  /** Gets the {@link NetworkRef} we belong to. Could be null if we haven't populated it yet. */
-  // TODO: this should be per-conduit type.
-  @Nullable
-  public NetworkRef getNetworkRef() {
-    return networkRef;
-  }
-
-  /** Called to join the given network. */
-  // TODO: this should be per-conduit type.
-  public void setNetworkRef(NetworkRef networkRef) {
-    this.networkRef = networkRef;
   }
 
   /**
@@ -234,152 +248,18 @@ public class ConduitBlockEntity extends BlockEntity {
         requireLevel().sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_ALL);
       }
 
-      // If we haven't been added to a network yet, do it now.
-      if (networkRef == null) {
-        conduitNetworkManager.init(this);
-      }
-
+      conduitNetworkManager.init(this);
       firstTick = false;
     }
 
-    if (networkRef == null) {
+    if (conduits.isEmpty()) {
       return;
     }
-
-    // TODO: the rest of this method should be per-conduit.
-
-    // If it's not time to extract yet, then don't do anything.
-    if (ticksUntilNextExtract > 0) {
-      ticksUntilNextExtract --;
-      return;
-    }
-
-    int itemsToTransfer = 8;
 
     // TODO: keep a flag to see if we need to tick, if there's no external connections we can skip the loop
-    for (ConduitConnection conn : connections.values()) {
-      if (conn.getConnectionType() != ConduitConnection.ConnectionType.EXTERNAL) {
-        continue;
-      }
-
-      if (!conn.isExtractEnabled()) {
-        // Item conduits only do something when extracting.
-        continue;
-      }
-
-      ItemNetwork network = NetworkRegistry.getNetwork(ItemNetwork.class, networkRef.getId());
-      if (network == null) {
-        L.atError().log("Network {} does not exist.", networkRef);
-        continue;
-      }
-
-      // find an insert-enabled connection to insert items into.
-      ArrayList<IItemHandler> candidateTargets = new ArrayList<>();
-      for (ConduitConnection outputConnection : network.getExternalConnections()) {
-        if (!outputConnection.isInsertEnabled()) {
-          // It doesn't have insert enabled, so we can't insert.
-          continue;
-        }
-
-        if (outputConnection == conn) {
-          // TODO: if self-insert is enabled, this is OK.
-          continue;
-        }
-
-        candidateTargets.add(getItemHandler(outputConnection));
-      }
-
-      // TODO: handle speed upgrades.
-      transferItems(conn, candidateTargets, /* count = */ 8);
-
-      // TODO: config this, and also handle speed upgrades.
-      ticksUntilNextExtract = 20;
+    for (ConduitHolder conduit : conduits.values()) {
+      conduit.getConduitImpl().tickServer(requireLevel(), this, conduit);
     }
-  }
-
-  /**
-   * Transfers items between the two given {@link ConduitConnection}s, if possible.
-   *
-   * @param fromConnection The {@link ConduitConnection} to transfer from.
-   * @param candidateTargets A list of {@link IItemHandler}s that we'll try to insert into.
-   * @param count The maximum number of items to transfer.
-   * @return The number of items actually transferred. This could be zero if, for example, the to connection does
-   *         not have space, etc.
-   */
-  private int transferItems(
-      @Nonnull ConduitConnection fromConnection, @Nonnull Collection<IItemHandler> candidateTargets, int count) {
-    IItemHandler fromItemHandler = getItemHandler(fromConnection);
-    if (fromItemHandler == null) {
-      return 0;
-    }
-
-    int totalTransferred = 0;
-
-    // TODO: limit the number of slots we check per tick.
-    for (int fromSlot = 0; fromSlot < fromItemHandler.getSlots(); fromSlot++) {
-      ItemStack itemStack = fromItemHandler.extractItem(fromSlot, count, /* simulate = */ true);
-      ItemStack remainingItems = itemStack;
-      for (IItemHandler toInventory : candidateTargets) {
-        remainingItems = insertItems(toInventory, remainingItems);
-        if (remainingItems.isEmpty()) {
-          break;
-        }
-      }
-
-      if (itemStack.getCount() != remainingItems.getCount()) {
-        // We actually transferred some items. Reduce the count by the number we transferred.
-        int numTransferredFromThisSlot = itemStack.getCount() - remainingItems.getCount();
-        count -= numTransferredFromThisSlot;
-        totalTransferred += numTransferredFromThisSlot;
-
-        // Actually remove the items from the source now.
-        ItemStack itemsRemoved =
-            fromItemHandler.extractItem(fromSlot, numTransferredFromThisSlot, /* simulate = */ false);
-        // Check for duped items. It shouldn't happen, if the source inventory implements its interface correctly, but
-        // it's always possible that it does something bad.
-        if (itemsRemoved.getCount() != numTransferredFromThisSlot || itemsRemoved.getItem() != itemStack.getItem()) {
-          L.atError().log(
-              "Items extracted during execute phase different from simulate phase. " +
-                  "Simulated extracting {} {}, but executed {} {}",
-              numTransferredFromThisSlot, itemStack.getDisplayName(), itemsRemoved.getCount(),
-              itemsRemoved.getDisplayName());
-        }
-      }
-
-      if (count == 0) {
-        break;
-      }
-    }
-
-    return totalTransferred;
-  }
-
-  /**
-   * Attempts to insert the items from the given {@link ItemStack} into the given inventory.
-   *
-   * @param toItemHandler The {@link IItemHandler} to insert into.
-   * @param itemStack The {@link ItemStack} to insert.
-   * @return An {@link ItemStack} of the remaining items that we weren't able to insert.
-   */
-  private ItemStack insertItems(@Nonnull IItemHandler toItemHandler, @Nonnull ItemStack itemStack) {
-    return ItemHandlerHelper.insertItem(toItemHandler, itemStack, /* simulate = */ false);
-  }
-
-  /** Helper method to return the item handler for a given conduit connection. */
-  @Nullable
-  private IItemHandler getItemHandler(ConduitConnection connection) {
-    BlockEntity toBlockEntity = connection.getConnectedBlockEntity(requireLevel());
-    if (toBlockEntity == null) {
-      return null;
-    }
-    Optional<IItemHandler> itemHandler =
-        toBlockEntity.getCapability(
-            CapabilityItemHandler.ITEM_HANDLER_CAPABILITY,
-            connection.getDirection().getOpposite()).resolve();
-    if (itemHandler.isEmpty()) {
-      return null;
-    }
-    return itemHandler.get();
   }
 
   /**
@@ -389,6 +269,17 @@ public class ConduitBlockEntity extends BlockEntity {
   @Override
   public void load(@Nonnull CompoundTag tag) {
     super.load(tag);
+
+    CompoundTag conduitsTag = tag.getCompound("Conduits");
+    for (String conduitTypeName : conduitsTag.getAllKeys()) {
+      ConduitType conduitType = ConduitType.fromName(conduitTypeName);
+      if (conduitType == null) {
+        L.atWarn().log("Skipping unknown conduit type: {}", conduitTypeName);
+        continue;
+      }
+
+      conduitType.getConduitImpl().loadAdditional(conduitsTag.getCompound(conduitTypeName), this);
+    }
 
     CompoundTag connectionsTag = tag.getCompound("Connections");
     if (connectionsTag.isEmpty()) {
@@ -407,9 +298,6 @@ public class ConduitBlockEntity extends BlockEntity {
         conn = new ConduitConnection(getBlockPos(), dir, ConduitConnection.ConnectionType.EXTERNAL);
         connections.put(dir, conn);
       }
-
-      conn.setExtractEnabled(connectionTag.getBoolean("ExtractEnabled"));
-      conn.setInsertEnabled(connectionTag.getBoolean("InsertEnabled"));
     }
   }
 
@@ -421,6 +309,14 @@ public class ConduitBlockEntity extends BlockEntity {
   protected void saveAdditional(@Nonnull CompoundTag tag) {
     super.saveAdditional(tag);
 
+    CompoundTag conduitTypes = new CompoundTag();
+    for (ConduitType conduitType : conduitsByType.keySet()) {
+      CompoundTag conduitTag = new CompoundTag();
+      conduitType.getConduitImpl().saveAdditional(conduitTag, this);
+      conduitTypes.put(conduitType.getName(), conduitTag);
+    }
+    tag.put("Conduits", conduitTypes);
+
     CompoundTag connectionsTag = new CompoundTag();
     for (ConduitConnection conn : connections.values()) {
       // No need to save non-external connections.
@@ -429,8 +325,6 @@ public class ConduitBlockEntity extends BlockEntity {
       }
       CompoundTag connectionTag = new CompoundTag();
       connectionTag.putString("Direction", conn.getDirection().getName());
-      connectionTag.putBoolean("ExtractEnabled", conn.isExtractEnabled());
-      connectionTag.putBoolean("InsertEnabled", conn.isInsertEnabled());
       connectionsTag.put(conn.getDirection().getName(), connectionTag);
     }
     tag.put("Connections", connectionsTag);
@@ -476,22 +370,24 @@ public class ConduitBlockEntity extends BlockEntity {
       requireLevel().sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_ALL);
     }
 
+    for (Map.Entry<ConduitType, IConduitTypeClientStatePacket> entry : packet.getConduits().entrySet()) {
+      ConduitType conduitType = entry.getKey();
+      ConduitHolder conduitHolder = conduits.get(conduitType.getNetworkType());
+      if (conduitHolder == null) {
+        conduitHolder = new ConduitHolder(conduitType);
+        conduits.put(conduitType.getNetworkType(), conduitHolder);
+        conduitsByType.put(conduitType, conduitHolder);
+      }
+      conduitHolder.getConduitImpl().onClientUpdate(entry.getValue(), this, conduitHolder);
+    }
+
     updateShape();
   }
 
   /** Called on the server when a client wants to update us in some way. */
   public void onServerUpdate(ConduitUpdatePacket packet) {
-    ConduitConnection connection = getConnection(packet.getDirection());
-    if (connection == null) {
-      L.atError().log("No connection found when updating from client.");
-      return;
-    }
-
-    switch (packet.getUpdateType()) {
-      case INSERT_ENABLED -> connection.setInsertEnabled(packet.getBoolValue());
-      case EXTRACT_ENABLED -> connection.setExtractEnabled(packet.getBoolValue());
-      default -> L.atError().log("Unexpected update type: {}", packet.getUpdateType());
-    }
+    ConduitHolder conduitHolder = conduits.get(packet.getNetworkType());
+    conduitHolder.getConduitImpl().onServerUpdate(packet, this, conduitHolder);
 
     // Mark ourselves as dirty as we've just updated ourselves.
     setChanged();

@@ -19,6 +19,17 @@ public class NetworkType {
 
   public static final NetworkType REDSTONE = new NetworkType("redstone");
 
+  public static NetworkType fromName(String name) {
+    // TODO: actually register these. Or read from config?
+    return switch (name) {
+      case "item" -> ITEM;
+      case "fluid" -> FLUID;
+      case "energy" -> ENERGY;
+      case "redstone" -> REDSTONE;
+      default -> throw new RuntimeException("Unknown network type name");
+    };
+  }
+
   private String name;
 
   public NetworkType(String name) {

@@ -23,7 +23,7 @@ public class NetworkRegistry {
   /** Returns the network with the given ID, or null if the network is not registered. */
   @SuppressWarnings("unchecked")
   @Nullable
-  public static <T extends AbstractNetwork> T getNetwork(Class<T> cls, long id) {
+  public static <T extends AbstractNetwork> T getNetwork(long id) {
     AbstractNetwork network = networks.get(id);
     if (network == null) {
       return null;

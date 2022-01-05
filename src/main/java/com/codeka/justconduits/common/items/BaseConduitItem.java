@@ -37,13 +37,6 @@ public abstract class BaseConduitItem extends Item {
     super(props);
   }
 
-  @Override
-  public InteractionResult onItemUseFirst(ItemStack stack, UseOnContext context) {
-
-
-    return super.onItemUseFirst(stack, context);
-  }
-
   @Nonnull
   @Override
   public InteractionResult useOn(@Nonnull UseOnContext useOnContext) {

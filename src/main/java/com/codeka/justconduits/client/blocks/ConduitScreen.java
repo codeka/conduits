@@ -6,14 +6,15 @@ import com.codeka.justconduits.client.gui.DataSource;
 import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
 import com.codeka.justconduits.common.blocks.ConduitConnection;
 import com.codeka.justconduits.common.blocks.ConduitContainerMenu;
-import com.codeka.justconduits.packets.ConduitClientStatePacket;
+import com.codeka.justconduits.common.capabilities.network.ConduitType;
+import com.codeka.justconduits.common.capabilities.network.NetworkType;
+import com.codeka.justconduits.common.capabilities.network.item.ItemExternalConnection;
 import com.codeka.justconduits.packets.ConduitUpdatePacket;
 import com.codeka.justconduits.packets.JustConduitsPacketHandler;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -63,7 +64,10 @@ public class ConduitScreen extends AbstractContainerScreen<ConduitContainerMenu>
             .withCheckedDataSource(insertDataSource)
             .build();
     if (connection != null) {
-      insertCheckButton.setChecked(connection.isInsertEnabled());
+      // TODO: make this generic
+      ItemExternalConnection externalConnection =
+          connection.getNetworkExternalConnection(NetworkType.ITEM, ConduitType.SIMPLE_ITEM);
+      insertCheckButton.setChecked(externalConnection.isInsertEnabled());
     }
     addRenderableWidget(insertCheckButton);
 
@@ -73,7 +77,10 @@ public class ConduitScreen extends AbstractContainerScreen<ConduitContainerMenu>
             .withCheckedDataSource(extractDataSource)
             .build();
     if (connection != null) {
-      extractCheckButton.setChecked(connection.isExtractEnabled());
+      // TODO: make this generic
+      ItemExternalConnection externalConnection =
+          connection.getNetworkExternalConnection(NetworkType.ITEM, ConduitType.SIMPLE_ITEM);
+      extractCheckButton.setChecked(externalConnection.isExtractEnabled());
     }
     addRenderableWidget(extractCheckButton);
   }
@@ -94,10 +101,15 @@ public class ConduitScreen extends AbstractContainerScreen<ConduitContainerMenu>
 
   @Override
   public void render(@Nonnull PoseStack poseStack, int mouseX, int mouseY, float partialTick) {
-    // TODO: this is weird
+
+
+    // TODO: this is weird, do we really need to?
     if (connection != null) {
-      extractCheckButton.setChecked(connection.isExtractEnabled());
-      insertCheckButton.setChecked(connection.isInsertEnabled());
+      // TODO: make this generic
+      ItemExternalConnection externalConnection =
+          connection.getNetworkExternalConnection(NetworkType.ITEM, ConduitType.SIMPLE_ITEM);
+      extractCheckButton.setChecked(externalConnection.isExtractEnabled());
+      insertCheckButton.setChecked(externalConnection.isInsertEnabled());
     }
 
     renderBackground(poseStack);
@@ -108,15 +120,22 @@ public class ConduitScreen extends AbstractContainerScreen<ConduitContainerMenu>
   private final DataSource<Boolean> extractDataSource = new DataSource<>() {
     @Override
     public Boolean getValue() {
-      return connection != null && connection.isExtractEnabled();
+      if (connection == null) {
+        return false;
+      }
+      ItemExternalConnection externalConnection =
+          connection.getNetworkExternalConnection(NetworkType.ITEM, ConduitType.SIMPLE_ITEM);
+      return externalConnection.isExtractEnabled();
     }
 
     @Override
     public void setValue(Boolean value) {
       if (conduitBlockEntity != null && connection != null) {
-        sendPacketToServer(ConduitUpdatePacket.builder(conduitBlockEntity.getBlockPos(), connection.getDirection())
-            .withBooleanUpdate(ConduitUpdatePacket.UpdateType.EXTRACT_ENABLED, value)
-            .build());
+        sendPacketToServer(
+            // TODO: make this generic.
+            ConduitUpdatePacket.builder(conduitBlockEntity.getBlockPos(), NetworkType.ITEM, connection.getDirection())
+                .withBooleanUpdate(ConduitUpdatePacket.UpdateType.EXTRACT_ENABLED, value)
+                .build());
       }
     }
   };
@@ -124,15 +143,22 @@ public class ConduitScreen extends AbstractContainerScreen<ConduitContainerMenu>
   private final DataSource<Boolean> insertDataSource = new DataSource<>() {
     @Override
     public Boolean getValue() {
-      return connection != null && connection.isInsertEnabled();
+      if (connection == null) {
+        return false;
+      }
+
+      ItemExternalConnection externalConnection =
+          connection.getNetworkExternalConnection(NetworkType.ITEM, ConduitType.SIMPLE_ITEM);
+      return externalConnection.isInsertEnabled();
     }
 
     @Override
     public void setValue(Boolean value) {
       if (conduitBlockEntity != null && connection != null) {
-        sendPacketToServer(ConduitUpdatePacket.builder(conduitBlockEntity.getBlockPos(), connection.getDirection())
-            .withBooleanUpdate(ConduitUpdatePacket.UpdateType.INSERT_ENABLED, value)
-            .build());
+        sendPacketToServer(
+            ConduitUpdatePacket.builder(conduitBlockEntity.getBlockPos(), NetworkType.ITEM, connection.getDirection())
+                .withBooleanUpdate(ConduitUpdatePacket.UpdateType.INSERT_ENABLED, value)
+                .build());
       }
     }
   };

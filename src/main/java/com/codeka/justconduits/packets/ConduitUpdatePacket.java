@@ -1,14 +1,14 @@
 package com.codeka.justconduits.packets;
 
 import com.codeka.justconduits.common.blocks.ConduitBlockPacketHandler;
+import com.codeka.justconduits.common.capabilities.network.NetworkType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
 
 import javax.annotation.Nullable;
+import java.nio.charset.StandardCharsets;
 import java.util.function.Supplier;
 
 /**
@@ -22,7 +22,11 @@ public class ConduitUpdatePacket {
   // TODO: this might be nullable if there's settings to update
   private Direction direction;
 
+  /** The {@link NetworkType} this update is for. */
+  private NetworkType networkType;
+
   // Each packet encapsulates a single update of the conduit (or connection). This is the type of the update.
+  // TODO: maybe this should be a CompoundTag so it's more extensible?
   public enum UpdateType {
     // We're updating the value of the insert enabled checkbox.
     INSERT_ENABLED,
@@ -36,8 +40,8 @@ public class ConduitUpdatePacket {
   @Nullable
   private Boolean boolValue;
 
-  public static Builder builder(BlockPos blockPos, Direction direction) {
-    return new Builder(blockPos, direction);
+  public static Builder builder(BlockPos blockPos, NetworkType networkType, Direction direction) {
+    return new Builder(blockPos, networkType, direction);
   }
 
   // Used by the builder.
@@ -45,6 +49,8 @@ public class ConduitUpdatePacket {
 
   public ConduitUpdatePacket(FriendlyByteBuf buffer) {
     blockPos = buffer.readBlockPos();
+    int len = buffer.readInt();
+    networkType = NetworkType.fromName(buffer.readCharSequence(len, StandardCharsets.UTF_8).toString());
     direction = buffer.readEnum(Direction.class);
     updateType = buffer.readEnum(UpdateType.class);
     if (buffer.readBoolean()) {
@@ -54,6 +60,8 @@ public class ConduitUpdatePacket {
 
   public void encode(FriendlyByteBuf buffer) {
     buffer.writeBlockPos(blockPos);
+    buffer.writeInt(networkType.getName().length());
+    buffer.writeCharSequence(networkType.getName(), StandardCharsets.UTF_8);
     buffer.writeEnum(direction);
     buffer.writeEnum(updateType);
     buffer.writeBoolean(boolValue != null);
@@ -77,6 +85,10 @@ public class ConduitUpdatePacket {
     return direction;
   }
 
+  public NetworkType getNetworkType() {
+    return networkType;
+  }
+
   public UpdateType getUpdateType() {
     return updateType;
   }
@@ -88,8 +100,9 @@ public class ConduitUpdatePacket {
   public static class Builder {
     private final ConduitUpdatePacket packet = new ConduitUpdatePacket();
 
-    public Builder(BlockPos blockPos, Direction direction) {
+    public Builder(BlockPos blockPos, NetworkType networkType, Direction direction) {
       packet.blockPos = blockPos;
+      packet.networkType = networkType;
       packet.direction = direction;
     }
 
