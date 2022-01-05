@@ -4,10 +4,12 @@ import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
 import com.codeka.justconduits.common.blocks.ConduitConnection;
 import com.codeka.justconduits.common.capabilities.network.AbstractConduit;
 import com.codeka.justconduits.common.capabilities.network.ConduitHolder;
+import com.codeka.justconduits.common.capabilities.network.ConduitType;
 import com.codeka.justconduits.common.capabilities.network.NetworkRegistry;
 import com.codeka.justconduits.common.capabilities.network.NetworkType;
 import com.codeka.justconduits.packets.ConduitUpdatePacket;
 import com.codeka.justconduits.packets.IConduitTypeClientStatePacket;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -22,6 +24,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -97,14 +100,23 @@ public class ItemConduit extends AbstractConduit {
   public void onClientUpdate(
       IConduitTypeClientStatePacket basePacket, ConduitBlockEntity conduitBlockEntity, ConduitHolder conduitHolder) {
     ItemConduitClientStatePacket packet = (ItemConduitClientStatePacket) basePacket;
-    // TODO: parse state.
+    for (Map.Entry<Direction, ItemExternalConnection> entry : packet.getExternalConnections().entrySet()) {
+      Direction dir = entry.getKey();
+
+      ConduitConnection conn = conduitBlockEntity.getConnection(dir);
+      if (conn == null) {
+        // TODO error
+        continue;
+      }
+      ItemExternalConnection existing = conn.getNetworkExternalConnection(NetworkType.ITEM, ConduitType.SIMPLE_ITEM);
+      existing.setExtractEnabled(entry.getValue().isExtractEnabled());
+      existing.setInsertEnabled(entry.getValue().isInsertEnabled());
+    }
   }
 
   @Override
   public IConduitTypeClientStatePacket createClientState(ConduitBlockEntity conduitBlockEntity) {
-    ItemConduitClientStatePacket packet = new ItemConduitClientStatePacket();
-    // TODO: include state.
-    return packet;
+    return new ItemConduitClientStatePacket(conduitBlockEntity);
   }
 
   @Override

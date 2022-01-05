@@ -101,8 +101,6 @@ public class ConduitScreen extends AbstractContainerScreen<ConduitContainerMenu>
 
   @Override
   public void render(@Nonnull PoseStack poseStack, int mouseX, int mouseY, float partialTick) {
-
-
     // TODO: this is weird, do we really need to?
     if (connection != null) {
       // TODO: make this generic

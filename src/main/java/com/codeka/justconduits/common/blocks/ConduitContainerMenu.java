@@ -46,7 +46,6 @@ public class ConduitContainerMenu extends AbstractContainerMenu {
     this.direction = extras.direction;
 
     layoutPlayerInventorySlots(10, 108);
-    beginTracking();
   }
 
   @Nullable
@@ -100,48 +99,6 @@ public class ConduitContainerMenu extends AbstractContainerMenu {
       Direction dir = buffer.readEnum(Direction.class);
       return new MenuExtras(blockPos, dir);
     }
-  }
-
-  private void beginTracking() {
-/*    // isExtractEnabled
-    addDataSlot(new DataSlot() {
-      @Override
-      public int get() {
-        ConduitConnection conn = getConnection();
-        if (conn == null) {
-          return 0;
-        }
-        return conn.isExtractEnabled() ? 1 : 0;
-      }
-
-      @Override
-      public void set(int value) {
-        ConduitConnection conn = getConnection();
-        if (conn != null) {
-          conn.setExtractEnabled(value != 0);
-        }
-      }
-    });
-
-    // isInsertEnabled
-    addDataSlot(new DataSlot() {
-      @Override
-      public int get() {
-        ConduitConnection conn = getConnection();
-        if (conn == null) {
-          return 0;
-        }
-        return conn.isInsertEnabled() ? 1 : 0;
-      }
-
-      @Override
-      public void set(int value) {
-        ConduitConnection conn = getConnection();
-        if (conn != null) {
-          conn.setInsertEnabled(value != 0);
-        }
-      }
-    });*/
   }
 
   // TODO: these should probably be in a base class or a helper or something.
