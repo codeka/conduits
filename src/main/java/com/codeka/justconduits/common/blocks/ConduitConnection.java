@@ -42,7 +42,7 @@ public class ConduitConnection {
 
   private final BlockPos blockPos;
   private final Direction dir;
-  private final ConnectionType connectionType;
+  private ConnectionType connectionType;
 
   /** This will be null for any connection type that's not EXTERNAL. */
   @Nullable
@@ -72,6 +72,16 @@ public class ConduitConnection {
    */
   public BlockEntity getConnectedBlockEntity(Level level) {
     return level.getBlockEntity(blockPos.relative(dir));
+  }
+
+  public boolean updateFrom(ConduitConnection other) {
+    boolean updated = false;
+    if (other.connectionType != connectionType) {
+      connectionType = other.connectionType;
+      updated = true;
+    }
+
+    return updated;
   }
 
   /**

@@ -10,6 +10,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.DataSlot;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
 import net.minecraftforge.items.wrapper.InvWrapper;
@@ -69,9 +70,13 @@ public class ConduitContainerMenu extends AbstractContainerMenu {
       return false;
     }
 
+    Level level = conduitBlockEntity.getLevel();
+    if (level == null) {
+      return false;
+    }
     return stillValid(
         ContainerLevelAccess.create(
-            conduitBlockEntity.getLevel(), conduitBlockEntity.getBlockPos()), player, ModBlocks.CONDUIT.get());
+            level, conduitBlockEntity.getBlockPos()), player, ModBlocks.CONDUIT.get());
   }
 
   public static final class MenuExtras implements Consumer<FriendlyByteBuf> {

@@ -362,12 +362,24 @@ public class ConduitBlockEntity extends BlockEntity {
   /** Called on the client when we receive an update packet from the server. */
   public void onClientUpdate(ConduitClientStatePacket packet) {
     HashMap<Direction, ConduitConnection> newConnections = packet.getConnections();
-    if (!connections.equals(newConnections)) {
-      connections = newConnections;
 
-      // If the connections have changed, we'll need to update the model.
-      ModelDataManager.requestModelDataRefresh(this);
-      requireLevel().sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_ALL);
+    boolean connectionsChanged = false;
+    for (Direction dir : connections.keySet()) {
+      if (!newConnections.containsKey(dir)) {
+        connections.remove(dir);
+        connectionsChanged = true;
+      }
+    }
+    for (var entry : newConnections.entrySet()) {
+      Direction dir = entry.getKey();
+      ConduitConnection conn = entry.getValue();
+
+      if (!connections.containsKey(dir)) {
+        connections.put(dir, conn);
+        connectionsChanged = true;
+      } else {
+        connectionsChanged = connections.get(dir).updateFrom(conn) || connectionsChanged;
+      }
     }
 
     for (Map.Entry<ConduitType, IConduitTypeClientStatePacket> entry : packet.getConduits().entrySet()) {
@@ -381,7 +393,12 @@ public class ConduitBlockEntity extends BlockEntity {
       conduitHolder.getConduitImpl().onClientUpdate(entry.getValue(), this, conduitHolder);
     }
 
-    updateShape();
+    if (connectionsChanged) {
+      // If the connections have changed, we'll need to update the model.
+      ModelDataManager.requestModelDataRefresh(this);
+      requireLevel().sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_ALL);
+      updateShape();
+    }
   }
 
   /** Called on the server when a client wants to update us in some way. */
@@ -391,6 +408,9 @@ public class ConduitBlockEntity extends BlockEntity {
 
     // Mark ourselves as dirty as we've just updated ourselves.
     setChanged();
+
+    // And send an update to the client so it can reflect any changes, too.
+    sendClientUpdate();
   }
 
   /** Gets the {@link Level}, throws an exception if it's null. */
