@@ -139,13 +139,45 @@ public class ItemConduit extends AbstractConduit {
   }
 
   @Override
-  public void saveAdditional(CompoundTag tag, ConduitBlockEntity conduitBlockEntity) {
+  public void saveAdditional(CompoundTag tag, ConduitBlockEntity conduitBlockEntity, ConduitHolder conduitHolder) {
+    CompoundTag connectionsTag = new CompoundTag();
+    for (ConduitConnection conduitConnection : conduitBlockEntity.getConnections()) {
+      if (conduitConnection.getConnectionType() != ConduitConnection.ConnectionType.EXTERNAL) {
+        continue;
+      }
 
+      CompoundTag connectionTag = new CompoundTag();
+      ItemExternalConnection conn =
+          conduitConnection.getNetworkExternalConnection(NetworkType.ITEM, conduitHolder.getConduitType());
+      connectionTag.putBoolean("ExtractEnabled", conn.isExtractEnabled());
+      connectionTag.putBoolean("InsertEnabled", conn.isInsertEnabled());
+      connectionsTag.put(conduitConnection.getDirection().getName(), connectionTag);
+    }
+
+    tag.put("Connections", connectionsTag);
   }
 
   @Override
-  public void loadAdditional(CompoundTag tag, ConduitBlockEntity conduitBlockEntity) {
+  public void loadAdditional(CompoundTag tag, ConduitBlockEntity conduitBlockEntity, ConduitHolder conduitHolder) {
+    CompoundTag connectionsTag = tag.getCompound("Connections");
+    for (String dirName : connectionsTag.getAllKeys()) {
+      Direction dir = Direction.byName(dirName);
+      if (dir == null) {
+        L.atWarn().log("Unknown direction: {}", dirName);
+        continue;
+      }
 
+      ConduitConnection conduitConnection = conduitBlockEntity.getConnection(dir);
+      if (conduitConnection == null) {
+        continue;
+      }
+
+      CompoundTag connectionTag = connectionsTag.getCompound(dirName);
+      ItemExternalConnection conn =
+          conduitConnection.getNetworkExternalConnection(NetworkType.ITEM, conduitHolder.getConduitType());
+      conn.setExtractEnabled(connectionTag.getBoolean("ExtractEnabled"));
+      conn.setInsertEnabled(connectionTag.getBoolean("InsertEnabled"));
+    }
   }
 
   /**

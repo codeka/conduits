@@ -270,17 +270,6 @@ public class ConduitBlockEntity extends BlockEntity {
   public void load(@Nonnull CompoundTag tag) {
     super.load(tag);
 
-    CompoundTag conduitsTag = tag.getCompound("Conduits");
-    for (String conduitTypeName : conduitsTag.getAllKeys()) {
-      ConduitType conduitType = ConduitType.fromName(conduitTypeName);
-      if (conduitType == null) {
-        L.atWarn().log("Skipping unknown conduit type: {}", conduitTypeName);
-        continue;
-      }
-
-      conduitType.getConduitImpl().loadAdditional(conduitsTag.getCompound(conduitTypeName), this);
-    }
-
     CompoundTag connectionsTag = tag.getCompound("Connections");
     if (connectionsTag.isEmpty()) {
       return;
@@ -299,6 +288,21 @@ public class ConduitBlockEntity extends BlockEntity {
         connections.put(dir, conn);
       }
     }
+
+    CompoundTag conduitsTag = tag.getCompound("Conduits");
+    for (String conduitTypeName : conduitsTag.getAllKeys()) {
+      ConduitType conduitType = ConduitType.fromName(conduitTypeName);
+      if (conduitType == null) {
+        L.atWarn().log("Skipping unknown conduit type: {}", conduitTypeName);
+        continue;
+      }
+
+      ConduitHolder conduitHolder = conduitsByType.get(conduitType);
+      if (conduitHolder == null) {
+        continue;
+      }
+      conduitType.getConduitImpl().loadAdditional(conduitsTag.getCompound(conduitTypeName), this, conduitHolder);
+    }
   }
 
   /**
@@ -310,9 +314,12 @@ public class ConduitBlockEntity extends BlockEntity {
     super.saveAdditional(tag);
 
     CompoundTag conduitTypes = new CompoundTag();
-    for (ConduitType conduitType : conduitsByType.keySet()) {
+    for (var entry : conduitsByType.entrySet()) {
+      ConduitType conduitType = entry.getKey();
+      ConduitHolder conduitHolder = entry.getValue();
+
       CompoundTag conduitTag = new CompoundTag();
-      conduitType.getConduitImpl().saveAdditional(conduitTag, this);
+      conduitType.getConduitImpl().saveAdditional(conduitTag, this, conduitHolder);
       conduitTypes.put(conduitType.getName(), conduitTag);
     }
     tag.put("Conduits", conduitTypes);

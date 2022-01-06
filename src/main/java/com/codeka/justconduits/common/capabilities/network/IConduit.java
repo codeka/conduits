@@ -34,10 +34,10 @@ public interface IConduit {
   /**
    * Called when the chunk is being saved. Write out all the stuff we need to remember between chunk load/unlocd.
    */
-  void saveAdditional(CompoundTag tag, ConduitBlockEntity conduitBlockEntity);
+  void saveAdditional(CompoundTag tag, ConduitBlockEntity conduitBlockEntity, ConduitHolder conduitHolder);
 
   /**
    * Called when the chunk is being loaded.
    */
-  void loadAdditional(CompoundTag tag, ConduitBlockEntity conduitBlockEntity);
+  void loadAdditional(CompoundTag tag, ConduitBlockEntity conduitBlockEntity, ConduitHolder conduitHolder);
 }
