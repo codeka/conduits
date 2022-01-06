@@ -77,6 +77,11 @@ minecraft {
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
+repositories {
+    maven { url = 'https://dvs1.progwml6.com/files/maven' } // For JEI
+    maven { url = 'https://cursemaven.com' }
+}
+
 dependencies {
     minecraft 'net.minecraftforge:forge:1.18.1-39.0.10'
 
@@ -91,6 +96,12 @@ dependencies {
     // For more info...
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
     // http://www.gradle.org/docs/current/userguide/dependency_management.html
+
+
+    compileOnly fg.deobf("mezz.jei:jei-${jei_version}:api")
+    implementation fg.deobf("mezz.jei:jei-${jei_version}")
+
+    implementation fg.deobf("curse.maven:the-one-probe-245211:3586969")
 }
 
 jar {
