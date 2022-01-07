@@ -1,6 +1,7 @@
 package com.codeka.justconduits.client.blocks;
 
 import com.codeka.justconduits.common.blocks.ConduitConnection;
+import com.codeka.justconduits.common.capabilities.network.ConduitType;
 import com.codeka.justconduits.helpers.QuadHelper;
 import com.mojang.math.Matrix4f;
 import com.mojang.math.Transformation;
@@ -56,16 +57,25 @@ public class ConduitBakedModel implements IDynamicBakedModel {
       return Collections.emptyList();
     }
 
-    TextureAtlasSprite simpleItemConduitTexture = spriteGetter.apply(ConduitModelLoader.SIMPLE_CONDUIT_MATERIAL);
+    ConduitType conduitType = ConduitType.fromName(extraData.getData(ConduitModelProps.CONDUIT_TYPE));
+    TextureAtlasSprite texture;
+    if (conduitType == ConduitType.SIMPLE_ITEM) {
+      texture = spriteGetter.apply(ConduitModelLoader.SIMPLE_ITEM_CONDUIT_MATERIAL);
+    } else if (conduitType == ConduitType.SIMPLE_FLUID) {
+      texture = spriteGetter.apply(ConduitModelLoader.SIMPLE_FLUID_CONDUIT_MATERIAL);
+    } else {
+      // Invalid conduit type (or at least, not yet supported)
+      texture = spriteGetter.apply(ConduitModelLoader.MISSING_MATERIAL);
+    }
 
     // TODO: this should be at the center of each actual conduit.
     Transformation transformation = new Transformation(Matrix4f.createScaleMatrix(0.25f, 0.25f, 0.25f));
-    ArrayList<BakedQuad> quads = new ArrayList<>(QuadHelper.createCube(transformation, simpleItemConduitTexture));
+    ArrayList<BakedQuad> quads = new ArrayList<>(QuadHelper.createCube(transformation, texture));
 
     List<ConduitConnection> connections = extraData.getData(ConduitModelProps.CONNECTIONS);
     if (connections != null) {
       for (ConduitConnection conn : connections) {
-        quads.addAll(QuadHelper.generateQuads(conn.getVoxelShape(), simpleItemConduitTexture));
+        quads.addAll(QuadHelper.generateQuads(conn.getVoxelShape(), texture));
       }
     }
 
@@ -95,7 +105,7 @@ public class ConduitBakedModel implements IDynamicBakedModel {
   @Nonnull
   @Override
   public TextureAtlasSprite getParticleIcon() {
-    return spriteGetter.apply(ConduitModelLoader.SIMPLE_CONDUIT_MATERIAL);
+    return spriteGetter.apply(ConduitModelLoader.SIMPLE_ITEM_CONDUIT_MATERIAL);
   }
 
   @SuppressWarnings("deprecation")

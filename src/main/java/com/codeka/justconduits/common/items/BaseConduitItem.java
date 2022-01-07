@@ -1,6 +1,8 @@
 package com.codeka.justconduits.common.items;
 
 import com.codeka.justconduits.common.ModBlocks;
+import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
+import com.codeka.justconduits.common.capabilities.network.ConduitType;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -37,6 +39,8 @@ public abstract class BaseConduitItem extends Item {
     super(props);
   }
 
+  protected abstract ConduitType getConduitType();
+
   @Nonnull
   @Override
   public InteractionResult useOn(@Nonnull UseOnContext useOnContext) {
@@ -69,6 +73,10 @@ public abstract class BaseConduitItem extends Item {
         if (player instanceof ServerPlayer) {
           CriteriaTriggers.PLACED_BLOCK.trigger((ServerPlayer)player, blockPos, itemStack);
         }
+      }
+
+      if (level.getBlockEntity(blockPos) instanceof ConduitBlockEntity placedBlockEntity) {
+        placedBlockEntity.addConduit(getConduitType());
       }
 
       level.gameEvent(player, GameEvent.BLOCK_PLACE, blockPos);

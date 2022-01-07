@@ -55,7 +55,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 public class ConduitBlockEntity extends BlockEntity {
   private static final Logger L = LogManager.getLogger();
@@ -83,11 +82,6 @@ public class ConduitBlockEntity extends BlockEntity {
 
   public ConduitBlockEntity(BlockPos blockPos, BlockState blockState) {
     super(ModBlockEntities.CONDUIT.get(), blockPos, blockState);
-
-    // TODO: this should come from the item that placed us.
-    ConduitHolder conduitHolder = new ConduitHolder(ConduitType.SIMPLE_ITEM);
-    conduits.put(NetworkType.ITEM, conduitHolder);
-    conduitsByType.put(ConduitType.SIMPLE_ITEM, conduitHolder);
   }
 
   public Collection<ConduitConnection> getConnections() {
@@ -135,6 +129,16 @@ public class ConduitBlockEntity extends BlockEntity {
     return blockState.getBlock().getName();
   }
 
+  /**
+   * Adds a new conduit of the given type to this block.
+   */
+  public ConduitHolder addConduit(ConduitType conduitType) {
+    ConduitHolder conduitHolder = new ConduitHolder(conduitType);
+    conduits.put(conduitType.getNetworkType(), conduitHolder);
+    conduitsByType.put(conduitType, conduitHolder);
+    return conduitHolder;
+  }
+
   public VoxelShape getShape() {
     if (shape == null) {
       updateShape();
@@ -180,9 +184,7 @@ public class ConduitBlockEntity extends BlockEntity {
   @Nonnull
   @Override
   public IModelData getModelData() {
-    return new ModelDataMap.Builder()
-        .withInitial(ConduitModelProps.CONNECTIONS, new ArrayList<>(connections.values()))
-        .build();
+    return ConduitModelProps.getModelData(this);
   }
 
   /**
@@ -299,7 +301,7 @@ public class ConduitBlockEntity extends BlockEntity {
 
       ConduitHolder conduitHolder = conduitsByType.get(conduitType);
       if (conduitHolder == null) {
-        continue;
+        conduitHolder = addConduit(conduitType);
       }
       conduitType.getConduitImpl().loadAdditional(conduitsTag.getCompound(conduitTypeName), this, conduitHolder);
     }

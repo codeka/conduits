@@ -1,6 +1,7 @@
 package com.codeka.justconduits.common;
 
 import com.codeka.justconduits.JustConduitsMod;
+import com.codeka.justconduits.common.items.SimpleFluidConduitItem;
 import com.codeka.justconduits.common.items.SimpleItemConduitItem;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
@@ -14,6 +15,9 @@ public class ModItems {
 
   public static final RegistryObject<Item> SIMPLE_ITEM_CONDUIT =
       ITEMS.register("simple_item_conduit", SimpleItemConduitItem::new);
+
+  public static final RegistryObject<Item> SIMPLE_FLUID_CONDUIT =
+      ITEMS.register("simple_fluid_conduit", SimpleFluidConduitItem::new);
 
   public static void register() {
     ITEMS.register(FMLJavaModLoadingContext.get().getModEventBus());

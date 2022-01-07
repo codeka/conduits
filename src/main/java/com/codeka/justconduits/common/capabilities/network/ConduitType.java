@@ -1,5 +1,8 @@
 package com.codeka.justconduits.common.capabilities.network;
 
+import com.codeka.justconduits.common.capabilities.network.fluid.FluidConduit;
+import com.codeka.justconduits.common.capabilities.network.fluid.FluidConduitClientStatePacket;
+import com.codeka.justconduits.common.capabilities.network.fluid.FluidExternalConnection;
 import com.codeka.justconduits.common.capabilities.network.item.ItemConduit;
 import com.codeka.justconduits.common.capabilities.network.item.ItemConduitClientStatePacket;
 import com.codeka.justconduits.common.capabilities.network.item.ItemExternalConnection;
@@ -19,6 +22,11 @@ public class ConduitType {
           "simple_item", NetworkType.ITEM, ItemConduit::new, ItemExternalConnection::new,
           ItemConduitClientStatePacket::new);
 
+  public static ConduitType SIMPLE_FLUID =
+      new ConduitType(
+          "simple_fluid", NetworkType.FLUID, FluidConduit::new, FluidExternalConnection::new,
+          FluidConduitClientStatePacket::new);
+
   private final String name;
   private final NetworkType networkType;
   private final IConduit conduitImpl;
@@ -29,6 +37,7 @@ public class ConduitType {
     // TODO: actually register these. Or read from config?
     return switch (name) {
       case "simple_item" -> SIMPLE_ITEM;
+      case "simple_fluid" -> SIMPLE_FLUID;
       default -> throw new RuntimeException("Unknown ConduitType: " + name);
     };
   }

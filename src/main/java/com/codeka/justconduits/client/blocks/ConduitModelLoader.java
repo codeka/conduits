@@ -27,10 +27,15 @@ import java.util.function.Function;
 public class ConduitModelLoader implements IModelLoader<ConduitModelLoader.Geometry> {
   public static final ResourceLocation ID = new ResourceLocation(JustConduitsMod.MODID, "conduit_loader");
 
-  private static final ResourceLocation SIMPLE_CONDUIT_TEXTURE =
+  private static final ResourceLocation SIMPLE_ITEM_CONDUIT_TEXTURE =
       new ResourceLocation(JustConduitsMod.MODID, "blocks/simple_item_conduit");
+  private static final ResourceLocation SIMPLE_FLUID_CONDUIT_TEXTURE =
+      new ResourceLocation(JustConduitsMod.MODID, "blocks/simple_fluid_conduit");
 
-  static final Material SIMPLE_CONDUIT_MATERIAL = ForgeHooksClient.getBlockMaterial(SIMPLE_CONDUIT_TEXTURE);
+  // A missing material for if we make a mistake with our coding and miss a texture.
+  static final Material MISSING_MATERIAL = ForgeHooksClient.getBlockMaterial(new ResourceLocation(JustConduitsMod.MODID, "error"));
+  static final Material SIMPLE_ITEM_CONDUIT_MATERIAL = ForgeHooksClient.getBlockMaterial(SIMPLE_ITEM_CONDUIT_TEXTURE);
+  static final Material SIMPLE_FLUID_CONDUIT_MATERIAL = ForgeHooksClient.getBlockMaterial(SIMPLE_FLUID_CONDUIT_TEXTURE);
 
   @Nonnull
   @Override
@@ -55,7 +60,7 @@ public class ConduitModelLoader implements IModelLoader<ConduitModelLoader.Geome
     public Collection<Material> getTextures(
         IModelConfiguration owner, Function<ResourceLocation, UnbakedModel> modelGetter,
         Set<Pair<String, String>> missingTextureErrors) {
-      return List.of(SIMPLE_CONDUIT_MATERIAL);
+      return List.of(SIMPLE_ITEM_CONDUIT_MATERIAL, SIMPLE_FLUID_CONDUIT_MATERIAL);
     }
   }
 }
