@@ -85,23 +85,15 @@ repositories {
 dependencies {
     minecraft 'net.minecraftforge:forge:1.18.1-39.0.10'
 
-    // Real mod deobf dependency examples - these get remapped to your current mappings
-    // compileOnly fg.deobf("mezz.jei:jei-${mc_version}:${jei_version}:api") // Adds JEI API as a compile dependency
-    // runtimeOnly fg.deobf("mezz.jei:jei-${mc_version}:${jei_version}") // Adds the full JEI mod as a runtime dependency
-    // implementation fg.deobf("com.tterrag.registrate:Registrate:MC${mc_version}-${registrate_version}") // Adds registrate as a dependency
-
-    // Examples using mod jars from ./libs
-    // implementation fg.deobf("blank:coolmod-${mc_version}:${coolmod_version}")
-
-    // For more info...
-    // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
-    // http://www.gradle.org/docs/current/userguide/dependency_management.html
-
-
     compileOnly fg.deobf("mezz.jei:jei-${jei_version}:api")
     implementation fg.deobf("mezz.jei:jei-${jei_version}")
 
+    // See https://www.cursemaven.com/ for how these work.
     implementation fg.deobf("curse.maven:the-one-probe-245211:3586969")
+    runtimeOnly fg.deobf("curse.maven:configured-457570:3559398") // 1.5.1
+    runtimeOnly fg.deobf("curse.maven:mcjtylib-233105:3594914") // 1.18-6.0.3
+    runtimeOnly fg.deobf("curse.maven:rftools-base-326041:3593702") // 1.18-3.0.0
+    runtimeOnly fg.deobf("curse.maven:rftools-power-290209:3593709") // 1.18-4.0.0
 }
 
 jar {
