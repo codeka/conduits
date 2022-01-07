@@ -273,12 +273,13 @@ public class ConduitBlockEntity extends BlockEntity {
     super.load(tag);
 
     CompoundTag connectionsTag = tag.getCompound("Connections");
-    if (connectionsTag.isEmpty()) {
-      return;
-    }
+    for (String dirName : connectionsTag.getAllKeys()) {
+      Direction dir = Direction.byName(dirName);
+      if (dir == null) {
+        continue;
+      }
 
-    for (Direction dir : Direction.values()) {
-      CompoundTag connectionTag = connectionsTag.getCompound(dir.getName());
+      CompoundTag connectionTag = connectionsTag.getCompound(dirName);
       if (connectionTag.isEmpty()) {
         continue;
       }
@@ -299,8 +300,10 @@ public class ConduitBlockEntity extends BlockEntity {
         continue;
       }
 
+      L.atInfo().log("conduitsByType.size {}", conduitsByType.size());
       ConduitHolder conduitHolder = conduitsByType.get(conduitType);
       if (conduitHolder == null) {
+        L.atInfo().log("no conduit type yet, adding one of type {}", conduitType);
         conduitHolder = addConduit(conduitType);
       }
       conduitType.getConduitImpl().loadAdditional(conduitsTag.getCompound(conduitTypeName), this, conduitHolder);
