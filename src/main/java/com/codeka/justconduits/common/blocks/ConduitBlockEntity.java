@@ -276,13 +276,12 @@ public class ConduitBlockEntity extends BlockEntity {
     for (String dirName : connectionsTag.getAllKeys()) {
       Direction dir = Direction.byName(dirName);
       if (dir == null) {
+        L.atWarn().log("Skipping unknown direction: {}", dirName);
         continue;
       }
 
       CompoundTag connectionTag = connectionsTag.getCompound(dirName);
-      if (connectionTag.isEmpty()) {
-        continue;
-      }
+      // TODO: load stuff from the connection?
 
       ConduitConnection conn = getConnection(dir);
       if (conn == null) {
