@@ -65,8 +65,7 @@ public class ConduitScreen extends AbstractContainerScreen<ConduitContainerMenu>
             .build();
     if (connection != null) {
       // TODO: make this generic
-      ItemExternalConnection externalConnection =
-          connection.getNetworkExternalConnection(NetworkType.ITEM, ConduitType.SIMPLE_ITEM);
+      ItemExternalConnection externalConnection = connection.getNetworkExternalConnection(ConduitType.SIMPLE_ITEM);
       insertCheckButton.setChecked(externalConnection.isInsertEnabled());
     }
     addRenderableWidget(insertCheckButton);
@@ -78,8 +77,7 @@ public class ConduitScreen extends AbstractContainerScreen<ConduitContainerMenu>
             .build();
     if (connection != null) {
       // TODO: make this generic
-      ItemExternalConnection externalConnection =
-          connection.getNetworkExternalConnection(NetworkType.ITEM, ConduitType.SIMPLE_ITEM);
+      ItemExternalConnection externalConnection = connection.getNetworkExternalConnection(ConduitType.SIMPLE_ITEM);
       extractCheckButton.setChecked(externalConnection.isExtractEnabled());
     }
     addRenderableWidget(extractCheckButton);
@@ -104,8 +102,7 @@ public class ConduitScreen extends AbstractContainerScreen<ConduitContainerMenu>
     // TODO: this is weird, do we really need to?
     if (connection != null) {
       // TODO: make this generic
-      ItemExternalConnection externalConnection =
-          connection.getNetworkExternalConnection(NetworkType.ITEM, ConduitType.SIMPLE_ITEM);
+      ItemExternalConnection externalConnection = connection.getNetworkExternalConnection(ConduitType.SIMPLE_ITEM);
       extractCheckButton.setChecked(externalConnection.isExtractEnabled());
       insertCheckButton.setChecked(externalConnection.isInsertEnabled());
     }
@@ -121,8 +118,7 @@ public class ConduitScreen extends AbstractContainerScreen<ConduitContainerMenu>
       if (connection == null) {
         return false;
       }
-      ItemExternalConnection externalConnection =
-          connection.getNetworkExternalConnection(NetworkType.ITEM, ConduitType.SIMPLE_ITEM);
+      ItemExternalConnection externalConnection = connection.getNetworkExternalConnection(ConduitType.SIMPLE_ITEM);
       return externalConnection.isExtractEnabled();
     }
 
@@ -145,8 +141,7 @@ public class ConduitScreen extends AbstractContainerScreen<ConduitContainerMenu>
         return false;
       }
 
-      ItemExternalConnection externalConnection =
-          connection.getNetworkExternalConnection(NetworkType.ITEM, ConduitType.SIMPLE_ITEM);
+      ItemExternalConnection externalConnection = connection.getNetworkExternalConnection(ConduitType.SIMPLE_ITEM);
       return externalConnection.isInsertEnabled();
     }
 

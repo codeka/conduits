@@ -88,18 +88,16 @@ public class ConduitConnection {
    * Gets the {@link NetworkExternalConnection} subclass for the given network connection. Created a new one if
    * one does not exist yet.
    */
-  public <T extends NetworkExternalConnection> T getNetworkExternalConnection(
-      NetworkType networkType, ConduitType conduitType) {
-    checkArgument(conduitType.getNetworkType() == networkType);
+  public <T extends NetworkExternalConnection> T getNetworkExternalConnection(ConduitType conduitType) {
     checkState(connectionType == ConnectionType.EXTERNAL);
 
     // This should be non-null when connection type is EXTERNAL
     checkNotNull(conduitConnections);
 
-    NetworkExternalConnection networkExternalConnection = conduitConnections.get(networkType);
+    NetworkExternalConnection networkExternalConnection = conduitConnections.get(conduitType.getNetworkType());
     if (networkExternalConnection == null) {
       networkExternalConnection = conduitType.newNetworkExternalConnection();
-      conduitConnections.put(networkType, networkExternalConnection);
+      conduitConnections.put(conduitType.getNetworkType(), networkExternalConnection);
     }
 
     return (T) networkExternalConnection;

@@ -24,8 +24,7 @@ public class ItemConduitClientStatePacket implements IConduitTypeClientStatePack
         continue;
       }
 
-      ItemExternalConnection externalConnection =
-          conn.getNetworkExternalConnection(NetworkType.ITEM, ConduitType.SIMPLE_ITEM);
+      ItemExternalConnection externalConnection = conn.getNetworkExternalConnection(ConduitType.SIMPLE_ITEM);
       externalConnections.put(conn.getDirection(), externalConnection);
     }
   }

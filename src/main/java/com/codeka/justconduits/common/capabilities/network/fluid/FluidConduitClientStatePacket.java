@@ -14,7 +14,7 @@ import java.util.Map;
 
 /** Client state packet for {@link FluidConduit}s. */
 public class FluidConduitClientStatePacket implements IConduitTypeClientStatePacket {
-  private final HashMap<Direction, ItemExternalConnection> externalConnections = new HashMap<>();
+  private final HashMap<Direction, FluidExternalConnection> externalConnections = new HashMap<>();
 
   public FluidConduitClientStatePacket() {
   }
@@ -25,20 +25,19 @@ public class FluidConduitClientStatePacket implements IConduitTypeClientStatePac
         continue;
       }
 
-      ItemExternalConnection externalConnection =
-          conn.getNetworkExternalConnection(NetworkType.ITEM, ConduitType.SIMPLE_ITEM);
+      FluidExternalConnection externalConnection = conn.getNetworkExternalConnection(ConduitType.SIMPLE_FLUID);
       externalConnections.put(conn.getDirection(), externalConnection);
     }
   }
 
-  public Map<Direction, ItemExternalConnection> getExternalConnections() {
+  public Map<Direction, FluidExternalConnection> getExternalConnections() {
     return externalConnections;
   }
 
   @Override
   public void encode(FriendlyByteBuf buffer) {
     buffer.writeVarInt(externalConnections.size());
-    for (Map.Entry<Direction, ItemExternalConnection> entry : externalConnections.entrySet()) {
+    for (Map.Entry<Direction, FluidExternalConnection> entry : externalConnections.entrySet()) {
       buffer.writeEnum(entry.getKey());
       buffer.writeBoolean(entry.getValue().isExtractEnabled());
       buffer.writeBoolean(entry.getValue().isInsertEnabled());
@@ -50,7 +49,7 @@ public class FluidConduitClientStatePacket implements IConduitTypeClientStatePac
     int n = buffer.readVarInt();
     for (int i = 0; i < n; i++) {
       Direction dir = buffer.readEnum(Direction.class);
-      ItemExternalConnection externalConnection = new ItemExternalConnection();
+      FluidExternalConnection externalConnection = new FluidExternalConnection();
       externalConnection.setExtractEnabled(buffer.readBoolean());
       externalConnection.setInsertEnabled(buffer.readBoolean());
 

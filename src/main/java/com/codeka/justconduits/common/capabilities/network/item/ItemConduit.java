@@ -53,8 +53,7 @@ public class ItemConduit extends AbstractConduit {
         continue;
       }
 
-      ItemExternalConnection conn =
-          conduitConnection.getNetworkExternalConnection(NetworkType.ITEM, conduitHolder.getConduitType());
+      ItemExternalConnection conn = conduitConnection.getNetworkExternalConnection(conduitHolder.getConduitType());
 
       if (!conn.isExtractEnabled()) {
         // Item conduits only do something when extracting.
@@ -76,8 +75,7 @@ public class ItemConduit extends AbstractConduit {
       // find an insert-enabled connection to insert items into.
       ArrayList<IItemHandler> candidateTargets = new ArrayList<>();
       for (ConduitConnection outputConnection : network.getExternalConnections()) {
-        ItemExternalConnection outConn =
-            outputConnection.getNetworkExternalConnection(NetworkType.ITEM, conduitHolder.getConduitType());
+        ItemExternalConnection outConn = outputConnection.getNetworkExternalConnection(conduitHolder.getConduitType());
         if (!outConn.isInsertEnabled()) {
           // It doesn't have insert enabled, so we can't insert.
           continue;
@@ -112,7 +110,7 @@ public class ItemConduit extends AbstractConduit {
         // TODO error
         continue;
       }
-      ItemExternalConnection existing = conn.getNetworkExternalConnection(NetworkType.ITEM, ConduitType.SIMPLE_ITEM);
+      ItemExternalConnection existing = conn.getNetworkExternalConnection(conduitHolder.getConduitType());
       existing.setExtractEnabled(entry.getValue().isExtractEnabled());
       existing.setInsertEnabled(entry.getValue().isInsertEnabled());
     }
@@ -134,9 +132,7 @@ public class ItemConduit extends AbstractConduit {
       return;
     }
 
-    ItemExternalConnection conn =
-        connection.getNetworkExternalConnection(NetworkType.ITEM, conduitHolder.getConduitType());
-
+    ItemExternalConnection conn = connection.getNetworkExternalConnection(conduitHolder.getConduitType());
     switch (packet.getUpdateType()) {
       case INSERT_ENABLED -> conn.setInsertEnabled(packet.getBoolValue());
       case EXTRACT_ENABLED -> conn.setExtractEnabled(packet.getBoolValue());
@@ -154,8 +150,7 @@ public class ItemConduit extends AbstractConduit {
       }
 
       CompoundTag connectionTag = new CompoundTag();
-      ItemExternalConnection conn =
-          conduitConnection.getNetworkExternalConnection(NetworkType.ITEM, conduitHolder.getConduitType());
+      ItemExternalConnection conn = conduitConnection.getNetworkExternalConnection(conduitHolder.getConduitType());
       connectionTag.putBoolean("ExtractEnabled", conn.isExtractEnabled());
       connectionTag.putBoolean("InsertEnabled", conn.isInsertEnabled());
       connectionsTag.put(conduitConnection.getDirection().getName(), connectionTag);
@@ -181,8 +176,7 @@ public class ItemConduit extends AbstractConduit {
       }
 
       CompoundTag connectionTag = connectionsTag.getCompound(dirName);
-      ItemExternalConnection conn =
-          conduitConnection.getNetworkExternalConnection(NetworkType.ITEM, conduitHolder.getConduitType());
+      ItemExternalConnection conn = conduitConnection.getNetworkExternalConnection(conduitHolder.getConduitType());
       conn.setExtractEnabled(connectionTag.getBoolean("ExtractEnabled"));
       conn.setInsertEnabled(connectionTag.getBoolean("InsertEnabled"));
     }
@@ -190,7 +184,6 @@ public class ItemConduit extends AbstractConduit {
 
   @Override
   public boolean canConnect(@Nonnull BlockEntity blockEntity, @Nonnull BlockPos blockPos, @Nonnull Direction face) {
-    // TODO: check the types of conduits we have in our bundle, we'll only connect if it's one we support.
     LazyOptional<IItemHandler> itemHandlerOptional =
         blockEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, face);
     if (itemHandlerOptional.resolve().isPresent()) {
