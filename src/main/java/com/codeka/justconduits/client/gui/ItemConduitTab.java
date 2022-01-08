@@ -1,8 +1,11 @@
 package com.codeka.justconduits.client.gui;
 
 import com.codeka.justconduits.JustConduitsMod;
+import com.codeka.justconduits.client.gui.widgets.ChannelColorButton;
 import com.codeka.justconduits.client.gui.widgets.CheckButton;
 import com.codeka.justconduits.client.gui.widgets.DataSource;
+import com.codeka.justconduits.client.gui.widgets.SimpleButton;
+import com.codeka.justconduits.common.ChannelColor;
 import com.codeka.justconduits.common.blocks.ConduitBlock;
 import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
 import com.codeka.justconduits.common.blocks.ConduitConnection;
@@ -25,6 +28,11 @@ public class ItemConduitTab implements IConduitTab {
   private ConduitBlockEntity conduitBlockEntity;
   private CheckButton insertCheckButton;
   private CheckButton extractCheckButton;
+  private ChannelColorButton insertChannelColorButton;
+  private ChannelColorButton extractChannelColorButton;
+
+  private SimpleButton testButton1;
+  private SimpleButton testButton2;
 
   @Override
   public void init(
@@ -38,10 +46,18 @@ public class ItemConduitTab implements IConduitTab {
             .withMessage(new TextComponent("Insert"))
             .withCheckedDataSource(insertDataSource)
             .build();
-    // TODO: make this generic
+    // TODO: make this generic?
     ItemExternalConnection externalConnection = connection.getNetworkExternalConnection(ConduitType.SIMPLE_ITEM);
     insertCheckButton.setChecked(externalConnection.isInsertEnabled());
     screen.add(insertCheckButton);
+
+    insertChannelColorButton = new ChannelColorButton.Builder(10, 45).build();
+    screen.add(insertChannelColorButton);
+
+    testButton1 = new SimpleButton.Builder(35, 45).build();
+    screen.add(testButton1);
+    testButton2 = new SimpleButton.Builder(60, 45).build();
+    screen.add(testButton2);
 
     extractCheckButton =
         new CheckButton.Builder(100, 20)
@@ -50,6 +66,10 @@ public class ItemConduitTab implements IConduitTab {
             .build();
     extractCheckButton.setChecked(externalConnection.isExtractEnabled());
     screen.add(extractCheckButton);
+
+    extractChannelColorButton = new ChannelColorButton.Builder(100, 45).build();
+    screen.add(extractChannelColorButton);
+
   }
 
   @Override
