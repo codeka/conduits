@@ -9,7 +9,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
-import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
@@ -20,6 +19,8 @@ import org.apache.logging.log4j.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.function.Consumer;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public class ConduitContainerMenu extends AbstractContainerMenu {
   private static final Logger L = LogManager.getLogger();
@@ -59,9 +60,9 @@ public class ConduitContainerMenu extends AbstractContainerMenu {
     return be.getConnection(direction);
   }
 
-  @Nullable
+  @Nonnull
   public ConduitBlockEntity getConduitBlockEntity() {
-    return conduitBlockEntity;
+    return checkNotNull(conduitBlockEntity);
   }
 
   @Override
