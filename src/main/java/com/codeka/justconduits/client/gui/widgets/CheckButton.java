@@ -1,12 +1,10 @@
-package com.codeka.justconduits.client.gui;
+package com.codeka.justconduits.client.gui.widgets;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.function.Consumer;
 
 /**
  * An {@link IconButton} that hard codes itself to act like a checkbox.

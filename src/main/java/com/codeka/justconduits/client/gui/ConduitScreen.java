@@ -1,8 +1,8 @@
-package com.codeka.justconduits.client.blocks;
+package com.codeka.justconduits.client.gui;
 
 import com.codeka.justconduits.JustConduitsMod;
-import com.codeka.justconduits.client.gui.CheckButton;
-import com.codeka.justconduits.client.gui.DataSource;
+import com.codeka.justconduits.client.gui.widgets.CheckButton;
+import com.codeka.justconduits.client.gui.widgets.DataSource;
 import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
 import com.codeka.justconduits.common.blocks.ConduitConnection;
 import com.codeka.justconduits.common.blocks.ConduitContainerMenu;

@@ -2,7 +2,7 @@ package com.codeka.justconduits.client;
 
 import com.codeka.justconduits.JustConduitsMod;
 import com.codeka.justconduits.client.blocks.ConduitModelLoader;
-import com.codeka.justconduits.client.blocks.ConduitScreen;
+import com.codeka.justconduits.client.gui.ConduitScreen;
 import com.codeka.justconduits.common.ModBlocks;
 import com.codeka.justconduits.common.ModContainers;
 import com.codeka.justconduits.common.blocks.ConduitBlockHighlighter;

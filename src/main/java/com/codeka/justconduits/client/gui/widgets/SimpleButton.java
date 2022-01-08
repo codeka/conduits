@@ -1,4 +1,4 @@
-package com.codeka.justconduits.client.gui;
+package com.codeka.justconduits.client.gui.widgets;
 
 import com.codeka.justconduits.JustConduitsMod;
 import com.mojang.blaze3d.systems.RenderSystem;

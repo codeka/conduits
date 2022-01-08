@@ -1,4 +1,4 @@
-package com.codeka.justconduits.client.gui;
+package com.codeka.justconduits.client.gui.widgets;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.network.chat.Component;

@@ -1,4 +1,4 @@
-package com.codeka.justconduits.client.gui;
+package com.codeka.justconduits.client.gui.widgets;
 
 public enum Icon {
   /** A checkmark, used by {@link CheckButton}. */
