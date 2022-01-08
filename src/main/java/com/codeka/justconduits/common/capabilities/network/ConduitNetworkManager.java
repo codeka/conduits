@@ -48,8 +48,8 @@ public class ConduitNetworkManager implements IConduitNetworkManager {
     }
 
     // First, create a new network that consists of only this conduit.
-    ItemNetwork itemNetwork = new ItemNetwork();
-    NetworkRegistry.register(itemNetwork);
+    IConduitNetwork network = conduitHolder.getConduitType().getNetworkType().newNetwork();
+    NetworkRegistry.register(network);
 
     // Keep a stack of the ConduitBlockEntities that we haven't visited yet. Start with the one we're at now.
     Stack<ConduitBlockEntity> open = new Stack<>();
@@ -62,28 +62,28 @@ public class ConduitNetworkManager implements IConduitNetworkManager {
         continue;
       }
 
-      if (ch.getNetworkRef() != null && ch.getNetworkRef().getId() != itemNetwork.getNetworkRef().getId()) {
+      if (ch.getNetworkRef() != null && ch.getNetworkRef().getId() != network.getNetworkRef().getId()) {
         // This ConduitBlockEntity already belongs to a network. We should join this network, since it's already
         // populated.
 
-        ItemNetwork existingNetwork = NetworkRegistry.getNetwork(ch.getNetworkRef().getId());
+        IConduitNetwork existingNetwork = NetworkRegistry.getNetwork(ch.getNetworkRef().getId());
         if (existingNetwork == null) {
           L.atError().log("ConduitBlockEntity has a network reference that isn't registered.");
           // TODO: should we crash here? something's corrupted.
           return;
         }
-        existingNetwork.combine(itemNetwork);
+        existingNetwork.combine(network);
 
         // And now we are populating the existing network, so unregister our network, update the network ref and
         // continue with the existing one.
-        NetworkRegistry.unregister(itemNetwork);
-        itemNetwork.getNetworkRef().setId(existingNetwork.getNetworkRef().getId());
-        itemNetwork = existingNetwork;
+        NetworkRegistry.unregister(network);
+        network.getNetworkRef().setId(existingNetwork.getNetworkRef().getId());
+        network = existingNetwork;
 
         continue;
       }
 
-      ch.setNetworkRef(itemNetwork.getNetworkRef());
+      ch.setNetworkRef(network.getNetworkRef());
 
       for (ConduitConnection conn : cbe.getConnections()) {
         switch (conn.getConnectionType()) {
@@ -95,7 +95,7 @@ public class ConduitNetworkManager implements IConduitNetworkManager {
                 continue;
               }
               if (neighborConduitHolder.getNetworkRef() != null &&
-                  neighborConduitHolder.getNetworkRef().getId() == itemNetwork.getNetworkRef().getId()) {
+                  neighborConduitHolder.getNetworkRef().getId() == network.getNetworkRef().getId()) {
                 // We've already added this one, skip it.
                 continue;
               }
@@ -108,7 +108,7 @@ public class ConduitNetworkManager implements IConduitNetworkManager {
           }
           case EXTERNAL -> {
             // TODO: is there more to do?
-            itemNetwork.addExternalConnection(conn);
+            network.addExternalConnection(conn);
           }
         }
       }

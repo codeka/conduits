@@ -1,5 +1,10 @@
 package com.codeka.justconduits.common.capabilities.network;
 
+import com.codeka.justconduits.common.capabilities.network.fluid.FluidNetwork;
+import com.codeka.justconduits.common.capabilities.network.item.ItemNetwork;
+
+import java.util.function.Supplier;
+
 /**
  * The type of a network.
  *
@@ -11,13 +16,13 @@ package com.codeka.justconduits.common.capabilities.network;
  */
 // TODO: can we use resource locations as the name? so other mods can add their own network types?
 public class NetworkType {
-  public static final NetworkType ITEM = new NetworkType("item");
+  public static final NetworkType ITEM = new NetworkType("item", ItemNetwork::new);
 
-  public static final NetworkType FLUID = new NetworkType("fluid");
+  public static final NetworkType FLUID = new NetworkType("fluid", FluidNetwork::new);
 
-  public static final NetworkType ENERGY = new NetworkType("energy");
+  public static final NetworkType ENERGY = new NetworkType("energy", () -> null);
 
-  public static final NetworkType REDSTONE = new NetworkType("redstone");
+  public static final NetworkType REDSTONE = new NetworkType("redstone", () -> null);
 
   public static NetworkType fromName(String name) {
     // TODO: actually register these. Or read from config?
@@ -30,13 +35,19 @@ public class NetworkType {
     };
   }
 
-  private String name;
+  private final String name;
+  private final Supplier<IConduitNetwork> networkSupplier;
 
-  public NetworkType(String name) {
+  public NetworkType(String name, Supplier<IConduitNetwork> networkSupplier) {
     this.name = name;
+    this.networkSupplier = networkSupplier;
   }
 
   public String getName() {
     return name;
+  }
+
+  public IConduitNetwork newNetwork() {
+    return networkSupplier.get();
   }
 }

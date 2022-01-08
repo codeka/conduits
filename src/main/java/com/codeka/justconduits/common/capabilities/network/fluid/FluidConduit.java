@@ -5,34 +5,50 @@ import com.codeka.justconduits.common.capabilities.network.AbstractConduit;
 import com.codeka.justconduits.common.capabilities.network.ConduitHolder;
 import com.codeka.justconduits.packets.ConduitUpdatePacket;
 import com.codeka.justconduits.packets.IConduitTypeClientStatePacket;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+
+import javax.annotation.Nonnull;
 
 public class FluidConduit extends AbstractConduit {
   @Override
-  public void tickServer(Level level, ConduitBlockEntity conduitBlockEntity, ConduitHolder conduitHolder) {
+  public void tickServer(
+      @Nonnull Level level, @Nonnull ConduitBlockEntity conduitBlockEntity, @Nonnull ConduitHolder conduitHolder) {
   }
 
   @Override
   public void onClientUpdate(
-      IConduitTypeClientStatePacket packet, ConduitBlockEntity conduitBlockEntity, ConduitHolder conduitHolder) {
+      @Nonnull IConduitTypeClientStatePacket packet, @Nonnull ConduitBlockEntity conduitBlockEntity,
+      @Nonnull ConduitHolder conduitHolder) {
   }
 
   @Override
-  public IConduitTypeClientStatePacket createClientState(ConduitBlockEntity conduitBlockEntity) {
+  @Nonnull
+  public IConduitTypeClientStatePacket createClientState(@Nonnull ConduitBlockEntity conduitBlockEntity) {
     return new FluidConduitClientStatePacket();
   }
 
   @Override
   public void onServerUpdate(
-      ConduitUpdatePacket packet, ConduitBlockEntity conduitBlockEntity, ConduitHolder conduitHolder) {
+      @Nonnull ConduitUpdatePacket packet, @Nonnull ConduitBlockEntity conduitBlockEntity,
+      @Nonnull ConduitHolder conduitHolder) {
   }
 
   @Override
-  public void saveAdditional(CompoundTag tag, ConduitBlockEntity conduitBlockEntity, ConduitHolder conduitHolder) {
+  public void saveAdditional(
+      @Nonnull CompoundTag tag, @Nonnull ConduitBlockEntity conduitBlockEntity, @Nonnull ConduitHolder conduitHolder) {
   }
 
   @Override
-  public void loadAdditional(CompoundTag tag, ConduitBlockEntity conduitBlockEntity, ConduitHolder conduitHolder) {
+  public void loadAdditional(
+      @Nonnull CompoundTag tag, @Nonnull ConduitBlockEntity conduitBlockEntity, @Nonnull ConduitHolder conduitHolder) {
+  }
+
+  @Override
+  public boolean canConnect(@Nonnull BlockEntity blockEntity, @Nonnull BlockPos blockPos, @Nonnull Direction face) {
+    return false;
   }
 }

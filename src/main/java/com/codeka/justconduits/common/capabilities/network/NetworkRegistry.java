@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class NetworkRegistry {
   private static AtomicLong nextId = new AtomicLong(1);
 
-  private static final HashMap<Long, AbstractNetwork> networks = new HashMap<>();
+  private static final HashMap<Long, IConduitNetwork> networks = new HashMap<>();
 
   public static long newId() {
     return nextId.incrementAndGet();
@@ -23,8 +23,8 @@ public class NetworkRegistry {
   /** Returns the network with the given ID, or null if the network is not registered. */
   @SuppressWarnings("unchecked")
   @Nullable
-  public static <T extends AbstractNetwork> T getNetwork(long id) {
-    AbstractNetwork network = networks.get(id);
+  public static <T extends IConduitNetwork> T getNetwork(long id) {
+    IConduitNetwork network = networks.get(id);
     if (network == null) {
       return null;
     }
@@ -37,7 +37,7 @@ public class NetworkRegistry {
     }
   }
 
-  public static void register(AbstractNetwork network) {
+  public static void register(IConduitNetwork network) {
     if (networks.containsKey(network.getNetworkRef().getId())) {
       // TODO: log error
       return;
@@ -46,7 +46,7 @@ public class NetworkRegistry {
     networks.put(network.getNetworkRef().getId(), network);
   }
 
-  public static void unregister(AbstractNetwork network) {
+  public static void unregister(IConduitNetwork network) {
     networks.remove(network.getNetworkRef().getId());
   }
 }

@@ -9,11 +9,13 @@ import com.codeka.justconduits.common.capabilities.network.NetworkRegistry;
 import com.codeka.justconduits.common.capabilities.network.NetworkType;
 import com.codeka.justconduits.packets.ConduitUpdatePacket;
 import com.codeka.justconduits.packets.IConduitTypeClientStatePacket;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
@@ -34,7 +36,8 @@ public class ItemConduit extends AbstractConduit {
   private static final Logger L = LogManager.getLogger();
 
   @Override
-  public void tickServer(Level level, ConduitBlockEntity conduitBlockEntity, ConduitHolder conduitHolder) {
+  public void tickServer(
+      @Nonnull Level level, @Nonnull ConduitBlockEntity conduitBlockEntity, @Nonnull ConduitHolder conduitHolder) {
     // TODO: make sure there is at least one item conduit external connection here before we start ticking
     // so we can avoid the whole tick method entirely.
 
@@ -98,7 +101,8 @@ public class ItemConduit extends AbstractConduit {
 
   @Override
   public void onClientUpdate(
-      IConduitTypeClientStatePacket basePacket, ConduitBlockEntity conduitBlockEntity, ConduitHolder conduitHolder) {
+      @Nonnull IConduitTypeClientStatePacket basePacket, @Nonnull ConduitBlockEntity conduitBlockEntity,
+      @Nonnull ConduitHolder conduitHolder) {
     ItemConduitClientStatePacket packet = (ItemConduitClientStatePacket) basePacket;
     for (Map.Entry<Direction, ItemExternalConnection> entry : packet.getExternalConnections().entrySet()) {
       Direction dir = entry.getKey();
@@ -115,13 +119,15 @@ public class ItemConduit extends AbstractConduit {
   }
 
   @Override
-  public IConduitTypeClientStatePacket createClientState(ConduitBlockEntity conduitBlockEntity) {
+  @Nonnull
+  public IConduitTypeClientStatePacket createClientState(@Nonnull ConduitBlockEntity conduitBlockEntity) {
     return new ItemConduitClientStatePacket(conduitBlockEntity);
   }
 
   @Override
   public void onServerUpdate(
-      ConduitUpdatePacket packet, ConduitBlockEntity conduitBlockEntity, ConduitHolder conduitHolder) {
+      @Nonnull ConduitUpdatePacket packet, @Nonnull ConduitBlockEntity conduitBlockEntity,
+      @Nonnull ConduitHolder conduitHolder) {
     ConduitConnection connection = conduitBlockEntity.getConnection(packet.getDirection());
     if (connection == null) {
       L.atError().log("No connection found when updating from client.");
@@ -139,7 +145,8 @@ public class ItemConduit extends AbstractConduit {
   }
 
   @Override
-  public void saveAdditional(CompoundTag tag, ConduitBlockEntity conduitBlockEntity, ConduitHolder conduitHolder) {
+  public void saveAdditional(
+      @Nonnull CompoundTag tag, @Nonnull ConduitBlockEntity conduitBlockEntity, @Nonnull ConduitHolder conduitHolder) {
     CompoundTag connectionsTag = new CompoundTag();
     for (ConduitConnection conduitConnection : conduitBlockEntity.getConnections()) {
       if (conduitConnection.getConnectionType() != ConduitConnection.ConnectionType.EXTERNAL) {
@@ -158,7 +165,8 @@ public class ItemConduit extends AbstractConduit {
   }
 
   @Override
-  public void loadAdditional(CompoundTag tag, ConduitBlockEntity conduitBlockEntity, ConduitHolder conduitHolder) {
+  public void loadAdditional(
+      @Nonnull CompoundTag tag, @Nonnull ConduitBlockEntity conduitBlockEntity, @Nonnull ConduitHolder conduitHolder) {
     CompoundTag connectionsTag = tag.getCompound("Connections");
     for (String dirName : connectionsTag.getAllKeys()) {
       Direction dir = Direction.byName(dirName);
@@ -178,6 +186,21 @@ public class ItemConduit extends AbstractConduit {
       conn.setExtractEnabled(connectionTag.getBoolean("ExtractEnabled"));
       conn.setInsertEnabled(connectionTag.getBoolean("InsertEnabled"));
     }
+  }
+
+  @Override
+  public boolean canConnect(@Nonnull BlockEntity blockEntity, @Nonnull BlockPos blockPos, @Nonnull Direction face) {
+    // TODO: check the types of conduits we have in our bundle, we'll only connect if it's one we support.
+    LazyOptional<IItemHandler> itemHandlerOptional =
+        blockEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, face);
+    if (itemHandlerOptional.resolve().isPresent()) {
+      IItemHandler itemHandler = itemHandlerOptional.resolve().get();
+      // TODO: use it? make modifications?
+
+      return true;
+    }
+
+    return false;
   }
 
   /**

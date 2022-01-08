@@ -375,7 +375,7 @@ public class ConduitBlockEntity extends BlockEntity {
     HashMap<Direction, ConduitConnection> newConnections = packet.getConnections();
 
     boolean connectionsChanged = false;
-    for (Direction dir : connections.keySet()) {
+    for (Direction dir : new ArrayList<>(connections.keySet())) {
       if (!newConnections.containsKey(dir)) {
         connections.remove(dir);
         connectionsChanged = true;
@@ -456,17 +456,21 @@ public class ConduitBlockEntity extends BlockEntity {
     } else if (neighbor != null) {
       ConduitConnection conn = connections.get(dir);
       if (conn == null || conn.getConnectionType() != ConduitConnection.ConnectionType.EXTERNAL) {
-        conn = new ConduitConnection(getBlockPos(), dir, ConduitConnection.ConnectionType.EXTERNAL);
-        connections.put(dir, conn);
-      }
-      // TODO: check the types of conduits we have in our bundle, we'll only connect if it's one we support.
-      LazyOptional<IItemHandler> itemHandlerOptional =
-          neighbor.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, dir.getOpposite());
-      if (itemHandlerOptional.resolve().isPresent()) {
-        IItemHandler itemHandler = itemHandlerOptional.resolve().get();
-        // TODO: use it? make modifications?
+        // Ask each of our conduits if it can connect to this block. If none of them can, we won't make a connection.
+        boolean canConnect = false;
+        for (ConduitHolder conduitHolder : conduits.values()) {
+          canConnect = canConnect || conduitHolder.getConduitImpl().canConnect(neighbor, blockPos, dir.getOpposite());
+        }
 
-        needUpdate = true;
+        if (canConnect) {
+          conn = new ConduitConnection(getBlockPos(), dir, ConduitConnection.ConnectionType.EXTERNAL);
+          connections.put(dir, conn);
+          needUpdate = true;
+        } else if (conn != null) {
+          // We can't connect, but there's already a connection, we need to remove it.
+          connections.remove(dir);
+          needUpdate = true;
+        }
       }
 
       // TODO: it might be something else that we want to connect to.
