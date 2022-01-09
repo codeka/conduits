@@ -32,14 +32,16 @@ import javax.annotation.Nullable;
 import static net.minecraft.world.item.BlockItem.getBlockEntityData;
 
 /** Base class for conduit items. */
-public abstract class BaseConduitItem extends Item {
+public class ConduitItem extends Item {
   private static final Logger L = LogManager.getLogger();
 
-  public BaseConduitItem(Properties props) {
-    super(props);
-  }
+  private final ConduitType conduitType;
 
-  protected abstract ConduitType getConduitType();
+  public ConduitItem(ConduitType conduitType, Properties props) {
+    super(props);
+
+    this.conduitType = conduitType;
+  }
 
   @Nonnull
   @Override
@@ -76,7 +78,7 @@ public abstract class BaseConduitItem extends Item {
       }
 
       if (level.getBlockEntity(blockPos) instanceof ConduitBlockEntity placedBlockEntity) {
-        placedBlockEntity.addConduit(getConduitType());
+        placedBlockEntity.addConduit(conduitType);
       }
 
       level.gameEvent(player, GameEvent.BLOCK_PLACE, blockPos);

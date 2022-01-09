@@ -1,8 +1,8 @@
 package com.codeka.justconduits.common;
 
 import com.codeka.justconduits.JustConduitsMod;
-import com.codeka.justconduits.common.items.SimpleFluidConduitItem;
-import com.codeka.justconduits.common.items.SimpleItemConduitItem;
+import com.codeka.justconduits.common.capabilities.network.ConduitType;
+import com.codeka.justconduits.common.items.ConduitItem;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.DeferredRegister;
@@ -14,10 +14,16 @@ public class ModItems {
       DeferredRegister.create(ForgeRegistries.ITEMS, JustConduitsMod.MODID);
 
   public static final RegistryObject<Item> SIMPLE_ITEM_CONDUIT =
-      ITEMS.register("simple_item_conduit", SimpleItemConduitItem::new);
+      ITEMS.register(
+          "simple_item_conduit",
+          () -> new ConduitItem(
+              ConduitType.SIMPLE_ITEM, new Item.Properties().tab(ConduitCreativeModeTab.TAB_CONDUIT)));
 
   public static final RegistryObject<Item> SIMPLE_FLUID_CONDUIT =
-      ITEMS.register("simple_fluid_conduit", SimpleFluidConduitItem::new);
+      ITEMS.register(
+          "simple_fluid_conduit",
+          () -> new ConduitItem(
+              ConduitType.SIMPLE_FLUID, new Item.Properties().tab(ConduitCreativeModeTab.TAB_CONDUIT)));
 
   public static void register() {
     ITEMS.register(FMLJavaModLoadingContext.get().getModEventBus());
