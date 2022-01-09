@@ -2,7 +2,6 @@ package com.codeka.justconduits.client.gui;
 
 import com.codeka.justconduits.JustConduitsMod;
 import com.codeka.justconduits.client.gui.widgets.ChannelColorButton;
-import com.codeka.justconduits.client.gui.widgets.CheckButton;
 import com.codeka.justconduits.client.gui.widgets.DataSource;
 import com.codeka.justconduits.client.gui.widgets.Icon;
 import com.codeka.justconduits.client.gui.widgets.IconListButton;
