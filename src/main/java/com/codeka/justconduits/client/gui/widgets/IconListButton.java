@@ -1,6 +1,8 @@
 package com.codeka.justconduits.client.gui.widgets;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,6 +40,13 @@ public class IconListButton extends IconButton {
 //    setPressed(showCheck);
 
     super.renderIconOrText(poseStack);
+
+    // TODO: maybe we don't always need to render this thing?
+    Font font = Minecraft.getInstance().font;
+    drawString(
+        poseStack, Minecraft.getInstance().font, getMessage(),
+        x + width + 3, y + (height / 2 - font.lineHeight / 2),
+        getFGColor());
   }
 
   private void handlePress() {

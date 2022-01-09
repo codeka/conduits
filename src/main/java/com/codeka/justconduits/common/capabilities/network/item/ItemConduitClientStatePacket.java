@@ -1,59 +1,31 @@
 package com.codeka.justconduits.common.capabilities.network.item;
 
 import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
-import com.codeka.justconduits.common.blocks.ConduitConnection;
 import com.codeka.justconduits.common.capabilities.network.ConduitType;
-import com.codeka.justconduits.common.capabilities.network.ConnectionMode;
-import com.codeka.justconduits.common.capabilities.network.NetworkType;
-import com.codeka.justconduits.packets.IConduitTypeClientStatePacket;
-import net.minecraft.core.Direction;
+import com.codeka.justconduits.common.capabilities.network.common.CommonClientStatePacket;
 import net.minecraft.network.FriendlyByteBuf;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /** Client state packet for {@link ItemConduit}s. */
-public class ItemConduitClientStatePacket implements IConduitTypeClientStatePacket {
-  private final HashMap<Direction, ItemExternalConnection> externalConnections = new HashMap<>();
-
+public class ItemConduitClientStatePacket extends CommonClientStatePacket {
   public ItemConduitClientStatePacket() {
+    super(null, ConduitType.SIMPLE_ITEM);
   }
 
   public ItemConduitClientStatePacket(ConduitBlockEntity conduitBlockEntity) {
-    for (ConduitConnection conn : conduitBlockEntity.getConnections()) {
-      if (conn.getConnectionType() != ConduitConnection.ConnectionType.EXTERNAL) {
-        continue;
-      }
-
-      ItemExternalConnection externalConnection = conn.getNetworkExternalConnection(ConduitType.SIMPLE_ITEM);
-      externalConnections.put(conn.getDirection(), externalConnection);
-    }
-  }
-
-  public Map<Direction, ItemExternalConnection> getExternalConnections() {
-    return externalConnections;
+    super(conduitBlockEntity, ConduitType.SIMPLE_ITEM);
   }
 
   @Override
   public void encode(FriendlyByteBuf buffer) {
-    buffer.writeVarInt(externalConnections.size());
-    for (Map.Entry<Direction, ItemExternalConnection> entry : externalConnections.entrySet()) {
-      buffer.writeEnum(entry.getKey());
-      buffer.writeEnum(entry.getValue().getExtractMode());
-      buffer.writeEnum(entry.getValue().getInsertMode());
-    }
+    super.encode(buffer);
+
+    // TODO: add more?
   }
 
   @Override
   public void decode(FriendlyByteBuf buffer) {
-    int n = buffer.readVarInt();
-    for (int i = 0; i < n; i++) {
-      Direction dir = buffer.readEnum(Direction.class);
-      ItemExternalConnection externalConnection = new ItemExternalConnection();
-      externalConnection.setExtractMode(buffer.readEnum(ConnectionMode.class));
-      externalConnection.setInsertMode(buffer.readEnum(ConnectionMode.class));
+    super.decode(buffer);
 
-      externalConnections.put(dir, externalConnection);
-    }
+    // TODO: add more?
   }
 }

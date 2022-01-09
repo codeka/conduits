@@ -26,8 +26,6 @@ public class ConduitNetworkManager implements IConduitNetworkManager {
    * @param conduitBlockEntity The {@link ConduitBlockEntity} that was just created.
    */
   public void init(ConduitBlockEntity conduitBlockEntity) {
-    L.atInfo().log("Initializing CBE @ {}", conduitBlockEntity.getBlockPos());
-
     final Level level = conduitBlockEntity.getLevel();
     if (level == null) {
       L.atError().log("ConduitBlockEntity doesn't have a level.");
@@ -37,8 +35,6 @@ public class ConduitNetworkManager implements IConduitNetworkManager {
     for (ConduitHolder conduitHolder : conduitBlockEntity.getConduitHolders()) {
       init(level, conduitBlockEntity, conduitHolder);
     }
-
-    L.atInfo().log(" - complete.");
   }
 
   private void init(Level level, ConduitBlockEntity conduitBlockEntity, ConduitHolder conduitHolder) {
