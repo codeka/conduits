@@ -9,6 +9,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -23,6 +24,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.phys.BlockHitResult;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -43,10 +45,19 @@ public class ConduitItem extends Item {
     this.conduitType = conduitType;
   }
 
+  public ConduitType getConduitType() {
+    return conduitType;
+  }
+
+  /**
+   * Called when we are used on a new blockspace. Place a new block and add ourselves to that block.
+   *
+   * Note: When you click on an existing conduit block, that is handled by the {@link ConduitBlockEntity}'s
+   * {@link ConduitBlockEntity#use(Player, InteractionHand, BlockHitResult, boolean)} method.
+   */
   @Nonnull
   @Override
   public InteractionResult useOn(@Nonnull UseOnContext useOnContext) {
-    // TODO: handle using a conduit on a block that already has a conduit?
     BlockPlaceContext context = new BlockPlaceContext(useOnContext);
     if (!context.canPlace()) {
       return InteractionResult.FAIL;
@@ -81,16 +92,20 @@ public class ConduitItem extends Item {
         placedBlockEntity.addConduit(conduitType);
       }
 
-      level.gameEvent(player, GameEvent.BLOCK_PLACE, blockPos);
-      SoundType soundType = placedBlockState.getSoundType(level, blockPos, context.getPlayer());
-      level.playSound(
-          player, blockPos, soundType.getPlaceSound(), SoundSource.BLOCKS,
-          (soundType.getVolume() + 1.0f) / 2.0f, soundType.getPitch() * 0.8f);
-      if (player == null || !player.getAbilities().instabuild) {
-        itemStack.shrink(1);
-      }
-
+      onPlacedOrAdded(level, player, itemStack, placedBlockState, blockPos, useOnContext.getLevel().isClientSide);
       return InteractionResult.sidedSuccess(level.isClientSide);
+    }
+  }
+
+  public void onPlacedOrAdded(
+      Level level, Player player, ItemStack itemStack, BlockState blockState, BlockPos blockPos, boolean isClientSide) {
+    level.gameEvent(player, GameEvent.BLOCK_PLACE, blockPos);
+    SoundType soundType = blockState.getSoundType(level, blockPos, player);
+    level.playSound(
+        player, blockPos, soundType.getPlaceSound(), SoundSource.BLOCKS,
+        (soundType.getVolume() + 1.0f) / 2.0f, soundType.getPitch() * 0.8f);
+    if (!isClientSide && (player == null || !player.getAbilities().instabuild)) {
+      itemStack.shrink(1);
     }
   }
 

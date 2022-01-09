@@ -8,6 +8,7 @@ import com.codeka.justconduits.common.capabilities.network.ConduitNetworkManager
 import com.codeka.justconduits.common.capabilities.network.ConduitType;
 import com.codeka.justconduits.common.capabilities.network.IConduitNetworkManager;
 import com.codeka.justconduits.common.capabilities.network.NetworkType;
+import com.codeka.justconduits.common.items.ConduitItem;
 import com.codeka.justconduits.helpers.SelectionHelper;
 import com.codeka.justconduits.packets.ConduitClientStatePacket;
 import com.codeka.justconduits.packets.ConduitUpdatePacket;
@@ -38,12 +39,8 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.client.model.ModelDataManager;
 import net.minecraftforge.client.model.data.IModelData;
-import net.minecraftforge.client.model.data.ModelDataMap;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.CapabilityItemHandler;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.network.PacketDistributor;
 import org.apache.logging.log4j.LogManager;
@@ -131,8 +128,22 @@ public class ConduitBlockEntity extends BlockEntity {
 
   /**
    * Adds a new conduit of the given type to this block.
+   *
+   * @return The {@link ConduitHolder} that was added, or null if we cannot add this conduit type (e.g. if it already
+   *         exists in the block).
    */
+  @Nullable
   public ConduitHolder addConduit(ConduitType conduitType) {
+    if (conduitsByType.containsKey(conduitType)) {
+      return null;
+    }
+
+    ConduitHolder existingOfDifferentType = conduits.get(conduitType.getNetworkType());
+    if (existingOfDifferentType != null) {
+      // TODO: remove the existing one and add this new one.
+      return null;
+    }
+
     ConduitHolder conduitHolder = new ConduitHolder(conduitType);
     conduits.put(conduitType.getNetworkType(), conduitHolder);
     conduitsByType.put(conduitType, conduitHolder);
@@ -204,14 +215,49 @@ public class ConduitBlockEntity extends BlockEntity {
       return InteractionResult.PASS;
     }
 
-    if (selectionResult.connection() == null
-        || selectionResult.connection().getConnectionType() != ConduitConnection.ConnectionType.EXTERNAL) {
-      // Ignore conduit connections, you can only use external connections.
-      // TODO: if you're holding a wrench, disconnect the connection.
+    if (hand != InteractionHand.MAIN_HAND) {
+      // If you clicked with your off hand, nothing to do.
+      // TODO: clicking with a wrench in your offhand might do something?
       return InteractionResult.PASS;
     }
 
-    // OK, this is something we can right-click on. If we're on the client, just return success so we get the animation.
+    if (selectionResult.connection() == null
+        || selectionResult.connection().getConnectionType() != ConduitConnection.ConnectionType.EXTERNAL) {
+      // If you're holding a conduit item that we don't current have a conduit for, add that conduit to our block.
+      ItemStack holdingStack = player.getItemInHand(hand);
+      // TODO: check for a capability or something, rather than just being a subclass of our own implementation.
+      if (holdingStack.getItem() instanceof ConduitItem conduitItem) {
+        if (isClientSide) {
+          // On the client-side, just check if we think it's possible to place this conduit.
+          boolean canAddConduit = !conduitsByType.containsKey(conduitItem.getConduitType());
+          if (canAddConduit) {
+            conduitItem.onPlacedOrAdded(
+                requireLevel(), player, holdingStack, getBlockState(), getBlockPos(), true);
+          }
+          return canAddConduit ? InteractionResult.SUCCESS : InteractionResult.PASS;
+        }
+
+        // On the server-side, actually try to add the conduit.
+        ConduitHolder conduitHolder = addConduit(conduitItem.getConduitType());
+        if (conduitHolder == null) {
+          // We weren't able to add it (e.g. because you're holding a conduit type that we already have), pass through
+          // so the normal handling can happen (e.g. adding to the next block over).
+          return InteractionResult.PASS;
+        }
+
+        // We added the conduit, so we're done.
+        conduitItem.onPlacedOrAdded(requireLevel(), player, holdingStack, getBlockState(), getBlockPos(), false);
+        setChanged();
+        sendClientUpdate();
+        return InteractionResult.SUCCESS;
+      }
+
+      // TODO: If you're holding a wrench, we should handle that by, e.g. disconnecting the connection.
+      return InteractionResult.PASS;
+    }
+
+    // You've right-clicked an external conduit, so if we're on the client, just return success so we get the
+    // animation. On the server we'll show the connection menu.
     if (isClientSide) {
       return InteractionResult.SUCCESS;
     }
@@ -299,13 +345,13 @@ public class ConduitBlockEntity extends BlockEntity {
         continue;
       }
 
-      L.atInfo().log("conduitsByType.size {}", conduitsByType.size());
       ConduitHolder conduitHolder = conduitsByType.get(conduitType);
       if (conduitHolder == null) {
-        L.atInfo().log("no conduit type yet, adding one of type {}", conduitType);
         conduitHolder = addConduit(conduitType);
       }
-      conduitType.getConduitImpl().loadAdditional(conduitsTag.getCompound(conduitTypeName), this, conduitHolder);
+      if (conduitHolder != null) {
+        conduitType.getConduitImpl().loadAdditional(conduitsTag.getCompound(conduitTypeName), this, conduitHolder);
+      }
     }
   }
 
@@ -374,11 +420,11 @@ public class ConduitBlockEntity extends BlockEntity {
   public void onClientUpdate(ConduitClientStatePacket packet) {
     HashMap<Direction, ConduitConnection> newConnections = packet.getConnections();
 
-    boolean connectionsChanged = false;
+    boolean updated = false;
     for (Direction dir : new ArrayList<>(connections.keySet())) {
       if (!newConnections.containsKey(dir)) {
         connections.remove(dir);
-        connectionsChanged = true;
+        updated = true;
       }
     }
     for (var entry : newConnections.entrySet()) {
@@ -387,9 +433,9 @@ public class ConduitBlockEntity extends BlockEntity {
 
       if (!connections.containsKey(dir)) {
         connections.put(dir, conn);
-        connectionsChanged = true;
+        updated = true;
       } else {
-        connectionsChanged = connections.get(dir).updateFrom(conn) || connectionsChanged;
+        updated = connections.get(dir).updateFrom(conn) || updated;
       }
     }
 
@@ -400,12 +446,13 @@ public class ConduitBlockEntity extends BlockEntity {
         conduitHolder = new ConduitHolder(conduitType);
         conduits.put(conduitType.getNetworkType(), conduitHolder);
         conduitsByType.put(conduitType, conduitHolder);
+        updated = true;
       }
       conduitHolder.getConduitImpl().onClientUpdate(entry.getValue(), this, conduitHolder);
     }
 
-    if (connectionsChanged) {
-      // If the connections have changed, we'll need to update the model.
+    if (updated) {
+      // If something has actually changed, we'll need to update the model.
       ModelDataManager.requestModelDataRefresh(this);
       requireLevel().sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_ALL);
       updateShape();
