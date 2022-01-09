@@ -8,21 +8,23 @@ import net.minecraftforge.client.model.data.ModelDataMap;
 import net.minecraftforge.client.model.data.ModelProperty;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class ConduitModelProps {
   public static final ModelProperty<List<ConduitConnection>> CONNECTIONS = new ModelProperty<>();
-  public static final ModelProperty<String> CONDUIT_TYPE = new ModelProperty<>();
+  public static final ModelProperty<List<String>> CONDUIT_TYPES = new ModelProperty<>();
 
   public static IModelData getModelData(ConduitBlockEntity conduitBlockEntity) {
-    // TODO: support more than one
-    ArrayList<ConduitType> conduitTypes = new ArrayList<>(conduitBlockEntity.getConduitTypes());
-    String conduitTypeName =
-        conduitTypes.size() == 0 ? ConduitType.SIMPLE_ITEM.getName() : conduitTypes.get(0).getName();
+    Collection<ConduitType> conduitTypes = conduitBlockEntity.getConduitTypes();
+    ArrayList<String> conduitTypeNames = new ArrayList<>(conduitTypes.size());
+    for (ConduitType conduitType : conduitTypes) {
+      conduitTypeNames.add(conduitType.getName());
+    }
 
     return new ModelDataMap.Builder()
         .withInitial(CONNECTIONS, new ArrayList<>(conduitBlockEntity.getConnections()))
-        .withInitial(CONDUIT_TYPE, conduitTypeName)
+        .withInitial(CONDUIT_TYPES, conduitTypeNames)
         .build();
   }
 }

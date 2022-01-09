@@ -63,7 +63,7 @@ public class ConduitBlockEntity extends BlockEntity {
       LazyOptional.of(() -> this.conduitNetworkManager);
 
   private boolean firstTick = true;
-  private HashMap<Direction, ConduitConnection> connections = new HashMap<>();
+  private final HashMap<Direction, ConduitConnection> connections = new HashMap<>();
 
   // We make the overall shape of the block the combined shape of all the connections, etc. That way, you can access
   // stuff behind us easily. But re-calculating that over and over is expensive, so we cache it here and only
@@ -72,10 +72,10 @@ public class ConduitBlockEntity extends BlockEntity {
 
   // A collection of the conduits in this block. We map NetworkType to ConduitHolder to ensure that we cannot have more
   // than one conduit of the same network type in our blockspace.
-  private HashMap<NetworkType, ConduitHolder> conduits = new HashMap<>();
+  private final HashMap<NetworkType, ConduitHolder> conduits = new HashMap<>();
 
   // We also keep a mapping of conduit types to conduit holder. This should be kept in sync with conduits.
-  private HashMap<ConduitType, ConduitHolder> conduitsByType = new HashMap<>();
+  private final HashMap<ConduitType, ConduitHolder> conduitsByType = new HashMap<>();
 
   public ConduitBlockEntity(BlockPos blockPos, BlockState blockState) {
     super(ModBlockEntities.CONDUIT.get(), blockPos, blockState);

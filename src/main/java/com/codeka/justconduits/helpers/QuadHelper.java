@@ -24,16 +24,18 @@ public class QuadHelper {
    * Creates the quads for a {@link VoxelShape}.
    *
    * @param voxelShape A {@link VoxelShape} you want to turn into quads.
+   * @param transformation A {@link Transformation} to apply to the quads.
    * @param sprite The {@link TextureAtlasSprite} to apply to all of the faces.
    */
-  public static List<BakedQuad> generateQuads(VoxelShape voxelShape, TextureAtlasSprite sprite) {
+  public static List<BakedQuad> generateQuads(
+      VoxelShape voxelShape, Transformation transformation, TextureAtlasSprite sprite) {
     ArrayList<BakedQuad> quads = new ArrayList<>();
     voxelShape.forAllBoxes((minX, minY, minZ, maxX, maxY, maxZ) ->
         quads.addAll(
             createCube(
                 new Vector3f((float) minX, (float) minY, (float) minZ),
                 new Vector3f((float) maxX, (float) maxY, (float) maxZ),
-                Transformation.identity(), sprite)));
+                transformation, sprite)));
     return quads;
   }
 

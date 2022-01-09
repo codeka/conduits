@@ -19,6 +19,7 @@ import net.minecraftforge.client.model.data.IDynamicBakedModel;
 import net.minecraftforge.client.model.data.IModelData;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.lwjgl.system.CallbackI;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -57,25 +58,37 @@ public class ConduitBakedModel implements IDynamicBakedModel {
       return Collections.emptyList();
     }
 
-    ConduitType conduitType = ConduitType.fromName(extraData.getData(ConduitModelProps.CONDUIT_TYPE));
-    TextureAtlasSprite texture;
-    if (conduitType == ConduitType.SIMPLE_ITEM) {
-      texture = spriteGetter.apply(ConduitModelLoader.SIMPLE_ITEM_CONDUIT_MATERIAL);
-    } else if (conduitType == ConduitType.SIMPLE_FLUID) {
-      texture = spriteGetter.apply(ConduitModelLoader.SIMPLE_FLUID_CONDUIT_MATERIAL);
-    } else {
-      // Invalid conduit type (or at least, not yet supported)
-      texture = spriteGetter.apply(ConduitModelLoader.MISSING_MATERIAL);
+    ArrayList<ConduitType> conduitTypes = new ArrayList<>();
+    List<String> conduitTypeNames = extraData.getData(ConduitModelProps.CONDUIT_TYPES);
+    if (conduitTypeNames != null) {
+      for (String conduitTypeName : conduitTypeNames) {
+        conduitTypes.add(ConduitType.fromName(conduitTypeName));
+      }
     }
 
-    // TODO: this should be at the center of each actual conduit.
-    Transformation transformation = new Transformation(Matrix4f.createScaleMatrix(0.25f, 0.25f, 0.25f));
-    ArrayList<BakedQuad> quads = new ArrayList<>(QuadHelper.createCube(transformation, texture));
+    ArrayList<BakedQuad> quads = new ArrayList<>();
+    for (int i = 0; i < conduitTypes.size(); i++) {
+      ConduitType conduitType = conduitTypes.get(i);
+      Transformation conduitTransform = getTransformationForConduit(i, conduitTypes.size());
 
-    List<ConduitConnection> connections = extraData.getData(ConduitModelProps.CONNECTIONS);
-    if (connections != null) {
-      for (ConduitConnection conn : connections) {
-        quads.addAll(QuadHelper.generateQuads(conn.getVoxelShape(), texture));
+      TextureAtlasSprite texture;
+      if (conduitType == ConduitType.SIMPLE_ITEM) {
+        texture = spriteGetter.apply(ConduitModelLoader.SIMPLE_ITEM_CONDUIT_MATERIAL);
+      } else if (conduitType == ConduitType.SIMPLE_FLUID) {
+        texture = spriteGetter.apply(ConduitModelLoader.SIMPLE_FLUID_CONDUIT_MATERIAL);
+      } else {
+        // Invalid conduit type (or at least, not yet supported)
+        texture = spriteGetter.apply(ConduitModelLoader.MISSING_MATERIAL);
+      }
+
+      Transformation transformation = new Transformation(Matrix4f.createScaleMatrix(0.25f, 0.25f, 0.25f));
+      quads.addAll(QuadHelper.createCube(conduitTransform.compose(transformation), texture));
+
+      List<ConduitConnection> connections = extraData.getData(ConduitModelProps.CONNECTIONS);
+      if (connections != null) {
+        for (ConduitConnection conn : connections) {
+          quads.addAll(QuadHelper.generateQuads(conn.getVoxelShape(), conduitTransform, texture));
+        }
       }
     }
 
@@ -119,5 +132,20 @@ public class ConduitBakedModel implements IDynamicBakedModel {
   @Override
   public ItemOverrides getOverrides() {
     return overrides;
+  }
+
+  private Transformation getTransformationForConduit(int index, int totalConduits) {
+    if (totalConduits <= 1) {
+      return Transformation.identity();
+    }
+
+    if (index == 0) {
+      return new Transformation(Matrix4f.createTranslateMatrix(0.25f, 0.0f, 0.0f));
+    } else if (index == 1) {
+      return new Transformation(Matrix4f.createTranslateMatrix(-0.25f, 0.0f, 0.0f));
+    } else {
+      // TODO: others
+      return Transformation.identity();
+    }
   }
 }
