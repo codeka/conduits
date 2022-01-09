@@ -28,17 +28,21 @@ public class ConduitUpdatePacket {
   // Each packet encapsulates a single update of the conduit (or connection). This is the type of the update.
   // TODO: maybe this should be a CompoundTag so it's more extensible?
   public enum UpdateType {
-    // We're updating the value of the insert enabled checkbox.
-    INSERT_ENABLED,
+    // We're updating the value of the insert mode. Pass the ordinal of the ConnectionMode enumeration.
+    INSERT_MODE,
 
-    // We're updating the value of the extract enabled checkbox.
-    EXTRACT_ENABLED,
+    // We're updating the value of the extract mode. Pass the ordinal of the ConnectionMode enumeration.
+    EXTRACT_MODE,
   }
   private UpdateType updateType;
 
   /** When updating a boolean value, this is the new value. */
   @Nullable
   private Boolean boolValue;
+
+  /** When updating an integer value, this is the new value. */
+  @Nullable
+  private Integer intValue;
 
   public static Builder builder(BlockPos blockPos, NetworkType networkType, Direction direction) {
     return new Builder(blockPos, networkType, direction);
@@ -56,6 +60,9 @@ public class ConduitUpdatePacket {
     if (buffer.readBoolean()) {
       boolValue = buffer.readBoolean();
     }
+    if (buffer.readBoolean()) {
+      intValue = buffer.readInt();
+    }
   }
 
   public void encode(FriendlyByteBuf buffer) {
@@ -67,6 +74,10 @@ public class ConduitUpdatePacket {
     buffer.writeBoolean(boolValue != null);
     if (boolValue != null) {
       buffer.writeBoolean(boolValue);
+    }
+    buffer.writeBoolean(intValue != null);
+    if (intValue != null) {
+      buffer.writeInt(intValue);
     }
   }
 
@@ -97,6 +108,10 @@ public class ConduitUpdatePacket {
     return boolValue != null && boolValue;
   }
 
+  public int getIntValue() {
+    return intValue == null ? 0 : intValue;
+  }
+
   public static class Builder {
     private final ConduitUpdatePacket packet = new ConduitUpdatePacket();
 
@@ -109,6 +124,12 @@ public class ConduitUpdatePacket {
     public Builder withBooleanUpdate(UpdateType updateType, boolean value) {
       packet.updateType = updateType;
       packet.boolValue = value;
+      return this;
+    }
+
+    public Builder withIntUpdate(UpdateType updateType, int value) {
+      packet.updateType = updateType;
+      packet.intValue = value;
       return this;
     }
 

@@ -4,9 +4,9 @@ import com.codeka.justconduits.JustConduitsMod;
 import com.codeka.justconduits.client.gui.widgets.ChannelColorButton;
 import com.codeka.justconduits.client.gui.widgets.CheckButton;
 import com.codeka.justconduits.client.gui.widgets.DataSource;
+import com.codeka.justconduits.client.gui.widgets.Icon;
+import com.codeka.justconduits.client.gui.widgets.IconListButton;
 import com.codeka.justconduits.client.gui.widgets.SimpleButton;
-import com.codeka.justconduits.common.ChannelColor;
-import com.codeka.justconduits.common.blocks.ConduitBlock;
 import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
 import com.codeka.justconduits.common.blocks.ConduitConnection;
 import com.codeka.justconduits.common.capabilities.network.ConduitType;
@@ -26,8 +26,8 @@ public class ItemConduitTab implements IConduitTab {
 
   private ConduitConnection connection;
   private ConduitBlockEntity conduitBlockEntity;
-  private CheckButton insertCheckButton;
-  private CheckButton extractCheckButton;
+  private IconListButton insertModeButton;
+  private IconListButton extractModeButton;
   private ChannelColorButton insertChannelColorButton;
   private ChannelColorButton extractChannelColorButton;
 
@@ -41,15 +41,16 @@ public class ItemConduitTab implements IConduitTab {
     this.conduitBlockEntity = conduitBlockEntity;
     this.connection = connection;
 
-    insertCheckButton =
-        new CheckButton.Builder(10, 20)
+    insertModeButton =
+        new IconListButton.Builder(10, 20)
             .withMessage(new TextComponent("Insert"))
-            .withCheckedDataSource(insertDataSource)
+            .addIcon(Icon.ALWAYS_OFF).addIcon(Icon.ALWAYS_ON).addIcon(Icon.REDSTONE_ON).addIcon(Icon.REDSTONE_OFF)
+            .withIconIndexDataSource(insertDataSource)
             .build();
     // TODO: make this generic?
     ItemExternalConnection externalConnection = connection.getNetworkExternalConnection(ConduitType.SIMPLE_ITEM);
-    insertCheckButton.setChecked(externalConnection.isInsertEnabled());
-    screen.add(insertCheckButton);
+    insertModeButton.setIconIndex(externalConnection.getInsertMode().ordinal());
+    screen.add(insertModeButton);
 
     insertChannelColorButton = new ChannelColorButton.Builder(10, 45).build();
     screen.add(insertChannelColorButton);
@@ -59,24 +60,24 @@ public class ItemConduitTab implements IConduitTab {
     testButton2 = new SimpleButton.Builder(60, 45).build();
     screen.add(testButton2);
 
-    extractCheckButton =
-        new CheckButton.Builder(100, 20)
+    extractModeButton =
+        new IconListButton.Builder(100, 20)
             .withMessage(new TextComponent("Extract"))
-            .withCheckedDataSource(extractDataSource)
+            .addIcon(Icon.ALWAYS_OFF).addIcon(Icon.ALWAYS_ON).addIcon(Icon.REDSTONE_ON).addIcon(Icon.REDSTONE_OFF)
+            .withIconIndexDataSource(extractDataSource)
             .build();
-    extractCheckButton.setChecked(externalConnection.isExtractEnabled());
-    screen.add(extractCheckButton);
+    extractModeButton.setIconIndex(externalConnection.getExtractMode().ordinal());
+    screen.add(extractModeButton);
 
     extractChannelColorButton = new ChannelColorButton.Builder(100, 45).build();
     screen.add(extractChannelColorButton);
-
   }
 
   @Override
   public void render() {
     ItemExternalConnection externalConnection = connection.getNetworkExternalConnection(ConduitType.SIMPLE_ITEM);
-    extractCheckButton.setChecked(externalConnection.isExtractEnabled());
-    insertCheckButton.setChecked(externalConnection.isInsertEnabled());
+    extractModeButton.setIconIndex(externalConnection.getExtractMode().ordinal());
+    insertModeButton.setIconIndex(externalConnection.getInsertMode().ordinal());
   }
 
   @Nonnull
@@ -86,42 +87,42 @@ public class ItemConduitTab implements IConduitTab {
   }
 
 
-  private final DataSource<Boolean> extractDataSource = new DataSource<>() {
+  private final DataSource<Integer> extractDataSource = new DataSource<Integer>() {
     @Override
-    public Boolean getValue() {
+    public Integer getValue() {
       ItemExternalConnection externalConnection = connection.getNetworkExternalConnection(ConduitType.SIMPLE_ITEM);
-      return externalConnection.isExtractEnabled();
+      return externalConnection.getExtractMode().ordinal();
     }
 
     @Override
-    public void setValue(Boolean value) {
+    public void setValue(Integer value) {
       if (conduitBlockEntity != null && connection != null) {
         sendPacketToServer(
             // TODO: make this generic.
             ConduitUpdatePacket.builder(conduitBlockEntity.getBlockPos(), NetworkType.ITEM, connection.getDirection())
-                .withBooleanUpdate(ConduitUpdatePacket.UpdateType.EXTRACT_ENABLED, value)
+                .withIntUpdate(ConduitUpdatePacket.UpdateType.EXTRACT_MODE, value)
                 .build());
       }
     }
   };
 
-  private final DataSource<Boolean> insertDataSource = new DataSource<>() {
+  private final DataSource<Integer> insertDataSource = new DataSource<>() {
     @Override
-    public Boolean getValue() {
+    public Integer getValue() {
       if (connection == null) {
-        return false;
+        return 0;
       }
 
       ItemExternalConnection externalConnection = connection.getNetworkExternalConnection(ConduitType.SIMPLE_ITEM);
-      return externalConnection.isInsertEnabled();
+      return externalConnection.getInsertMode().ordinal();
     }
 
     @Override
-    public void setValue(Boolean value) {
+    public void setValue(Integer value) {
       if (conduitBlockEntity != null && connection != null) {
         sendPacketToServer(
             ConduitUpdatePacket.builder(conduitBlockEntity.getBlockPos(), NetworkType.ITEM, connection.getDirection())
-                .withBooleanUpdate(ConduitUpdatePacket.UpdateType.INSERT_ENABLED, value)
+                .withIntUpdate(ConduitUpdatePacket.UpdateType.INSERT_MODE, value)
                 .build());
       }
     }

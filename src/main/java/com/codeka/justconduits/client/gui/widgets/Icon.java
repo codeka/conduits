@@ -1,8 +1,10 @@
 package com.codeka.justconduits.client.gui.widgets;
 
 public enum Icon {
-  /** A checkmark, used by {@link CheckButton}. */
-  CHECKMARK(0, 80);
+  ALWAYS_ON(0, 80),
+  REDSTONE_ON(16, 80),
+  REDSTONE_OFF(32, 80),
+  ALWAYS_OFF(48, 80);
 
   // Icon sizes are hard-coded.
   public static final int WIDTH = 16;

@@ -3,8 +3,7 @@ package com.codeka.justconduits.common.capabilities.network.fluid;
 import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
 import com.codeka.justconduits.common.blocks.ConduitConnection;
 import com.codeka.justconduits.common.capabilities.network.ConduitType;
-import com.codeka.justconduits.common.capabilities.network.NetworkType;
-import com.codeka.justconduits.common.capabilities.network.item.ItemExternalConnection;
+import com.codeka.justconduits.common.capabilities.network.ConnectionMode;
 import com.codeka.justconduits.packets.IConduitTypeClientStatePacket;
 import net.minecraft.core.Direction;
 import net.minecraft.network.FriendlyByteBuf;
@@ -39,8 +38,8 @@ public class FluidConduitClientStatePacket implements IConduitTypeClientStatePac
     buffer.writeVarInt(externalConnections.size());
     for (Map.Entry<Direction, FluidExternalConnection> entry : externalConnections.entrySet()) {
       buffer.writeEnum(entry.getKey());
-      buffer.writeBoolean(entry.getValue().isExtractEnabled());
-      buffer.writeBoolean(entry.getValue().isInsertEnabled());
+      buffer.writeEnum(entry.getValue().getExtractMode());
+      buffer.writeEnum(entry.getValue().getInsertMode());
     }
   }
 
@@ -50,8 +49,8 @@ public class FluidConduitClientStatePacket implements IConduitTypeClientStatePac
     for (int i = 0; i < n; i++) {
       Direction dir = buffer.readEnum(Direction.class);
       FluidExternalConnection externalConnection = new FluidExternalConnection();
-      externalConnection.setExtractEnabled(buffer.readBoolean());
-      externalConnection.setInsertEnabled(buffer.readBoolean());
+      externalConnection.setExtractMode(buffer.readEnum(ConnectionMode.class));
+      externalConnection.setInsertMode(buffer.readEnum(ConnectionMode.class));
 
       externalConnections.put(dir, externalConnection);
     }

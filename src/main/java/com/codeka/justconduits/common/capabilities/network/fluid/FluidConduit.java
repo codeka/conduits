@@ -4,10 +4,7 @@ import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
 import com.codeka.justconduits.common.blocks.ConduitConnection;
 import com.codeka.justconduits.common.capabilities.network.AbstractConduit;
 import com.codeka.justconduits.common.capabilities.network.ConduitHolder;
-import com.codeka.justconduits.common.capabilities.network.ConduitType;
-import com.codeka.justconduits.common.capabilities.network.NetworkType;
-import com.codeka.justconduits.common.capabilities.network.item.ItemConduitClientStatePacket;
-import com.codeka.justconduits.common.capabilities.network.item.ItemExternalConnection;
+import com.codeka.justconduits.common.capabilities.network.ConnectionMode;
 import com.codeka.justconduits.packets.ConduitUpdatePacket;
 import com.codeka.justconduits.packets.IConduitTypeClientStatePacket;
 import net.minecraft.core.BlockPos;
@@ -18,8 +15,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.items.CapabilityItemHandler;
-import net.minecraftforge.items.IItemHandler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -48,8 +43,8 @@ public class FluidConduit extends AbstractConduit {
         continue;
       }
       FluidExternalConnection existing = conn.getNetworkExternalConnection(conduitHolder.getConduitType());
-      existing.setExtractEnabled(entry.getValue().isExtractEnabled());
-      existing.setInsertEnabled(entry.getValue().isInsertEnabled());
+      existing.setExtractMode(entry.getValue().getExtractMode());
+      existing.setInsertMode(entry.getValue().getInsertMode());
     }
   }
 
@@ -73,8 +68,8 @@ public class FluidConduit extends AbstractConduit {
         connection.getNetworkExternalConnection(conduitHolder.getConduitType());
 
     switch (packet.getUpdateType()) {
-      case INSERT_ENABLED -> conn.setInsertEnabled(packet.getBoolValue());
-      case EXTRACT_ENABLED -> conn.setExtractEnabled(packet.getBoolValue());
+      case INSERT_MODE -> conn.setInsertMode(ConnectionMode.values()[packet.getIntValue()]);
+      case EXTRACT_MODE -> conn.setExtractMode(ConnectionMode.values()[packet.getIntValue()]);
       default -> L.atError().log("Unexpected update type: {}", packet.getUpdateType());
     }
   }
@@ -91,8 +86,8 @@ public class FluidConduit extends AbstractConduit {
       CompoundTag connectionTag = new CompoundTag();
       FluidExternalConnection conn =
           conduitConnection.getNetworkExternalConnection(conduitHolder.getConduitType());
-      connectionTag.putBoolean("ExtractEnabled", conn.isExtractEnabled());
-      connectionTag.putBoolean("InsertEnabled", conn.isInsertEnabled());
+      connectionTag.putString("ExtractMode", conn.getExtractMode().name());
+      connectionTag.putString("InsertMode", conn.getInsertMode().name());
       connectionsTag.put(conduitConnection.getDirection().getName(), connectionTag);
     }
 
@@ -118,8 +113,8 @@ public class FluidConduit extends AbstractConduit {
       CompoundTag connectionTag = connectionsTag.getCompound(dirName);
       FluidExternalConnection conn =
           conduitConnection.getNetworkExternalConnection(conduitHolder.getConduitType());
-      conn.setExtractEnabled(connectionTag.getBoolean("ExtractEnabled"));
-      conn.setInsertEnabled(connectionTag.getBoolean("InsertEnabled"));
+      conn.setExtractMode(ConnectionMode.valueOf(connectionTag.getString("ExtractMode")));
+      conn.setInsertMode(ConnectionMode.valueOf(connectionTag.getString("InsertMode")));
     }
   }
 

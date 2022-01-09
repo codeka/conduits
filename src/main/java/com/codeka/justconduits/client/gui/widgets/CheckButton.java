@@ -29,7 +29,7 @@ public class CheckButton extends IconButton {
   @Override
   protected void renderIconOrText(@NotNull PoseStack poseStack) {
     boolean showCheck = isChecked.getValue();
-    setIcon(showCheck ? Icon.CHECKMARK : null);
+    setIcon(showCheck ? Icon.ALWAYS_ON : null);
     setPressed(showCheck);
 
     super.renderIconOrText(poseStack);

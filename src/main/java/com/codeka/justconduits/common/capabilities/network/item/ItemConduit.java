@@ -5,6 +5,7 @@ import com.codeka.justconduits.common.blocks.ConduitConnection;
 import com.codeka.justconduits.common.capabilities.network.AbstractConduit;
 import com.codeka.justconduits.common.capabilities.network.ConduitHolder;
 import com.codeka.justconduits.common.capabilities.network.ConduitType;
+import com.codeka.justconduits.common.capabilities.network.ConnectionMode;
 import com.codeka.justconduits.common.capabilities.network.NetworkRegistry;
 import com.codeka.justconduits.common.capabilities.network.NetworkType;
 import com.codeka.justconduits.packets.ConduitUpdatePacket;
@@ -55,8 +56,9 @@ public class ItemConduit extends AbstractConduit {
 
       ItemExternalConnection conn = conduitConnection.getNetworkExternalConnection(conduitHolder.getConduitType());
 
-      if (!conn.isExtractEnabled()) {
+      if (conn.getExtractMode() != ConnectionMode.ALWAYS_ON) {
         // Item conduits only do something when extracting.
+        // TODO: handle redstone modes.
         continue;
       }
 
@@ -76,8 +78,9 @@ public class ItemConduit extends AbstractConduit {
       ArrayList<IItemHandler> candidateTargets = new ArrayList<>();
       for (ConduitConnection outputConnection : network.getExternalConnections()) {
         ItemExternalConnection outConn = outputConnection.getNetworkExternalConnection(conduitHolder.getConduitType());
-        if (!outConn.isInsertEnabled()) {
+        if (outConn.getInsertMode() != ConnectionMode.ALWAYS_ON) {
           // It doesn't have insert enabled, so we can't insert.
+          // TODO: handle the redstone modes.
           continue;
         }
 
@@ -111,8 +114,8 @@ public class ItemConduit extends AbstractConduit {
         continue;
       }
       ItemExternalConnection existing = conn.getNetworkExternalConnection(conduitHolder.getConduitType());
-      existing.setExtractEnabled(entry.getValue().isExtractEnabled());
-      existing.setInsertEnabled(entry.getValue().isInsertEnabled());
+      existing.setExtractMode(entry.getValue().getExtractMode());
+      existing.setInsertMode(entry.getValue().getInsertMode());
     }
   }
 
@@ -134,8 +137,8 @@ public class ItemConduit extends AbstractConduit {
 
     ItemExternalConnection conn = connection.getNetworkExternalConnection(conduitHolder.getConduitType());
     switch (packet.getUpdateType()) {
-      case INSERT_ENABLED -> conn.setInsertEnabled(packet.getBoolValue());
-      case EXTRACT_ENABLED -> conn.setExtractEnabled(packet.getBoolValue());
+      case INSERT_MODE -> conn.setInsertMode(ConnectionMode.values()[packet.getIntValue()]);
+      case EXTRACT_MODE -> conn.setExtractMode(ConnectionMode.values()[packet.getIntValue()]);
       default -> L.atError().log("Unexpected update type: {}", packet.getUpdateType());
     }
   }
@@ -151,8 +154,8 @@ public class ItemConduit extends AbstractConduit {
 
       CompoundTag connectionTag = new CompoundTag();
       ItemExternalConnection conn = conduitConnection.getNetworkExternalConnection(conduitHolder.getConduitType());
-      connectionTag.putBoolean("ExtractEnabled", conn.isExtractEnabled());
-      connectionTag.putBoolean("InsertEnabled", conn.isInsertEnabled());
+      connectionTag.putString("ExtractMode", conn.getExtractMode().name());
+      connectionTag.putString("InsertMode", conn.getInsertMode().name());
       connectionsTag.put(conduitConnection.getDirection().getName(), connectionTag);
     }
 
@@ -177,8 +180,8 @@ public class ItemConduit extends AbstractConduit {
 
       CompoundTag connectionTag = connectionsTag.getCompound(dirName);
       ItemExternalConnection conn = conduitConnection.getNetworkExternalConnection(conduitHolder.getConduitType());
-      conn.setExtractEnabled(connectionTag.getBoolean("ExtractEnabled"));
-      conn.setInsertEnabled(connectionTag.getBoolean("InsertEnabled"));
+      conn.setExtractMode(ConnectionMode.valueOf(connectionTag.getString("ExtractMode")));
+      conn.setInsertMode(ConnectionMode.valueOf(connectionTag.getString("InsertMode")));
     }
   }
 
