@@ -33,9 +33,9 @@ public class ConduitModelLoader implements IModelLoader<ConduitModelLoader.Geome
       new ResourceLocation(JustConduitsMod.MODID, "blocks/simple_fluid_conduit");
 
   // A missing material for if we make a mistake with our coding and miss a texture.
-  static final Material MISSING_MATERIAL = ForgeHooksClient.getBlockMaterial(new ResourceLocation(JustConduitsMod.MODID, "error"));
-  static final Material SIMPLE_ITEM_CONDUIT_MATERIAL = ForgeHooksClient.getBlockMaterial(SIMPLE_ITEM_CONDUIT_TEXTURE);
-  static final Material SIMPLE_FLUID_CONDUIT_MATERIAL = ForgeHooksClient.getBlockMaterial(SIMPLE_FLUID_CONDUIT_TEXTURE);
+  public static final Material MISSING_MATERIAL = ForgeHooksClient.getBlockMaterial(new ResourceLocation(JustConduitsMod.MODID, "error"));
+  public static final Material SIMPLE_ITEM_CONDUIT_MATERIAL = ForgeHooksClient.getBlockMaterial(SIMPLE_ITEM_CONDUIT_TEXTURE);
+  public static final Material SIMPLE_FLUID_CONDUIT_MATERIAL = ForgeHooksClient.getBlockMaterial(SIMPLE_FLUID_CONDUIT_TEXTURE);
 
   @Nonnull
   @Override
@@ -45,7 +45,6 @@ public class ConduitModelLoader implements IModelLoader<ConduitModelLoader.Geome
 
   @Override
   public void onResourceManagerReload(@Nonnull ResourceManager resourceManager) {
-
   }
 
   public static class Geometry implements IModelGeometry<Geometry> {

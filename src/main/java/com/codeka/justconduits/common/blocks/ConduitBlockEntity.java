@@ -9,7 +9,7 @@ import com.codeka.justconduits.common.capabilities.network.ConduitType;
 import com.codeka.justconduits.common.capabilities.network.IConduitNetworkManager;
 import com.codeka.justconduits.common.capabilities.network.NetworkType;
 import com.codeka.justconduits.common.items.ConduitItem;
-import com.codeka.justconduits.common.shape.ShapeBuilder;
+import com.codeka.justconduits.common.shape.ShapeManager;
 import com.codeka.justconduits.helpers.SelectionHelper;
 import com.codeka.justconduits.packets.ConduitClientStatePacket;
 import com.codeka.justconduits.packets.ConduitUpdatePacket;
@@ -72,7 +72,7 @@ public class ConduitBlockEntity extends BlockEntity {
   private final HashMap<ConduitType, ConduitHolder> conduitsByType = new HashMap<>();
 
   // The ShapeBuilder used to create the various shapes needed to render, collide and select this block.
-  private final ShapeBuilder shapeBuilder = new ShapeBuilder(this);
+  private final ShapeManager shapeManager = new ShapeManager(this);
 
   public ConduitBlockEntity(BlockPos blockPos, BlockState blockState) {
     super(ModBlockEntities.CONDUIT.get(), blockPos, blockState);
@@ -112,8 +112,9 @@ public class ConduitBlockEntity extends BlockEntity {
     return conduitsByType.keySet();
   }
 
-  public ShapeBuilder getShapeBuilder() {
-    return shapeBuilder;
+  @Nonnull
+  public ShapeManager getShapeManager() {
+    return shapeManager;
   }
 
   /** Gets the name of the block that this connection is connected to. */
@@ -449,7 +450,7 @@ public class ConduitBlockEntity extends BlockEntity {
       // If something has actually changed, we'll need to update the model.
       ModelDataManager.requestModelDataRefresh(this);
       requireLevel().sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_ALL);
-      shapeBuilder.markDirty();
+      shapeManager.markDirty();
     }
   }
 
@@ -519,7 +520,7 @@ public class ConduitBlockEntity extends BlockEntity {
 
     if (needUpdate) {
       sendClientUpdate();
-      shapeBuilder.markDirty();
+      shapeManager.markDirty();
       requireLevel().sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_ALL);
     }
   }

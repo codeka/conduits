@@ -4,6 +4,7 @@ import com.codeka.justconduits.common.capabilities.network.ConduitType;
 import com.codeka.justconduits.common.capabilities.network.NetworkExternalConnection;
 import com.codeka.justconduits.common.capabilities.network.NetworkType;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import com.mojang.math.Vector3f;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -17,6 +18,9 @@ import org.apache.logging.log4j.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -101,6 +105,14 @@ public class ConduitConnection {
     }
 
     return (T) networkExternalConnection;
+  }
+
+  /** Gets the collection of {@link NetworkType} that we have connected. */
+  public Collection<NetworkType> getConnectedNetworks() {
+    if (conduitConnections == null) {
+      return Collections.emptyList();
+    }
+    return conduitConnections.keySet();
   }
 
   public ConnectionType getConnectionType() {

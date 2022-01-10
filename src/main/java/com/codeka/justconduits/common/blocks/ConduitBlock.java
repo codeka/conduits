@@ -82,7 +82,7 @@ public class ConduitBlock extends Block implements EntityBlock {
   public VoxelShape getShape(@Nonnull BlockState blockState, @Nonnull BlockGetter reader, @Nonnull BlockPos blockPos,
                              @Nonnull CollisionContext context) {
     if (reader.getBlockEntity(blockPos) instanceof ConduitBlockEntity conduitBlockEntity) {
-      return conduitBlockEntity.getShapeBuilder().getCollisionShape();
+      return conduitBlockEntity.getShapeManager().getCollisionShape();
     }
 
     return super.getShape(blockState, reader, blockPos, context);
