@@ -6,7 +6,6 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -33,7 +32,7 @@ import javax.annotation.Nonnull;
 public class ConduitBlock extends Block implements EntityBlock {
   private static final Logger L = LogManager.getLogger();
 
-  private static final VoxelShape RENDER_SHAPE = Shapes.box(0.1, 0.1, 0.1, 0.9, 0.9, 0.9);
+  private static final VoxelShape OCCLUSION_SHAPE = Shapes.box(0.01, 0.01, 0.01, 0.99, 0.99, 0.99);
 
   public ConduitBlock() {
     super(Properties.of(Material.STONE, MaterialColor.STONE)
@@ -74,7 +73,7 @@ public class ConduitBlock extends Block implements EntityBlock {
   @Nonnull
   @Override
   public VoxelShape getOcclusionShape(@Nonnull BlockState state, @Nonnull BlockGetter reader, @Nonnull BlockPos pos) {
-    return RENDER_SHAPE;
+    return OCCLUSION_SHAPE;
   }
 
   @SuppressWarnings("deprecation")
@@ -83,7 +82,7 @@ public class ConduitBlock extends Block implements EntityBlock {
   public VoxelShape getShape(@Nonnull BlockState blockState, @Nonnull BlockGetter reader, @Nonnull BlockPos blockPos,
                              @Nonnull CollisionContext context) {
     if (reader.getBlockEntity(blockPos) instanceof ConduitBlockEntity conduitBlockEntity) {
-      return conduitBlockEntity.getShape();
+      return conduitBlockEntity.getShapeBuilder().getCollisionShape();
     }
 
     return super.getShape(blockState, reader, blockPos, context);

@@ -9,6 +9,7 @@ import com.codeka.justconduits.common.capabilities.network.ConduitType;
 import com.codeka.justconduits.common.capabilities.network.IConduitNetworkManager;
 import com.codeka.justconduits.common.capabilities.network.NetworkType;
 import com.codeka.justconduits.common.items.ConduitItem;
+import com.codeka.justconduits.common.shape.ShapeBuilder;
 import com.codeka.justconduits.helpers.SelectionHelper;
 import com.codeka.justconduits.packets.ConduitClientStatePacket;
 import com.codeka.justconduits.packets.ConduitUpdatePacket;
@@ -35,8 +36,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.shapes.Shapes;
-import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.client.model.ModelDataManager;
 import net.minecraftforge.client.model.data.IModelData;
 import net.minecraftforge.common.capabilities.Capability;
@@ -65,17 +64,15 @@ public class ConduitBlockEntity extends BlockEntity {
   private boolean firstTick = true;
   private final HashMap<Direction, ConduitConnection> connections = new HashMap<>();
 
-  // We make the overall shape of the block the combined shape of all the connections, etc. That way, you can access
-  // stuff behind us easily. But re-calculating that over and over is expensive, so we cache it here and only
-  // re-calculate it when a connection actually changes.
-  private VoxelShape shape;
-
   // A collection of the conduits in this block. We map NetworkType to ConduitHolder to ensure that we cannot have more
   // than one conduit of the same network type in our blockspace.
   private final HashMap<NetworkType, ConduitHolder> conduits = new HashMap<>();
 
   // We also keep a mapping of conduit types to conduit holder. This should be kept in sync with conduits.
   private final HashMap<ConduitType, ConduitHolder> conduitsByType = new HashMap<>();
+
+  // The ShapeBuilder used to create the various shapes needed to render, collide and select this block.
+  private final ShapeBuilder shapeBuilder = new ShapeBuilder(this);
 
   public ConduitBlockEntity(BlockPos blockPos, BlockState blockState) {
     super(ModBlockEntities.CONDUIT.get(), blockPos, blockState);
@@ -115,6 +112,10 @@ public class ConduitBlockEntity extends BlockEntity {
     return conduitsByType.keySet();
   }
 
+  public ShapeBuilder getShapeBuilder() {
+    return shapeBuilder;
+  }
+
   /** Gets the name of the block that this connection is connected to. */
   public Component getConnectionName(ConduitConnection connection) {
     BlockPos blockPos = getBlockPos().relative(connection.getDirection());
@@ -148,13 +149,6 @@ public class ConduitBlockEntity extends BlockEntity {
     conduits.put(conduitType.getNetworkType(), conduitHolder);
     conduitsByType.put(conduitType, conduitHolder);
     return conduitHolder;
-  }
-
-  public VoxelShape getShape() {
-    if (shape == null) {
-      updateShape();
-    }
-    return shape;
   }
 
   /**
@@ -455,7 +449,7 @@ public class ConduitBlockEntity extends BlockEntity {
       // If something has actually changed, we'll need to update the model.
       ModelDataManager.requestModelDataRefresh(this);
       requireLevel().sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_ALL);
-      updateShape();
+      shapeBuilder.markDirty();
     }
   }
 
@@ -525,18 +519,8 @@ public class ConduitBlockEntity extends BlockEntity {
 
     if (needUpdate) {
       sendClientUpdate();
-      updateShape();
+      shapeBuilder.markDirty();
       requireLevel().sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_ALL);
     }
-  }
-
-  private void updateShape() {
-    // TODO: start with the middle bit.
-    VoxelShape shape = Shapes.box(0.375f, 0.375f, 0.375f, 0.625f, 0.625f, 0.625f);
-    for (ConduitConnection conn : connections.values()) {
-      shape = Shapes.or(shape, conn.getVoxelShape());
-    }
-
-    this.shape = shape;
   }
 }
