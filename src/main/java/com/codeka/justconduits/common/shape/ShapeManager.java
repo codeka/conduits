@@ -7,9 +7,11 @@ import com.codeka.justconduits.common.capabilities.network.ConduitType;
 import com.codeka.justconduits.helpers.QuadHelper;
 import com.mojang.math.Matrix4f;
 import com.mojang.math.Transformation;
+import com.mojang.math.Vector3f;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.Material;
+import net.minecraft.core.Direction;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -75,7 +77,7 @@ public class ShapeManager {
     if (dirty) {
       updateShapes();
     }
-    return createBakedQuads(spriteGetter);
+    return createBakedQuads(spriteGetter, visualShape);
   }
 
   /** Mark ourselves dirty. We'll update the shape the next time they're needed. */
@@ -141,50 +143,85 @@ public class ShapeManager {
   }
 
   private VisualShape createVisualShape(ConduitShape mainShape) {
-    return new VisualShape();
+    VisualShape visualShape = new VisualShape();
+    for (var entry : mainShape.getShapes().entrySet()) {
+      ConduitType conduitType = entry.getKey();
+      ConduitShape.SingleConduitShape conduitShape = entry.getValue();
+
+      // TODO: make this generic.
+      Material material = ConduitModelLoader.MISSING_MATERIAL;
+      if (conduitType == ConduitType.SIMPLE_ITEM) {
+        material = ConduitModelLoader.SIMPLE_ITEM_CONDUIT_MATERIAL;
+      } else if (conduitType == ConduitType.SIMPLE_FLUID) {
+        material = ConduitModelLoader.SIMPLE_FLUID_CONDUIT_MATERIAL;
+      }
+
+      final Vec3 c = conduitShape.getCenter();
+      visualShape.addBox(
+          new VisualShape.Box(
+              new Vector3f((float) c.x - 0.125f, (float) c.y - 0.125f, (float) c.z - 0.125f),
+              new Vector3f((float) c.x + 0.125f, (float) c.y + 0.125f, (float) c.z + 0.125f),
+              material));
+
+      // TODO: only add a connection if there is a conduit of the same type in the next block over.
+      for (ConduitConnection conn : conduitBlockEntity.getConnections()) {
+        if (conn.getConnectionType() == ConduitConnection.ConnectionType.EXTERNAL) {
+          // We handle external connections in the next loop.
+          continue;
+        }
+
+        var dir = conn.getDirection();
+        // We only do the visual for the position axis direction, the conduit in the negative direction will draw
+        // the other connection for us.
+        if (dir.getAxisDirection() != Direction.AxisDirection.POSITIVE) {
+          continue;
+        }
+
+        Vector3f normal = new Vector3f(dir.getStepX(), dir.getStepY(), dir.getStepZ());
+        Vector3f min = new Vector3f(
+            (float) c.x + normal.x() * 0.125f - (1.0f - normal.x()) * 0.09375f,
+            (float) c.y + normal.y() * 0.125f - (1.0f - normal.y()) * 0.09375f,
+            (float) c.z + normal.z() * 0.125f - (1.0f - normal.z()) * 0.09375f);
+        Vector3f max = new Vector3f(
+            (float) c.x + normal.x() * 0.875f + (1.0f - normal.x()) * 0.09375f,
+            (float) c.y + normal.y() * 0.875f + (1.0f - normal.y()) * 0.09375f,
+            (float) c.z + normal.z() * 0.875f + (1.0f - normal.z()) * 0.09375f);
+        visualShape.addBox(new VisualShape.Box(min, max, material));
+      }
+
+    }
+
+    for (ConduitConnection conn : conduitBlockEntity.getConnections()) {
+      if (conn.getConnectionType() != ConduitConnection.ConnectionType.EXTERNAL) {
+        // We already handled other types of connections in the loop above.
+        continue;
+      }
+
+      var dir = conn.getDirection();
+      Vector3f normal = new Vector3f(dir.getStepX(), dir.getStepY(), dir.getStepZ());
+      Vector3f min = new Vector3f(
+          0.5f - (0.5f * (1.0f - Math.abs(normal.x()))) - 0.125f * Math.abs(normal.x()) + 0.375f * normal.x(),
+          0.5f - (0.5f * (1.0f - Math.abs(normal.y()))) - 0.125f * Math.abs(normal.y()) + 0.375f * normal.y(),
+          0.5f - (0.5f * (1.0f - Math.abs(normal.z()))) - 0.125f * Math.abs(normal.z()) + 0.375f * normal.z());
+      Vector3f max = new Vector3f(
+          0.5f + (0.5f * (1.0f - Math.abs(normal.x()))) + 0.125f * Math.abs(normal.x()) + 0.375f * normal.x(),
+          0.5f + (0.5f * (1.0f - Math.abs(normal.y()))) + 0.125f * Math.abs(normal.y()) + 0.375f * normal.y(),
+          0.5f + (0.5f * (1.0f - Math.abs(normal.z()))) + 0.125f * Math.abs(normal.z()) + 0.375f * normal.z());
+      visualShape.addBox(new VisualShape.Box(min, max, ConduitModelLoader.CONNECTOR_MATERIAL));
+    }
+
+    return visualShape;
   }
 
-  private ArrayList<BakedQuad> createBakedQuads(Function<Material, TextureAtlasSprite> spriteGetter) {
-    ArrayList<ConduitType> conduitTypes = new ArrayList<>(conduitBlockEntity.getConduitTypes());
-
+  private ArrayList<BakedQuad> createBakedQuads(
+      Function<Material, TextureAtlasSprite> spriteGetter, VisualShape visualShape) {
     ArrayList<BakedQuad> quads = new ArrayList<>();
-    for (int i = 0; i < conduitTypes.size(); i++) {
-      ConduitType conduitType = conduitTypes.get(i);
-      Transformation conduitTransform = getTransformationForConduit(i, conduitTypes.size());
 
-      TextureAtlasSprite texture;
-      if (conduitType == ConduitType.SIMPLE_ITEM) {
-        texture = spriteGetter.apply(ConduitModelLoader.SIMPLE_ITEM_CONDUIT_MATERIAL);
-      } else if (conduitType == ConduitType.SIMPLE_FLUID) {
-        texture = spriteGetter.apply(ConduitModelLoader.SIMPLE_FLUID_CONDUIT_MATERIAL);
-      } else {
-        // Invalid conduit type (or at least, not yet supported)
-        texture = spriteGetter.apply(ConduitModelLoader.MISSING_MATERIAL);
-      }
-
-      Transformation transformation = new Transformation(Matrix4f.createScaleMatrix(0.25f, 0.25f, 0.25f));
-      quads.addAll(QuadHelper.createCube(conduitTransform.compose(transformation), texture));
-
-      for (ConduitConnection conn : conduitBlockEntity.getConnections()) {
-        quads.addAll(QuadHelper.generateQuads(conn.getVoxelShape(), conduitTransform, texture));
-      }
+    for (var box : visualShape.getBoxes()) {
+      TextureAtlasSprite texture = spriteGetter.apply(box.getMaterial());
+      quads.addAll(QuadHelper.createCube(box.getMin(), box.getMax(), Transformation.identity(), texture));
     }
 
     return quads;
-  }
-
-  private Transformation getTransformationForConduit(int index, int totalConduits) {
-    if (totalConduits <= 1) {
-      return Transformation.identity();
-    }
-
-    if (index == 0) {
-      return new Transformation(Matrix4f.createTranslateMatrix(0.25f, 0.0f, 0.0f));
-    } else if (index == 1) {
-      return new Transformation(Matrix4f.createTranslateMatrix(-0.25f, 0.0f, 0.0f));
-    } else {
-      // TODO: others
-      return Transformation.identity();
-    }
   }
 }

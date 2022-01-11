@@ -34,6 +34,7 @@ public class ConduitModelLoader implements IModelLoader<ConduitModelLoader.Geome
 
   // A missing material for if we make a mistake with our coding and miss a texture.
   public static final Material MISSING_MATERIAL = ForgeHooksClient.getBlockMaterial(new ResourceLocation(JustConduitsMod.MODID, "error"));
+  public static final Material CONNECTOR_MATERIAL = ForgeHooksClient.getBlockMaterial(SIMPLE_ITEM_CONDUIT_TEXTURE);
   public static final Material SIMPLE_ITEM_CONDUIT_MATERIAL = ForgeHooksClient.getBlockMaterial(SIMPLE_ITEM_CONDUIT_TEXTURE);
   public static final Material SIMPLE_FLUID_CONDUIT_MATERIAL = ForgeHooksClient.getBlockMaterial(SIMPLE_FLUID_CONDUIT_TEXTURE);
 
