@@ -1,7 +1,6 @@
 package com.codeka.justconduits.common.shape;
 
 import com.codeka.justconduits.client.blocks.ConduitModelLoader;
-import com.codeka.justconduits.client.blocks.ConduitModelProps;
 import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
 import com.codeka.justconduits.common.blocks.ConduitConnection;
 import com.codeka.justconduits.common.capabilities.network.ConduitType;
@@ -11,11 +10,14 @@ import com.mojang.math.Transformation;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.Material;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Function;
 
 /**
@@ -39,11 +41,21 @@ import java.util.function.Function;
  *    the same shape. Even if they are different types of conduit, only the texture are different.
  */
 public class ShapeManager {
+  private static final Logger L = LogManager.getLogger();
+
   private static final ShapeCache cache = new ShapeCache();
+
+  // When there's more than 1 conduit, we add them to the block space using these center points.
+  // TODO: it depends on what directions the conduits run where the centers should go.
+  private static final Vec3[] CONDUIT_CENTER_OFFSETS = new Vec3[] {
+      new Vec3(0.25f, 0.5f, 0.5f), new Vec3(0.75f, 0.5f, 0.5f), new Vec3(0.0f, 0.75f, 0.5f),
+      new Vec3(0.0f, 0.25f, 0.5f), new Vec3(0.25f, 0.75f, 0.5f), new Vec3(0.75f, 0.75f, 0.5f),
+      new Vec3(0.25f, 0.25f, 0.5f), new Vec3(0.75f, 0.25f, 0.5f)};
 
   private final ConduitBlockEntity conduitBlockEntity;
 
   private VoxelShape collisionShape;
+  private VisualShape visualShape;
   private ArrayList<BakedQuad> bakedQuads;
   private boolean dirty;
 
@@ -53,7 +65,7 @@ public class ShapeManager {
   }
 
   public VoxelShape getCollisionShape() {
-    if (dirty ) {
+    if (dirty) {
       updateShapes();
     }
     return collisionShape;
@@ -75,16 +87,61 @@ public class ShapeManager {
    * Called whenever the shape of the {@link ConduitBlockEntity} needs to be updated (e.g. when a connection changes,
    */
   private void updateShapes() {
-    collisionShape = cache.getCollisionShape(conduitBlockEntity, this::createCollisionShape);
+    ConduitShape mainShape = generateMainShape();
+    collisionShape = cache.getCollisionShape(conduitBlockEntity, () -> createCollisionShape(mainShape));
+    visualShape = cache.getVisualShape(conduitBlockEntity, () -> createVisualShape(mainShape));
+    dirty = false;
   }
 
-  private VoxelShape createCollisionShape() {
-    VoxelShape shape = Shapes.box(0.375f, 0.375f, 0.375f, 0.625f, 0.625f, 0.625f);
-    for (ConduitConnection conn : conduitBlockEntity.getConnections()) {
-      shape = Shapes.or(shape, conn.getVoxelShape());
+  /**
+   * Generates the "main" shape of the conduit. The main shape is the center of each of the nobbly bits and a list of
+   * directions that the "pipes" come out of.
+   */
+  private ConduitShape generateMainShape() {
+    ConduitShape mainShape = new ConduitShape();
+    ArrayList<ConduitType> conduitTypes = new ArrayList<>(conduitBlockEntity.getConduitTypes());
+    if (conduitTypes.size() == 1) {
+      var shape = mainShape.addConduit(conduitTypes.get(0), new Vec3(0.5f, 0.5f, 0.5f));
+      populateSingleShape(shape, conduitTypes.get(0));
+    } else if (conduitTypes.size() > CONDUIT_CENTER_OFFSETS.length) {
+      L.atInfo().log("Too many conduits, we can't draw it");
+      return mainShape;
+    } else {
+      for (int i = 0; i < conduitTypes.size(); i++) {
+        var shape = mainShape.addConduit(conduitTypes.get(i), CONDUIT_CENTER_OFFSETS[i]);
+        populateSingleShape(shape, conduitTypes.get(i));
+      }
     }
 
-    return shape;
+    return mainShape;
+  }
+
+  private void populateSingleShape(ConduitShape.SingleConduitShape shape, ConduitType conduitType) {
+    for (ConduitConnection conn : conduitBlockEntity.getConnections()) {
+      // TODO: check that there's actually another conduit of this type at the next block over.
+      shape.addDirection(conn.getDirection());
+    }
+  }
+
+  private VoxelShape createCollisionShape(ConduitShape mainShape) {
+    VoxelShape collisionShape = Shapes.empty();
+    for (var shape : mainShape.getShapes().values()) {
+      Vec3 c = shape.getCenter();
+      VoxelShape voxelShape =
+          Shapes.box(c.x - 0.125f, c.y - 0.125f, c.z - 0.125f, c.x + 0.125f, c.y + 0.125f, c.z + 0.125f);
+      collisionShape = Shapes.joinUnoptimized(collisionShape, voxelShape, BooleanOp.OR);
+      /*
+      for (ConduitConnection conn : conduitBlockEntity.getConnections()) {
+        shape = Shapes.or(shape, conn.getVoxelShape());
+      }
+      */
+    }
+
+    return collisionShape.optimize();
+  }
+
+  private VisualShape createVisualShape(ConduitShape mainShape) {
+    return new VisualShape();
   }
 
   private ArrayList<BakedQuad> createBakedQuads(Function<Material, TextureAtlasSprite> spriteGetter) {

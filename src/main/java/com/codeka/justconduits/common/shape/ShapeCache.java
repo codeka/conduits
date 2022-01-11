@@ -15,6 +15,9 @@ public class ShapeCache {
   private final Cache<ShapeCacheKey, VoxelShape> collisionShapeCache =
       CacheBuilder.newBuilder().maximumSize(64).expireAfterAccess(60, TimeUnit.SECONDS).build();
 
+  private final Cache<ShapeCacheKey, VisualShape> visualShapeCache =
+      CacheBuilder.newBuilder().maximumSize(64).expireAfterAccess(60, TimeUnit.SECONDS).build();
+
   /**
    * Gets the collision shape for the given {@link ConduitBlockEntity}, or calls the given loader to create a new
    * one (and caches it) if the shape is not cached.
@@ -23,6 +26,16 @@ public class ShapeCache {
   public VoxelShape getCollisionShape(ConduitBlockEntity conduitBlockEntity, Callable<VoxelShape> loader) {
     try {
       return collisionShapeCache.get(new ShapeCacheKey(conduitBlockEntity), loader);
+    } catch (ExecutionException e) {
+      // Should not happen.
+      throw new RuntimeException(e);
+    }
+  }
+
+  @Nonnull
+  public VisualShape getVisualShape(ConduitBlockEntity conduitBlockEntity, Callable<VisualShape> loader) {
+    try {
+      return visualShapeCache.get(new ShapeCacheKey(conduitBlockEntity), loader);
     } catch (ExecutionException e) {
       // Should not happen.
       throw new RuntimeException(e);
