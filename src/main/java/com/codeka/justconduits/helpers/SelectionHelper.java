@@ -2,6 +2,7 @@ package com.codeka.justconduits.helpers;
 
 import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
 import com.codeka.justconduits.common.blocks.ConduitConnection;
+import com.codeka.justconduits.common.shape.SelectionShape;
 import com.mojang.math.Vector3f;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
@@ -12,6 +13,8 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.common.ForgeMod;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
 
@@ -19,6 +22,8 @@ import javax.annotation.Nullable;
  * Helper for performing sub-block selection and highlighting of the selection.
  */
 public class SelectionHelper {
+  private static final Logger L = LogManager.getLogger();
+
   public record SelectionResult(ConduitConnection connection,
                                 BlockHitResult subHitResult,
                                 VoxelShape shape) {
@@ -72,13 +77,13 @@ public class SelectionHelper {
     }
 
     // TODO: it should be the closest one that you click on.
-    for (ConduitConnection connection : conduitBlockEntity.getConnections()) {
-      BlockHitResult subHitResult = connection.getVoxelShape().clip(startPos, endPos, conduitBlockEntity.getBlockPos());
+    for (SelectionShape.Shape shape : conduitBlockEntity.getShapeManager().getSelectionShape().getShapes()) {
+      BlockHitResult subHitResult = shape.getVoxelShape().clip(startPos, endPos, conduitBlockEntity.getBlockPos());
       if (subHitResult == null) {
         continue;
       }
 
-      return new SelectionResult(connection, subHitResult, connection.getVoxelShape());
+      return new SelectionResult(shape.getConnection(), subHitResult, shape.getVoxelShape());
     }
 
     return null;

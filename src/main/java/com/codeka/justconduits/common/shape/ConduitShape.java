@@ -1,5 +1,6 @@
 package com.codeka.justconduits.common.shape;
 
+import com.codeka.justconduits.common.blocks.ConduitConnection;
 import com.codeka.justconduits.common.capabilities.network.ConduitType;
 import com.mojang.math.Vector3f;
 import net.minecraft.core.Direction;
@@ -28,8 +29,8 @@ public class ConduitShape {
     return singleConduitShape;
   }
 
-  public void addExternalConnectionShape(Vector3f min, Vector3f max) {
-    externalConnectionShapes.add(new ExternalConnectionShape(min, max));
+  public void addExternalConnectionShape(ConduitConnection connection, Vector3f min, Vector3f max) {
+    externalConnectionShapes.add(new ExternalConnectionShape(connection, min, max));
   }
 
   public Map<ConduitType, SingleConduitShape> getShapes() {
@@ -65,12 +66,18 @@ public class ConduitShape {
 
   /** The shape of an external connection. */
   public static final class ExternalConnectionShape {
+    private final ConduitConnection connection;
     private final Vector3f min;
     private final Vector3f max;
 
-    public ExternalConnectionShape(Vector3f min, Vector3f max) {
+    public ExternalConnectionShape(ConduitConnection connection, Vector3f min, Vector3f max) {
+      this.connection = connection;
       this.min = min;
       this.max = max;
+    }
+
+    public ConduitConnection getConnection() {
+      return connection;
     }
 
     public Vector3f getMin() {

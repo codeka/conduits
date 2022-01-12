@@ -58,7 +58,7 @@ public class ShapeManager {
 
   private VoxelShape collisionShape;
   private VisualShape visualShape;
-  private ArrayList<BakedQuad> bakedQuads;
+  private SelectionShape selectionShape;
   private boolean dirty;
 
   public ShapeManager(ConduitBlockEntity conduitBlockEntity) {
@@ -80,6 +80,13 @@ public class ShapeManager {
     return createBakedQuads(spriteGetter, visualShape);
   }
 
+  public SelectionShape getSelectionShape() {
+    if (dirty) {
+      updateShapes();
+    }
+    return selectionShape;
+  }
+
   /** Mark ourselves dirty. We'll update the shape the next time they're needed. */
   public void markDirty() {
     dirty = true;
@@ -92,6 +99,8 @@ public class ShapeManager {
     ConduitShape mainShape = generateMainShape(conduitBlockEntity);
     collisionShape = cache.getCollisionShape(conduitBlockEntity, () -> createCollisionShape(mainShape));
     visualShape = cache.getVisualShape(conduitBlockEntity, () -> createVisualShape(conduitBlockEntity, mainShape));
+    selectionShape =
+        cache.getSelectionShape(conduitBlockEntity, () -> createSelectionShape(conduitBlockEntity, mainShape));
     dirty = false;
   }
 
@@ -122,6 +131,7 @@ public class ShapeManager {
         continue;
       }
 
+      // TODO: this is actually a lot simpler than I have it here.
       var dir = conn.getDirection();
       Vector3f normal = new Vector3f(dir.getStepX(), dir.getStepY(), dir.getStepZ());
       Vector3f min = new Vector3f(
@@ -132,7 +142,7 @@ public class ShapeManager {
           0.5f + (0.5f * (1.0f - Math.abs(normal.x()))) + 0.125f * Math.abs(normal.x()) + 0.375f * normal.x(),
           0.5f + (0.5f * (1.0f - Math.abs(normal.y()))) + 0.125f * Math.abs(normal.y()) + 0.375f * normal.y(),
           0.5f + (0.5f * (1.0f - Math.abs(normal.z()))) + 0.125f * Math.abs(normal.z()) + 0.375f * normal.z());
-      mainShape.addExternalConnectionShape(min, max);
+      mainShape.addExternalConnectionShape(conn, min, max);
     }
 
     return mainShape;
@@ -160,7 +170,22 @@ public class ShapeManager {
       */
     }
 
+    for (var shape : mainShape.getExternalConnectionShapes()) {
+      collisionShape = Shapes.joinUnoptimized(collisionShape, shape.getVoxelShape(), BooleanOp.OR);
+    }
+
     return collisionShape.optimize();
+  }
+
+  private static SelectionShape createSelectionShape(ConduitBlockEntity conduitBlockEntity, ConduitShape mainShape) {
+    SelectionShape selectionShape = new SelectionShape();
+    for (ConduitShape.ExternalConnectionShape shape : mainShape.getExternalConnectionShapes()) {
+      VoxelShape voxelShape = Shapes.box(
+          shape.getMin().x(), shape.getMin().y(), shape.getMin().z(),
+          shape.getMax().x(), shape.getMax().y(), shape.getMax().z());
+      selectionShape.addShape(shape.getConnection(), voxelShape);
+    }
+    return selectionShape;
   }
 
   private static VisualShape createVisualShape(ConduitBlockEntity conduitBlockEntity, ConduitShape mainShape) {

@@ -80,9 +80,10 @@ public class DebugVoxelShapeHighlighter {
     }
     if (drawConduitShapes) {
       if (level.getBlockEntity(blockPos) instanceof ConduitBlockEntity conduitBlockEntity) {
+        // TODO: draw the ConduitShape?
         for (ConduitConnection connection : conduitBlockEntity.getConnections()) {
-          LineHelper.drawSelectionBox(
-              multiBufferSource, poseStack, blockPos, camera, connection.getVoxelShape(), CONDUIT_SHAPE_COLOR);
+          //LineHelper.drawSelectionBox(
+          //    multiBufferSource, poseStack, blockPos, camera, connection.getVoxelShape(), CONDUIT_SHAPE_COLOR);
 
           // We won't cancel the default here, allowing the normal ConduitBlockHighlighter to run.
           cancelDefault = false;
