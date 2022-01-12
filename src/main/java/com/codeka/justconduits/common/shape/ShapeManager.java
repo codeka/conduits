@@ -20,6 +20,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.function.Function;
 
 /**
@@ -46,13 +47,6 @@ public class ShapeManager {
   private static final Logger L = LogManager.getLogger();
 
   private static final ShapeCache cache = new ShapeCache();
-
-  // When there's more than 1 conduit, we add them to the block space using these center points.
-  // TODO: it depends on what directions the conduits run where the centers should go.
-  private static final Vec3[] CONDUIT_CENTER_OFFSETS = new Vec3[] {
-      new Vec3(0.25f, 0.5f, 0.5f), new Vec3(0.75f, 0.5f, 0.5f), new Vec3(0.0f, 0.75f, 0.5f),
-      new Vec3(0.0f, 0.25f, 0.5f), new Vec3(0.25f, 0.75f, 0.5f), new Vec3(0.75f, 0.75f, 0.5f),
-      new Vec3(0.25f, 0.25f, 0.5f), new Vec3(0.75f, 0.25f, 0.5f)};
 
   private final ConduitBlockEntity conduitBlockEntity;
 
@@ -110,18 +104,17 @@ public class ShapeManager {
    */
   private static ConduitShape generateMainShape(ConduitBlockEntity conduitBlockEntity) {
     ConduitShape mainShape = new ConduitShape();
+
+    HashSet<Direction> directions = new HashSet<>();
+    for (ConduitConnection conn : conduitBlockEntity.getConnections()) {
+      directions.add(conn.getDirection());
+    }
+
     ArrayList<ConduitType> conduitTypes = new ArrayList<>(conduitBlockEntity.getConduitTypes());
-    if (conduitTypes.size() == 1) {
-      var shape = mainShape.addConduit(conduitTypes.get(0), new Vec3(0.5f, 0.5f, 0.5f));
-      populateSingleShape(conduitBlockEntity, shape, conduitTypes.get(0));
-    } else if (conduitTypes.size() > CONDUIT_CENTER_OFFSETS.length) {
-      L.atInfo().log("Too many conduits, we can't draw it");
-      return mainShape;
-    } else {
-      for (int i = 0; i < conduitTypes.size(); i++) {
-        var shape = mainShape.addConduit(conduitTypes.get(i), CONDUIT_CENTER_OFFSETS[i]);
-        populateSingleShape(conduitBlockEntity, shape, conduitTypes.get(i));
-      }
+    for (int i = 0; i < conduitTypes.size(); i++) {
+      Vec3 centerOffset = CenterOffsets.getCenterOffset(i, conduitTypes.size(), directions);
+      var shape = mainShape.addConduit(conduitTypes.get(i), centerOffset);
+      populateSingleShape(conduitBlockEntity, shape, conduitTypes.get(i));
     }
 
     // Add shapes for the external connections. For the external connections, we record the complete shape of the box
