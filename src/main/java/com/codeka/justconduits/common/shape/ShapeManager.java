@@ -89,9 +89,9 @@ public class ShapeManager {
    * Called whenever the shape of the {@link ConduitBlockEntity} needs to be updated (e.g. when a connection changes,
    */
   private void updateShapes() {
-    ConduitShape mainShape = generateMainShape();
+    ConduitShape mainShape = generateMainShape(conduitBlockEntity);
     collisionShape = cache.getCollisionShape(conduitBlockEntity, () -> createCollisionShape(mainShape));
-    visualShape = cache.getVisualShape(conduitBlockEntity, () -> createVisualShape(mainShape));
+    visualShape = cache.getVisualShape(conduitBlockEntity, () -> createVisualShape(conduitBlockEntity, mainShape));
     dirty = false;
   }
 
@@ -99,33 +99,54 @@ public class ShapeManager {
    * Generates the "main" shape of the conduit. The main shape is the center of each of the nobbly bits and a list of
    * directions that the "pipes" come out of.
    */
-  private ConduitShape generateMainShape() {
+  private static ConduitShape generateMainShape(ConduitBlockEntity conduitBlockEntity) {
     ConduitShape mainShape = new ConduitShape();
     ArrayList<ConduitType> conduitTypes = new ArrayList<>(conduitBlockEntity.getConduitTypes());
     if (conduitTypes.size() == 1) {
       var shape = mainShape.addConduit(conduitTypes.get(0), new Vec3(0.5f, 0.5f, 0.5f));
-      populateSingleShape(shape, conduitTypes.get(0));
+      populateSingleShape(conduitBlockEntity, shape, conduitTypes.get(0));
     } else if (conduitTypes.size() > CONDUIT_CENTER_OFFSETS.length) {
       L.atInfo().log("Too many conduits, we can't draw it");
       return mainShape;
     } else {
       for (int i = 0; i < conduitTypes.size(); i++) {
         var shape = mainShape.addConduit(conduitTypes.get(i), CONDUIT_CENTER_OFFSETS[i]);
-        populateSingleShape(shape, conduitTypes.get(i));
+        populateSingleShape(conduitBlockEntity, shape, conduitTypes.get(i));
       }
+    }
+
+    // Add shapes for the external connections. For the external connections, we record the complete shape of the box
+    // as the calculation is kind of complicated.
+    for (ConduitConnection conn : conduitBlockEntity.getConnections()) {
+      if (conn.getConnectionType() != ConduitConnection.ConnectionType.EXTERNAL) {
+        continue;
+      }
+
+      var dir = conn.getDirection();
+      Vector3f normal = new Vector3f(dir.getStepX(), dir.getStepY(), dir.getStepZ());
+      Vector3f min = new Vector3f(
+          0.5f - (0.5f * (1.0f - Math.abs(normal.x()))) - 0.125f * Math.abs(normal.x()) + 0.375f * normal.x(),
+          0.5f - (0.5f * (1.0f - Math.abs(normal.y()))) - 0.125f * Math.abs(normal.y()) + 0.375f * normal.y(),
+          0.5f - (0.5f * (1.0f - Math.abs(normal.z()))) - 0.125f * Math.abs(normal.z()) + 0.375f * normal.z());
+      Vector3f max = new Vector3f(
+          0.5f + (0.5f * (1.0f - Math.abs(normal.x()))) + 0.125f * Math.abs(normal.x()) + 0.375f * normal.x(),
+          0.5f + (0.5f * (1.0f - Math.abs(normal.y()))) + 0.125f * Math.abs(normal.y()) + 0.375f * normal.y(),
+          0.5f + (0.5f * (1.0f - Math.abs(normal.z()))) + 0.125f * Math.abs(normal.z()) + 0.375f * normal.z());
+      mainShape.addExternalConnectionShape(min, max);
     }
 
     return mainShape;
   }
 
-  private void populateSingleShape(ConduitShape.SingleConduitShape shape, ConduitType conduitType) {
+  private static void populateSingleShape(
+      ConduitBlockEntity conduitBlockEntity, ConduitShape.SingleConduitShape shape, ConduitType conduitType) {
     for (ConduitConnection conn : conduitBlockEntity.getConnections()) {
       // TODO: check that there's actually another conduit of this type at the next block over.
       shape.addDirection(conn.getDirection());
     }
   }
 
-  private VoxelShape createCollisionShape(ConduitShape mainShape) {
+  private static VoxelShape createCollisionShape(ConduitShape mainShape) {
     VoxelShape collisionShape = Shapes.empty();
     for (var shape : mainShape.getShapes().values()) {
       Vec3 c = shape.getCenter();
@@ -142,7 +163,7 @@ public class ShapeManager {
     return collisionShape.optimize();
   }
 
-  private VisualShape createVisualShape(ConduitShape mainShape) {
+  private static VisualShape createVisualShape(ConduitBlockEntity conduitBlockEntity, ConduitShape mainShape) {
     VisualShape visualShape = new VisualShape();
     for (var entry : mainShape.getShapes().entrySet()) {
       ConduitType conduitType = entry.getKey();
@@ -191,29 +212,18 @@ public class ShapeManager {
 
     }
 
-    for (ConduitConnection conn : conduitBlockEntity.getConnections()) {
-      if (conn.getConnectionType() != ConduitConnection.ConnectionType.EXTERNAL) {
-        // We already handled other types of connections in the loop above.
-        continue;
-      }
-
-      var dir = conn.getDirection();
-      Vector3f normal = new Vector3f(dir.getStepX(), dir.getStepY(), dir.getStepZ());
-      Vector3f min = new Vector3f(
-          0.5f - (0.5f * (1.0f - Math.abs(normal.x()))) - 0.125f * Math.abs(normal.x()) + 0.375f * normal.x(),
-          0.5f - (0.5f * (1.0f - Math.abs(normal.y()))) - 0.125f * Math.abs(normal.y()) + 0.375f * normal.y(),
-          0.5f - (0.5f * (1.0f - Math.abs(normal.z()))) - 0.125f * Math.abs(normal.z()) + 0.375f * normal.z());
-      Vector3f max = new Vector3f(
-          0.5f + (0.5f * (1.0f - Math.abs(normal.x()))) + 0.125f * Math.abs(normal.x()) + 0.375f * normal.x(),
-          0.5f + (0.5f * (1.0f - Math.abs(normal.y()))) + 0.125f * Math.abs(normal.y()) + 0.375f * normal.y(),
-          0.5f + (0.5f * (1.0f - Math.abs(normal.z()))) + 0.125f * Math.abs(normal.z()) + 0.375f * normal.z());
-      visualShape.addBox(new VisualShape.Box(min, max, ConduitModelLoader.CONNECTOR_MATERIAL));
+    for (ConduitShape.ExternalConnectionShape externalConnectionShape : mainShape.getExternalConnectionShapes()) {
+      visualShape.addBox(
+          new VisualShape.Box(
+              externalConnectionShape.getMin(),
+              externalConnectionShape.getMax(),
+              ConduitModelLoader.CONNECTOR_MATERIAL));
     }
 
     return visualShape;
   }
 
-  private ArrayList<BakedQuad> createBakedQuads(
+  private static ArrayList<BakedQuad> createBakedQuads(
       Function<Material, TextureAtlasSprite> spriteGetter, VisualShape visualShape) {
     ArrayList<BakedQuad> quads = new ArrayList<>();
 

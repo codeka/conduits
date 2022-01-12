@@ -1,7 +1,6 @@
 package com.codeka.justconduits.common.shape;
 
 import com.mojang.math.Vector3f;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.Material;
 
 import java.util.ArrayList;
