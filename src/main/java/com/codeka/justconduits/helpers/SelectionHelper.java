@@ -17,6 +17,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
+import java.util.Optional;
 
 /**
  * Helper for performing sub-block selection and highlighting of the selection.
@@ -28,8 +29,6 @@ public class SelectionHelper {
                                 BlockHitResult subHitResult,
                                 VoxelShape shape) {
   }
-
-  private static final VoxelShape CENTER = Shapes.box(0.375f, 0.375f, 0.375f, 0.625f, 0.625f, 0.625f);
 
   /**
    * Performs a raycast (what the game calls a "clip") to determine which connection (if any) the camera is looking at.
@@ -70,22 +69,26 @@ public class SelectionHelper {
 
   @Nullable
   public static SelectionResult raycast(ConduitBlockEntity conduitBlockEntity, Vec3 startPos, Vec3 endPos) {
-    // Check the piece in the center.
-    BlockHitResult centerHitResult = CENTER.clip(startPos, endPos, conduitBlockEntity.getBlockPos());
-    if (centerHitResult != null) {
-      return new SelectionResult(/* connection = */ null, centerHitResult, CENTER);
-    }
+    SelectionResult closestResult = null;
+    double closestDistance = Double.POSITIVE_INFINITY;
 
-    // TODO: it should be the closest one that you click on.
     for (SelectionShape.Shape shape : conduitBlockEntity.getShapeManager().getSelectionShape().getShapes()) {
       BlockHitResult subHitResult = shape.getVoxelShape().clip(startPos, endPos, conduitBlockEntity.getBlockPos());
       if (subHitResult == null) {
         continue;
       }
 
-      return new SelectionResult(shape.getConnection(), subHitResult, shape.getVoxelShape());
+      // We'll go through them all and choose the one that hit closest to the startPos. That'll be the one "in front"
+      // and the one that the player is actually looking at.
+      double distanceToEye = subHitResult.getLocation().distanceTo(startPos);
+      if (distanceToEye < closestDistance) {
+        closestDistance = distanceToEye;
+        closestResult = new SelectionResult(shape.getConnection(), subHitResult, shape.getVoxelShape());
+      } else {
+        L.atInfo().log("  not replacing");
+      }
     }
 
-    return null;
+    return closestResult;
   }
 }

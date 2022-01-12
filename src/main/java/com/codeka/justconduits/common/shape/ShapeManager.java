@@ -178,6 +178,18 @@ public class ShapeManager {
           shape.getMax().x(), shape.getMax().y(), shape.getMax().z());
       selectionShape.addShape(shape.getConnection(), voxelShape);
     }
+
+    for (var entry : mainShape.getShapes().entrySet()) {
+      ConduitType conduitType = entry.getKey();
+      ConduitShape.SingleConduitShape shape = entry.getValue();
+
+      Vec3 c = shape.getCenter();
+      VoxelShape voxelShape =
+          Shapes.box(c.x - 0.125f, c.y - 0.125f, c.z - 0.125f, c.x + 0.125f, c.y + 0.125f, c.z + 0.125f);
+      // TODO: add the connections as well
+      selectionShape.addShape(conduitType, voxelShape);
+    }
+
     return selectionShape;
   }
 
