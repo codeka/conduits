@@ -1,5 +1,6 @@
 {
   "block.justconduits.conduit": "Conduit",
+  "item.justconduits.simple_energy_conduit": "Simple Energy Conduit",
   "item.justconduits.simple_fluid_conduit": "Simple Fluid Conduit",
   "item.justconduits.simple_item_conduit": "Simple Item Conduit",
   "screen.conduit_connection": "Conduit Connection"

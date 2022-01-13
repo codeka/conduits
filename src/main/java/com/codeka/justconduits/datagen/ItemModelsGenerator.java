@@ -34,5 +34,16 @@ public class ItemModelsGenerator extends ItemModelProvider {
         .transform(ModelBuilder.Perspective.FIRSTPERSON_RIGHT).scale(0.35f).end()
         .transform(ModelBuilder.Perspective.THIRDPERSON_LEFT).scale(0.35f).end()
         .transform(ModelBuilder.Perspective.THIRDPERSON_RIGHT).scale(0.35f).end();
+
+    cubeAll("simple_energy_conduit", modLoc("blocks/simple_energy_conduit"))
+        // These were just eyeballed to look OK.
+        .transforms()
+        .transform(ModelBuilder.Perspective.GUI).rotation(30, 135, 0).scale(0.425f).end()
+        .transform(ModelBuilder.Perspective.GROUND).translation(0, 3, 0).scale(0.175f).end()
+        .transform(ModelBuilder.Perspective.FIXED).scale(0.35f).end()
+        .transform(ModelBuilder.Perspective.FIRSTPERSON_LEFT).scale(0.35f).end()
+        .transform(ModelBuilder.Perspective.FIRSTPERSON_RIGHT).scale(0.35f).end()
+        .transform(ModelBuilder.Perspective.THIRDPERSON_LEFT).scale(0.35f).end()
+        .transform(ModelBuilder.Perspective.THIRDPERSON_RIGHT).scale(0.35f).end();
   }
 }

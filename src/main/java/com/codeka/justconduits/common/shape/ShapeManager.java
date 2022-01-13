@@ -205,6 +205,8 @@ public class ShapeManager {
         material = ConduitModelLoader.SIMPLE_ITEM_CONDUIT_MATERIAL;
       } else if (conduitType == ConduitType.SIMPLE_FLUID) {
         material = ConduitModelLoader.SIMPLE_FLUID_CONDUIT_MATERIAL;
+      } else if (conduitType == ConduitType.SIMPLE_ENERGY) {
+        material = ConduitModelLoader.SIMPLE_ENERGY_CONDUIT_MATERIAL;
       }
 
       final Vec3 c = conduitShape.getCenter();

@@ -1,5 +1,6 @@
 package com.codeka.justconduits.common.capabilities.network;
 
+import com.codeka.justconduits.common.capabilities.network.energy.EnergyNetwork;
 import com.codeka.justconduits.common.capabilities.network.fluid.FluidNetwork;
 import com.codeka.justconduits.common.capabilities.network.item.ItemNetwork;
 
@@ -20,7 +21,7 @@ public class NetworkType {
 
   public static final NetworkType FLUID = new NetworkType("fluid", FluidNetwork::new);
 
-  public static final NetworkType ENERGY = new NetworkType("energy", () -> null);
+  public static final NetworkType ENERGY = new NetworkType("energy", EnergyNetwork::new);
 
   public static final NetworkType REDSTONE = new NetworkType("redstone", () -> null);
 

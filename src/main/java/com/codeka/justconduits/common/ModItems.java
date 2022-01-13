@@ -25,6 +25,12 @@ public class ModItems {
           () -> new ConduitItem(
               ConduitType.SIMPLE_FLUID, new Item.Properties().tab(ConduitCreativeModeTab.TAB_CONDUIT)));
 
+  public static final RegistryObject<Item> SIMPLE_ENERGY_CONDUIT =
+      ITEMS.register(
+          "simple_energy_conduit",
+          () -> new ConduitItem(
+              ConduitType.SIMPLE_ENERGY, new Item.Properties().tab(ConduitCreativeModeTab.TAB_CONDUIT)));
+
   public static void register() {
     ITEMS.register(FMLJavaModLoadingContext.get().getModEventBus());
   }
