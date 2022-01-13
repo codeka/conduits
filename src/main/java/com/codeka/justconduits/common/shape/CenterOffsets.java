@@ -24,22 +24,22 @@ public class CenterOffsets {
 
   // TODO: should not be used.
   private static final List<Vec3> DEFAULT_OFFSETS = Lists.newArrayList(
-      new Vec3(0.25f, 0.5f, 0.5f), new Vec3(0.75f, 0.5f, 0.5f), new Vec3(0.0f, 0.75f, 0.5f),
-      new Vec3(0.0f, 0.25f, 0.5f), new Vec3(0.25f, 0.75f, 0.5f), new Vec3(0.75f, 0.75f, 0.5f),
+      new Vec3(0.25f, 0.5f, 0.5f), new Vec3(0.75f, 0.5f, 0.5f), new Vec3(0.5f, 0.75f, 0.5f),
+      new Vec3(0.5f, 0.25f, 0.5f), new Vec3(0.25f, 0.75f, 0.5f), new Vec3(0.75f, 0.75f, 0.5f),
       new Vec3(0.25f, 0.25f, 0.5f), new Vec3(0.75f, 0.25f, 0.5f));
 
   private static final Map<Key, List<Vec3>> CENTER_OFFSETS_FOR_DIRECTIONS = ImmutableMap.<Key, List<Vec3>>builder()
       .put(
           new Key(Direction.SOUTH),
           Lists.newArrayList(
-              new Vec3(0.25f, 0.5f, 0.5f), new Vec3(0.75f, 0.5f, 0.5f), new Vec3(0.0f, 0.75f, 0.5f),
-              new Vec3(0.0f, 0.25f, 0.5f), new Vec3(0.25f, 0.75f, 0.5f), new Vec3(0.75f, 0.75f, 0.5f),
+              new Vec3(0.25f, 0.5f, 0.5f), new Vec3(0.75f, 0.5f, 0.5f), new Vec3(0.5f, 0.75f, 0.5f),
+              new Vec3(0.5f, 0.25f, 0.5f), new Vec3(0.25f, 0.75f, 0.5f), new Vec3(0.75f, 0.75f, 0.5f),
               new Vec3(0.25f, 0.25f, 0.5f), new Vec3(0.75f, 0.25f, 0.5f)))
       .put(
           new Key(Direction.EAST),
           Lists.newArrayList(
-              new Vec3(0.5f, 0.5f, 0.25f), new Vec3(0.5f, 0.5f, 0.75f), new Vec3(0.5f, 0.75f, 0.0f),
-              new Vec3(0.5f, 0.25f, 0.0f), new Vec3(0.5f, 0.75f, 0.25f), new Vec3(0.5f, 0.75f, 0.75f),
+              new Vec3(0.5f, 0.5f, 0.25f), new Vec3(0.5f, 0.5f, 0.75f), new Vec3(0.5f, 0.75f, 0.5f),
+              new Vec3(0.5f, 0.25f, 0.5f), new Vec3(0.5f, 0.75f, 0.25f), new Vec3(0.5f, 0.75f, 0.75f),
               new Vec3(0.5f, 0.25f, 0.25f), new Vec3(0.5f, 0.25f, 0.75f)))
       .build();
 

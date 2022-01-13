@@ -218,7 +218,7 @@ public class ConduitBlockEntity extends BlockEntity {
 
     if (selectionResult.connection() == null
         || selectionResult.connection().getConnectionType() != ConduitConnection.ConnectionType.EXTERNAL) {
-      // If you're holding a conduit item that we don't current have a conduit for, add that conduit to our block.
+      // If you're holding a conduit item that we don't currently have a conduit for, add that conduit to our block.
       ItemStack holdingStack = player.getItemInHand(hand);
       // TODO: check for a capability or something, rather than just being a subclass of our own implementation.
       if (holdingStack.getItem() instanceof ConduitItem conduitItem) {
