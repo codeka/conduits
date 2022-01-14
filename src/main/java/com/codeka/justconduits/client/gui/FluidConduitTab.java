@@ -64,7 +64,7 @@ public class FluidConduitTab implements IConduitTab {
   }
 
   @Override
-  public void render() {
+  public void beforeRender() {
     FluidExternalConnection externalConnection = connection.getNetworkExternalConnection(ConduitType.SIMPLE_FLUID);
     extractModeButton.setIconIndex(externalConnection.getExtractMode().ordinal());
     insertModeButton.setIconIndex(externalConnection.getInsertMode().ordinal());

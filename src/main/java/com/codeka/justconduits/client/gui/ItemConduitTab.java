@@ -73,7 +73,7 @@ public class ItemConduitTab implements IConduitTab {
   }
 
   @Override
-  public void render() {
+  public void beforeRender() {
     ItemExternalConnection externalConnection = connection.getNetworkExternalConnection(ConduitType.SIMPLE_ITEM);
     extractModeButton.setIconIndex(externalConnection.getExtractMode().ordinal());
     insertModeButton.setIconIndex(externalConnection.getInsertMode().ordinal());

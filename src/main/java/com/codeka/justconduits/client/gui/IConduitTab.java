@@ -13,7 +13,7 @@ public interface IConduitTab {
   void init(
       @Nonnull ConduitScreen screen, @Nonnull ConduitBlockEntity blockEntity, @Nonnull ConduitConnection connection);
 
-  void render();
+  void beforeRender();
 
   @Nonnull
   ResourceLocation getBackground();

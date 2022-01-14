@@ -3,6 +3,8 @@ package com.codeka.justconduits.client.gui;
 import com.codeka.justconduits.JustConduitsMod;
 import com.codeka.justconduits.client.gui.widgets.CheckButton;
 import com.codeka.justconduits.client.gui.widgets.DataSource;
+import com.codeka.justconduits.client.gui.widgets.TabButton;
+import com.codeka.justconduits.client.gui.widgets.TabButtonRow;
 import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
 import com.codeka.justconduits.common.blocks.ConduitConnection;
 import com.codeka.justconduits.common.blocks.ConduitContainerMenu;
@@ -43,8 +45,8 @@ public class ConduitScreen extends AbstractContainerScreen<ConduitContainerMenu>
   // The list of tabs we'll be displaying for this ConduitBlockEntity.
   private final ArrayList<IConduitTab> tabs = new ArrayList<>();
 
-  // The current tabe we're displaying.
-  private int currentTabIndex;
+  // The buttons used to switch tabs for the conduits.
+  private final TabButtonRow conduitTabButtons = new TabButtonRow(TabButtonRow.TabPosition.TOP);
 
   public ConduitScreen(ConduitContainerMenu menu, Inventory playerInventory, Component title) {
     super(menu, playerInventory, title);
@@ -66,12 +68,15 @@ public class ConduitScreen extends AbstractContainerScreen<ConduitContainerMenu>
   protected void init() {
     super.init();
 
+    ArrayList<TabButton> tabButtons = new ArrayList<>();
     for (ConduitType conduitType : conduitBlockEntity.getConduitTypes()) {
       IConduitTab tab = ConduitTabMapping.newTab(conduitType);
       tab.init(this, conduitBlockEntity, connection);
       tabs.add(tab);
+
+      tabButtons.add(new TabButton());
     }
-    currentTabIndex = 0;
+    conduitTabButtons.updateButtons(tabButtons);
   }
 
   public void add(AbstractWidget widget) {
@@ -82,11 +87,15 @@ public class ConduitScreen extends AbstractContainerScreen<ConduitContainerMenu>
 
   @Override
   protected void renderBg(@Nonnull PoseStack poseStack, float partialTick, int mouseX, int mouseY) {
+    conduitTabButtons.beforeWindowRender(poseStack, partialTick, mouseX, mouseY);
+
     RenderSystem.setShaderTexture(0, ITEM_GUI);
     int relX = (this.width - this.imageWidth) / 2;
     int relY = (this.height - this.imageHeight) / 2;
 
     blit(poseStack, relX, relY, 0, 0, this.imageWidth, this.imageHeight);
+
+    conduitTabButtons.afterWindowRender(poseStack, partialTick, mouseX, mouseY);
   }
 
   @Override
@@ -96,7 +105,11 @@ public class ConduitScreen extends AbstractContainerScreen<ConduitContainerMenu>
 
   @Override
   public void render(@Nonnull PoseStack poseStack, int mouseX, int mouseY, float partialTick) {
-    tabs.get(currentTabIndex).render();
+    int index = conduitTabButtons.getCurrentIndex();
+    if (index >= 0 && index < tabs.size()) {
+      tabs.get(index).beforeRender();
+    }
+    conduitTabButtons.beforeRender(leftPos, topPos, width, height);
 
     renderBackground(poseStack);
     super.render(poseStack, mouseX, mouseY, partialTick);
