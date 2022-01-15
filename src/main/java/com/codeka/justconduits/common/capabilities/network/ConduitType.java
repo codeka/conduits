@@ -1,5 +1,6 @@
 package com.codeka.justconduits.common.capabilities.network;
 
+import com.codeka.justconduits.client.gui.widgets.Icon;
 import com.codeka.justconduits.common.capabilities.network.energy.EnergyConduit;
 import com.codeka.justconduits.common.capabilities.network.energy.EnergyConduitClientStatePacket;
 import com.codeka.justconduits.common.capabilities.network.energy.EnergyExternalConnection;
@@ -22,22 +23,23 @@ import java.util.function.Supplier;
 public class ConduitType {
   public static ConduitType SIMPLE_ITEM =
       new ConduitType(
-          "simple_item", NetworkType.ITEM, ItemConduit::new, ItemExternalConnection::new,
+          "simple_item", NetworkType.ITEM, Icon.ITEMS, ItemConduit::new, ItemExternalConnection::new,
           ItemConduitClientStatePacket::new);
 
   public static ConduitType SIMPLE_FLUID =
       new ConduitType(
-          "simple_fluid", NetworkType.FLUID, FluidConduit::new, FluidExternalConnection::new,
+          "simple_fluid", NetworkType.FLUID, Icon.FLUID, FluidConduit::new, FluidExternalConnection::new,
           FluidConduitClientStatePacket::new);
 
   public static ConduitType SIMPLE_ENERGY =
       new ConduitType(
-          "simple_energy", NetworkType.ENERGY, EnergyConduit::new, EnergyExternalConnection::new,
+          "simple_energy", NetworkType.ENERGY, Icon.ENERGY, EnergyConduit::new, EnergyExternalConnection::new,
           EnergyConduitClientStatePacket::new);
 
   private final String name;
   private final NetworkType networkType;
   private final IConduit conduitImpl;
+  private final Icon guiIcon;
   private final Supplier<NetworkExternalConnection> externalConnectionSupplier;
   private final Supplier<IConduitTypeClientStatePacket> clientStatePacketSupplier;
 
@@ -52,11 +54,12 @@ public class ConduitType {
   }
 
   public ConduitType(
-      String name, NetworkType networkType, Supplier<IConduit> supplier,
+      String name, NetworkType networkType, Icon guiIcon, Supplier<IConduit> supplier,
       Supplier<NetworkExternalConnection> externalConnectionSupplier,
       Supplier<IConduitTypeClientStatePacket> clientStatePacketSupplier) {
     this.name = name;
     this.networkType = networkType;
+    this.guiIcon = guiIcon;
     this.conduitImpl = supplier.get();
     this.externalConnectionSupplier = externalConnectionSupplier;
     this.clientStatePacketSupplier = clientStatePacketSupplier;
@@ -68,6 +71,10 @@ public class ConduitType {
 
   public NetworkType getNetworkType() {
     return networkType;
+  }
+
+  public Icon getGuiIcon() {
+    return guiIcon;
   }
 
   public IConduit getConduitImpl() {

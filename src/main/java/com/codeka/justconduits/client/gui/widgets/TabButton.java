@@ -9,17 +9,23 @@ import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nonnull;
 
 /** The button used to render tabs. */
 public class TabButton extends Button {
+  private static final Logger L = LogManager.getLogger();
+
+  private final Icon icon;
+  private final TabButtonRow tabButtonRow;
   static final int TAB_BUTTON_SIZE = 20;
 
   private static final ResourceLocation WIDGETS =
       new ResourceLocation(JustConduitsMod.MODID, "textures/gui/widgets.png");
 
-  public TabButton() {
+  public TabButton(@Nonnull TabButtonRow tabButtonRow, @Nonnull Icon icon) {
     super(0, 0, TAB_BUTTON_SIZE, TAB_BUTTON_SIZE, new TextComponent(""), new OnPress() {
       @Override
       public void onPress(Button button) {
@@ -31,6 +37,8 @@ public class TabButton extends Button {
         ((TabButton) button).onTooltip(button, poseStack, mouseX, mouseY);
       }
     });
+    this.tabButtonRow = tabButtonRow;
+    this.icon = icon;
   }
 
   /**
@@ -51,17 +59,19 @@ public class TabButton extends Button {
 
     renderBg(poseStack, Minecraft.getInstance(), mouseX, mouseY);
 
-    // TODO: draw icon
-    drawCenteredString(
-        poseStack, Minecraft.getInstance().font, new TextComponent("X"), x + width / 2, y + (height - 8) / 2,
-        getFGColor() | Mth.ceil(alpha * 255.0F) << 24);
+    // Draw the icon.
+    blit(
+        poseStack,
+        x + (width / 2 - Icon.WIDTH / 2), y + (height / 2 - Icon.HEIGHT / 2),
+        icon.getX(), icon.getY(), Icon.WIDTH, Icon.HEIGHT);
   }
 
   private void onPress(Button button) {
-    // TODO: implement
+    tabButtonRow.onTabButtonPressed(this);
   }
 
   private void onTooltip(Button button, PoseStack poseStack, int mouseX, int mouseY) {
+    L.atInfo().log("onTooltip");
     // TODO: implement;
   }
 }

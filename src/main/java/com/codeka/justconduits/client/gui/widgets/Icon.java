@@ -4,7 +4,10 @@ public enum Icon {
   ALWAYS_ON(0, 80),
   REDSTONE_ON(16, 80),
   REDSTONE_OFF(32, 80),
-  ALWAYS_OFF(48, 80);
+  ALWAYS_OFF(48, 80),
+  ITEMS(64, 80),
+  FLUID(80, 80),
+  ENERGY(96, 80);
 
   // Icon sizes are hard-coded.
   public static final int WIDTH = 16;

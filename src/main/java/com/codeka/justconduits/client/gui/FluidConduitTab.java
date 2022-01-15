@@ -22,6 +22,7 @@ public class FluidConduitTab implements IConduitTab {
   private static final ResourceLocation FLUID_GUI =
       new ResourceLocation(JustConduitsMod.MODID, "textures/gui/conduit_fluid.png");
 
+  private ConduitScreen screen;
   private ConduitConnection connection;
   private ConduitBlockEntity conduitBlockEntity;
   private IconListButton insertModeButton;
@@ -33,6 +34,7 @@ public class FluidConduitTab implements IConduitTab {
   public void init(
       @Nonnull ConduitScreen screen, @Nonnull ConduitBlockEntity conduitBlockEntity,
       @Nonnull ConduitConnection connection) {
+    this.screen = screen;
     this.conduitBlockEntity = conduitBlockEntity;
     this.connection = connection;
 
@@ -45,10 +47,8 @@ public class FluidConduitTab implements IConduitTab {
     // TODO: make this generic?
     FluidExternalConnection externalConnection = connection.getNetworkExternalConnection(ConduitType.SIMPLE_FLUID);
     insertModeButton.setIconIndex(externalConnection.getInsertMode().ordinal());
-    screen.add(insertModeButton);
 
     insertChannelColorButton = new ChannelColorButton.Builder(10, 45).build();
-    screen.add(insertChannelColorButton);
 
     extractModeButton =
         new IconListButton.Builder(100, 20)
@@ -57,10 +57,24 @@ public class FluidConduitTab implements IConduitTab {
             .withIconIndexDataSource(extractDataSource)
             .build();
     extractModeButton.setIconIndex(externalConnection.getExtractMode().ordinal());
-    screen.add(extractModeButton);
 
     extractChannelColorButton = new ChannelColorButton.Builder(100, 45).build();
+  }
+
+  @Override
+  public void show() {
+    screen.add(insertModeButton);
+    screen.add(insertChannelColorButton);
+    screen.add(extractModeButton);
     screen.add(extractChannelColorButton);
+  }
+
+  @Override
+  public void hide() {
+    screen.remove(insertModeButton);
+    screen.remove(insertChannelColorButton);
+    screen.remove(extractModeButton);
+    screen.remove(extractChannelColorButton);
   }
 
   @Override

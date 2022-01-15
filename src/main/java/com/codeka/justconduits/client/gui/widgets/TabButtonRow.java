@@ -1,6 +1,8 @@
 package com.codeka.justconduits.client.gui.widgets;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -13,6 +15,8 @@ import java.util.Collection;
  * one button is "selected" or "active" at once.
  */
 public class TabButtonRow {
+  private static final Logger L = LogManager.getLogger();
+
   /** The position of the tab button on the window. */
   public enum TabPosition {
     /** The buttons are attached to the top of the window. */
@@ -42,9 +46,15 @@ public class TabButtonRow {
     return currIndex;
   }
 
+  public void onTabButtonPressed(TabButton tabButton) {
+    setCurrentIndex(buttons.indexOf(tabButton));
+  }
+
   public void setCurrentIndex(int index) {
-    if (index >= 0 && buttons.size() < index) {
+    if (index >= 0 && index < buttons.size()) {
       currIndex = index;
+    } else {
+      L.atInfo().log("Invalid index ({}, buttons.size = {})", index, buttons.size());
     }
   }
 
@@ -71,7 +81,6 @@ public class TabButtonRow {
 
       buttons.get(i).renderButton(poseStack, mouseX, mouseY, partialTick);
     }
-
   }
 
   /**

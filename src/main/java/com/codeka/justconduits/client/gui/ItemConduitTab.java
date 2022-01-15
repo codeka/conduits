@@ -23,6 +23,7 @@ public class ItemConduitTab implements IConduitTab {
   private static final ResourceLocation ITEM_GUI =
       new ResourceLocation(JustConduitsMod.MODID, "textures/gui/conduit_item.png");
 
+  private ConduitScreen screen;
   private ConduitConnection connection;
   private ConduitBlockEntity conduitBlockEntity;
   private IconListButton insertModeButton;
@@ -37,6 +38,7 @@ public class ItemConduitTab implements IConduitTab {
   public void init(
       @Nonnull ConduitScreen screen, @Nonnull ConduitBlockEntity conduitBlockEntity,
       @Nonnull ConduitConnection connection) {
+    this.screen = screen;
     this.conduitBlockEntity = conduitBlockEntity;
     this.connection = connection;
 
@@ -49,15 +51,11 @@ public class ItemConduitTab implements IConduitTab {
     // TODO: make this generic?
     ItemExternalConnection externalConnection = connection.getNetworkExternalConnection(ConduitType.SIMPLE_ITEM);
     insertModeButton.setIconIndex(externalConnection.getInsertMode().ordinal());
-    screen.add(insertModeButton);
 
     insertChannelColorButton = new ChannelColorButton.Builder(10, 45).build();
-    screen.add(insertChannelColorButton);
 
     testButton1 = new SimpleButton.Builder(35, 45).build();
-    screen.add(testButton1);
     testButton2 = new SimpleButton.Builder(60, 45).build();
-    screen.add(testButton2);
 
     extractModeButton =
         new IconListButton.Builder(100, 20)
@@ -66,10 +64,28 @@ public class ItemConduitTab implements IConduitTab {
             .withIconIndexDataSource(extractDataSource)
             .build();
     extractModeButton.setIconIndex(externalConnection.getExtractMode().ordinal());
-    screen.add(extractModeButton);
 
     extractChannelColorButton = new ChannelColorButton.Builder(100, 45).build();
+  }
+
+  @Override
+  public void show() {
+    screen.add(insertModeButton);
+    screen.add(insertChannelColorButton);
+    screen.add(testButton1);
+    screen.add(testButton2);
+    screen.add(extractModeButton);
     screen.add(extractChannelColorButton);
+  }
+
+  @Override
+  public void hide() {
+    screen.remove(insertModeButton);
+    screen.remove(insertChannelColorButton);
+    screen.remove(testButton1);
+    screen.remove(testButton2);
+    screen.remove(extractModeButton);
+    screen.remove(extractChannelColorButton);
   }
 
   @Override

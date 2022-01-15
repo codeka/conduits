@@ -13,6 +13,12 @@ public interface IConduitTab {
   void init(
       @Nonnull ConduitScreen screen, @Nonnull ConduitBlockEntity blockEntity, @Nonnull ConduitConnection connection);
 
+  /** Called when the tab is shown. We'll want to add our buttons and things to the {@link ConduitScreen}. */
+  void show();
+
+  /** Called when the tab is hidden. We'll want to remove our buttons and things from the {@link ConduitScreen}. */
+  void hide();
+
   void beforeRender();
 
   @Nonnull

@@ -45,6 +45,9 @@ public class ConduitScreen extends AbstractContainerScreen<ConduitContainerMenu>
   // The list of tabs we'll be displaying for this ConduitBlockEntity.
   private final ArrayList<IConduitTab> tabs = new ArrayList<>();
 
+  // The current index of the tab we're rendering.
+  private int tabIndex = -1;
+
   // The buttons used to switch tabs for the conduits.
   private final TabButtonRow conduitTabButtons = new TabButtonRow(TabButtonRow.TabPosition.TOP);
 
@@ -74,7 +77,10 @@ public class ConduitScreen extends AbstractContainerScreen<ConduitContainerMenu>
       tab.init(this, conduitBlockEntity, connection);
       tabs.add(tab);
 
-      tabButtons.add(new TabButton());
+      TabButton tabButton = new TabButton(conduitTabButtons, conduitType.getGuiIcon());
+      // Note: we handle our own rendering, so just add the widget.
+      addWidget(tabButton);
+      tabButtons.add(tabButton);
     }
     conduitTabButtons.updateButtons(tabButtons);
   }
@@ -82,7 +88,13 @@ public class ConduitScreen extends AbstractContainerScreen<ConduitContainerMenu>
   public void add(AbstractWidget widget) {
     widget.x += leftPos;
     widget.y += topPos;
-    this.addRenderableWidget(widget);
+    super.addRenderableWidget(widget);
+  }
+
+  public void remove(AbstractWidget widget) {
+    widget.x -= leftPos;
+    widget.y -= topPos;
+    super.removeWidget(widget);
   }
 
   @Override
@@ -107,6 +119,13 @@ public class ConduitScreen extends AbstractContainerScreen<ConduitContainerMenu>
   public void render(@Nonnull PoseStack poseStack, int mouseX, int mouseY, float partialTick) {
     int index = conduitTabButtons.getCurrentIndex();
     if (index >= 0 && index < tabs.size()) {
+      if (index != tabIndex) {
+        if (tabIndex >= 0) {
+          tabs.get(tabIndex).hide();
+        }
+        tabIndex = index;
+        tabs.get(tabIndex).show();
+      }
       tabs.get(index).beforeRender();
     }
     conduitTabButtons.beforeRender(leftPos, topPos, width, height);
