@@ -6,6 +6,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -50,8 +51,23 @@ public class ConduitBlock extends Block implements EntityBlock {
   public void neighborChanged(@Nonnull BlockState blockState, @Nonnull Level level, @Nonnull BlockPos blockPos,
                               @Nonnull Block neighborBlock, @Nonnull BlockPos neighborBlockPos, boolean isMoving) {
     super.neighborChanged(blockState, level, blockPos, neighborBlock, neighborBlockPos, isMoving);
+    L.atInfo().log("neighborChanged");
 
     // Update our block entity.
+    if (level.getBlockEntity(blockPos) instanceof ConduitBlockEntity conduitBlockEntity) {
+      conduitBlockEntity.onNeighborChanged(blockState, neighborBlockPos);
+    }
+  }
+
+  // TODO: why is there neighborChanged and onNeighborChanged? They both seem to do similar, but slightly different
+  //   things.
+  @Override
+  public void onNeighborChange(
+      BlockState blockState, LevelReader level, BlockPos blockPos, BlockPos neighborBlockPos) {
+    super.onNeighborChange(blockState, level, blockPos, neighborBlockPos);
+    L.atInfo().log("onNeighborChange");
+
+    // Update our block entity as well.
     if (level.getBlockEntity(blockPos) instanceof ConduitBlockEntity conduitBlockEntity) {
       conduitBlockEntity.onNeighborChanged(blockState, neighborBlockPos);
     }

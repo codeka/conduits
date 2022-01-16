@@ -242,8 +242,8 @@ public class ConduitBlockEntity extends BlockEntity {
 
         // We added the conduit, so we're done.
         conduitItem.onPlacedOrAdded(requireLevel(), player, holdingStack, getBlockState(), getBlockPos(), false);
+        updateWatchers(/* setChanged = */ true);
         setChanged();
-        sendClientUpdate();
         return InteractionResult.SUCCESS;
       }
 
@@ -459,11 +459,7 @@ public class ConduitBlockEntity extends BlockEntity {
     ConduitHolder conduitHolder = conduits.get(packet.getNetworkType());
     conduitHolder.getConduitImpl().onServerUpdate(packet, this, conduitHolder);
 
-    // Mark ourselves as dirty as we've just updated ourselves.
-    setChanged();
-
-    // And send an update to the client so it can reflect any changes, too.
-    sendClientUpdate();
+    updateWatchers(/* setChanged = */ false);
   }
 
   /** Gets the {@link Level}, throws an exception if it's null. */
@@ -519,9 +515,16 @@ public class ConduitBlockEntity extends BlockEntity {
     }
 
     if (needUpdate) {
-      sendClientUpdate();
-      shapeManager.markDirty();
-      requireLevel().sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_ALL);
+      updateWatchers(/* setChanged = */ false);
     }
+  }
+
+  private void updateWatchers(boolean setChanged) {
+    if (setChanged) {
+      setChanged();
+    }
+    sendClientUpdate();
+    shapeManager.markDirty();
+    requireLevel().sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_ALL);
   }
 }

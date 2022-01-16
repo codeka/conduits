@@ -144,8 +144,9 @@ public class ShapeManager {
   private static void populateSingleShape(
       ConduitBlockEntity conduitBlockEntity, ConduitShape.SingleConduitShape shape, ConduitType conduitType) {
     for (ConduitConnection conn : conduitBlockEntity.getConnections()) {
-      // TODO: check that there's actually another conduit of this type at the next block over.
-      shape.addDirection(conn.getDirection());
+      if (conn.getConduitTypes(conduitBlockEntity.getLevel()).contains(conduitType)) {
+        shape.addDirection(conn.getDirection());
+      }
     }
   }
 
@@ -216,14 +217,13 @@ public class ShapeManager {
               new Vector3f((float) c.x + 0.125f, (float) c.y + 0.125f, (float) c.z + 0.125f),
               material));
 
-      // TODO: only add a connection if there is a conduit of the same type in the next block over.
-      for (ConduitConnection conn : conduitBlockEntity.getConnections()) {
-        if (conn.getConnectionType() == ConduitConnection.ConnectionType.EXTERNAL) {
-          // We handle external connections in the next loop.
-          continue;
-        }
+      for (Direction dir : conduitShape.getDirections()) {
+        // TODO: do we want to do this for external connections too?
+//        if (conn.getConnectionType() == ConduitConnection.ConnectionType.EXTERNAL) {
+//          // We handle external connections in the next loop.
+//          continue;
+//        }
 
-        var dir = conn.getDirection();
         // We only do the visual for the position axis direction, the conduit in the negative direction will draw
         // the other connection for us.
         if (dir.getAxisDirection() != Direction.AxisDirection.POSITIVE) {
