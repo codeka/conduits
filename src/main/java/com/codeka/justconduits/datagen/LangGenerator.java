@@ -4,6 +4,7 @@ import com.codeka.justconduits.JustConduitsMod;
 import com.codeka.justconduits.common.ModBlocks;
 import com.codeka.justconduits.common.ModItems;
 import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
+import com.codeka.justconduits.common.items.ConduitTool;
 import net.minecraft.data.DataGenerator;
 import net.minecraftforge.common.data.LanguageProvider;
 
@@ -21,5 +22,6 @@ public class LangGenerator extends LanguageProvider {
     add(ModBlocks.CONDUIT.get(), "Conduit");
 
     add(ConduitBlockEntity.SCREEN_CONDUIT_CONNECTION, "Conduit Connection");
+    add(ConduitTool.SCREEN_CONDUIT_TOOL, "Conduit Tool");
   }
 }

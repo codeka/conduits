@@ -1,18 +1,16 @@
-package com.codeka.justconduits.common.blocks;
+package com.codeka.justconduits.common.items;
 
 import com.codeka.justconduits.common.BaseContainerMenu;
 import com.codeka.justconduits.common.ModBlocks;
 import com.codeka.justconduits.common.ModContainers;
+import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.SlotItemHandler;
 import net.minecraftforge.items.wrapper.InvWrapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -23,7 +21,7 @@ import java.util.function.Consumer;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class ConduitContainerMenu extends BaseContainerMenu {
+public class ConduitToolContainerMenu extends BaseContainerMenu {
   private static final Logger L = LogManager.getLogger();
 
   @Nullable // Shouldn't be null, except if the block is destroyed or something before we show up.
@@ -32,11 +30,10 @@ public class ConduitContainerMenu extends BaseContainerMenu {
   private final IItemHandler playerInventory;
 
   private final BlockPos blockPos;
-  private final Direction direction;
 
-  public ConduitContainerMenu(int containerId, @Nonnull Inventory playerInventory, @Nonnull Player player,
-                              @Nonnull MenuExtras extras) {
-    super(ModContainers.CONDUIT_CONTAINER_MENU.get(), containerId, playerInventory);
+  public ConduitToolContainerMenu(int containerId, @Nonnull Inventory playerInventory, @Nonnull Player player,
+                                  @Nonnull MenuExtras extras) {
+    super(ModContainers.CONDUIT_TOOL_CONTAINER_MENU.get(), containerId, playerInventory);
 
     this.blockPos = extras.blockPos;
     if (player.getCommandSenderWorld().getBlockEntity(blockPos) instanceof ConduitBlockEntity conduitBlockEntity) {
@@ -46,19 +43,8 @@ public class ConduitContainerMenu extends BaseContainerMenu {
     }
     this.player = player;
     this.playerInventory = new InvWrapper(playerInventory);
-    this.direction = extras.direction;
 
-    layoutPlayerInventorySlots(10, 108);
-  }
-
-  @Nullable
-  public ConduitConnection getConnection() {
-    ConduitBlockEntity be = conduitBlockEntity;
-    if (be == null) {
-      return null;
-    }
-
-    return be.getConnection(direction);
+    layoutPlayerInventorySlots(30, 108);
   }
 
   @Nonnull
@@ -83,28 +69,23 @@ public class ConduitContainerMenu extends BaseContainerMenu {
 
   public static final class MenuExtras implements Consumer<FriendlyByteBuf> {
     private final BlockPos blockPos;
-    private final Direction direction;
 
-    public MenuExtras(ConduitBlockEntity conduitBlockEntity, ConduitConnection conn) {
+    public MenuExtras(ConduitBlockEntity conduitBlockEntity) {
       blockPos = conduitBlockEntity.getBlockPos();
-      direction = conn.getDirection();
     }
 
-    private MenuExtras(BlockPos blockPos, Direction dir) {
+    private MenuExtras(BlockPos blockPos) {
       this.blockPos = blockPos;
-      this.direction = dir;
     }
 
     @Override
     public void accept(FriendlyByteBuf buffer) {
       buffer.writeBlockPos(blockPos);
-      buffer.writeEnum(direction);
     }
 
     public static MenuExtras create(FriendlyByteBuf buffer) {
       BlockPos blockPos = buffer.readBlockPos();
-      Direction dir = buffer.readEnum(Direction.class);
-      return new MenuExtras(blockPos, dir);
+      return new MenuExtras(blockPos);
     }
   }
 }
