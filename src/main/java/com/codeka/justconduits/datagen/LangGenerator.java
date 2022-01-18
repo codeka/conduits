@@ -14,6 +14,7 @@ public class LangGenerator extends LanguageProvider {
 
   @Override
   protected void addTranslations() {
+    add(ModItems.CONDUIT_TOOL.get(), "Conduit Tool");
     add(ModItems.SIMPLE_ITEM_CONDUIT.get(), "Simple Item Conduit");
     add(ModItems.SIMPLE_FLUID_CONDUIT.get(), "Simple Fluid Conduit");
     add(ModItems.SIMPLE_ENERGY_CONDUIT.get(), "Simple Energy Conduit");

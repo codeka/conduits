@@ -45,5 +45,8 @@ public class ItemModelsGenerator extends ItemModelProvider {
         .transform(ModelBuilder.Perspective.FIRSTPERSON_RIGHT).scale(0.35f).end()
         .transform(ModelBuilder.Perspective.THIRDPERSON_LEFT).scale(0.35f).end()
         .transform(ModelBuilder.Perspective.THIRDPERSON_RIGHT).scale(0.35f).end();
+
+
+    singleTexture("conduit_tool", mcLoc("item/generated"), "layer0", modLoc("items/conduit_tool"));
   }
 }
