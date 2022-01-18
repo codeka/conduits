@@ -5,7 +5,6 @@ import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
 import com.codeka.justconduits.common.blocks.ConduitConnection;
 import com.codeka.justconduits.common.capabilities.network.ConduitType;
 import com.codeka.justconduits.helpers.QuadHelper;
-import com.mojang.math.Matrix4f;
 import com.mojang.math.Transformation;
 import com.mojang.math.Vector3f;
 import net.minecraft.client.renderer.block.model.BakedQuad;
@@ -144,7 +143,7 @@ public class ShapeManager {
   private static void populateSingleShape(
       ConduitBlockEntity conduitBlockEntity, ConduitShape.SingleConduitShape shape, ConduitType conduitType) {
     for (ConduitConnection conn : conduitBlockEntity.getConnections()) {
-      if (conn.getConduitTypes(conduitBlockEntity.getLevel()).contains(conduitType)) {
+      if (conn.getConduitTypes().contains(conduitType)) {
         shape.addDirection(conn.getDirection());
       }
     }

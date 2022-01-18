@@ -49,6 +49,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -62,6 +63,7 @@ public class ConduitBlockEntity extends BlockEntity {
       LazyOptional.of(() -> this.conduitNetworkManager);
 
   private boolean firstTick = true;
+  private boolean needsUpdate = false;
   private final HashMap<Direction, ConduitConnection> connections = new HashMap<>();
 
   // A collection of the conduits in this block. We map NetworkType to ConduitHolder to ensure that we cannot have more
@@ -149,6 +151,7 @@ public class ConduitBlockEntity extends BlockEntity {
     ConduitHolder conduitHolder = new ConduitHolder(conduitType);
     conduits.put(conduitType.getNetworkType(), conduitHolder);
     conduitsByType.put(conduitType, conduitHolder);
+    needsUpdate = true;
     return conduitHolder;
   }
 
@@ -165,6 +168,7 @@ public class ConduitBlockEntity extends BlockEntity {
     int dz = neighborBlockPos.getZ() - worldPosition.getZ();
     Direction dir = Direction.fromNormal(dx, dy, dz);
     if (dir == null) {
+      L.atError().log("Normal was not a valid direction.");
       return;
     }
 
@@ -242,8 +246,7 @@ public class ConduitBlockEntity extends BlockEntity {
 
         // We added the conduit, so we're done.
         conduitItem.onPlacedOrAdded(requireLevel(), player, holdingStack, getBlockState(), getBlockPos(), false);
-        updateWatchers(/* setChanged = */ true);
-        setChanged();
+        needsUpdate = true;
         return InteractionResult.SUCCESS;
       }
 
@@ -287,12 +290,18 @@ public class ConduitBlockEntity extends BlockEntity {
         updateNeighbor(dir, /* blockPos = */ null);
       }
       if (!connections.isEmpty()) {
-        sendClientUpdate();
-        requireLevel().sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_ALL);
+        updateWatchers(/* setChanged = */ false);
       }
 
       conduitNetworkManager.init(this);
       firstTick = false;
+    }
+    if (needsUpdate) {
+      for (ConduitConnection conn : connections.values()) {
+        conn.updateConduitTypes(requireLevel());
+      }
+      updateWatchers(/* setChanged = */ true);
+      needsUpdate = false;
     }
 
     if (conduits.isEmpty()) {
@@ -348,6 +357,8 @@ public class ConduitBlockEntity extends BlockEntity {
         conduitType.getConduitImpl().loadAdditional(conduitsTag.getCompound(conduitTypeName), this, conduitHolder);
       }
     }
+
+    needsUpdate = true;
   }
 
   /**
@@ -404,34 +415,29 @@ public class ConduitBlockEntity extends BlockEntity {
     onClientUpdate(new ConduitClientStatePacket(buffer));
   }
 
-  /** Updated any clients tracking this {@link ConduitBlockEntity} that something has changed. */
-  public void sendClientUpdate() {
-    JustConduitsPacketHandler.CHANNEL.send(
-        PacketDistributor.TRACKING_CHUNK.with(() -> requireLevel().getChunkAt(getBlockPos())),
-        new ConduitClientStatePacket(this));
-  }
-
   /** Called on the client when we receive an update packet from the server. */
   public void onClientUpdate(ConduitClientStatePacket packet) {
-    HashMap<Direction, ConduitConnection> newConnections = packet.getConnections();
+    HashMap<Direction, ConduitClientStatePacket.ConnectionPacket> connectionPackets = packet.getConnectionPackets();
 
     boolean updated = false;
     for (Direction dir : new ArrayList<>(connections.keySet())) {
-      if (!newConnections.containsKey(dir)) {
+      if (!connectionPackets.containsKey(dir)) {
         connections.remove(dir);
         updated = true;
       }
     }
-    for (var entry : newConnections.entrySet()) {
+    for (var entry : connectionPackets.entrySet()) {
       Direction dir = entry.getKey();
-      ConduitConnection conn = entry.getValue();
+      ConduitClientStatePacket.ConnectionPacket connectionPacket = entry.getValue();
 
-      if (!connections.containsKey(dir)) {
+      ConduitConnection conn = connections.get(dir);
+      if (conn == null) {
+        conn =
+            new ConduitConnection(getBlockPos(), connectionPacket.getDirection(), connectionPacket.getConnectionType());
         connections.put(dir, conn);
         updated = true;
-      } else {
-        updated = connections.get(dir).updateFrom(conn) || updated;
       }
+      updated = conn.updateFrom(connectionPacket) || updated;
     }
 
     for (Map.Entry<ConduitType, IConduitTypeClientStatePacket> entry : packet.getConduits().entrySet()) {
@@ -484,12 +490,18 @@ public class ConduitBlockEntity extends BlockEntity {
     if (neighbor == null && connections.containsKey(dir)) {
       connections.remove(dir);
       needUpdate = true;
-    } else if (neighbor instanceof ConduitBlockEntity) {
+    } else if (neighbor instanceof ConduitBlockEntity neighborConduitBlockEntity) {
       ConduitConnection conn = connections.get(dir);
       if (conn == null || conn.getConnectionType() != ConduitConnection.ConnectionType.CONDUIT) {
         conn = new ConduitConnection(getBlockPos(), dir, ConduitConnection.ConnectionType.CONDUIT);
         connections.put(dir, conn);
         needUpdate = true;
+      } else {
+        // Our connection to that neighbour should have all the same conduits as we do, if it's different it could
+        // mean they'll need to
+        if (!conn.getConduitTypes().containsAll(neighborConduitBlockEntity.getConduitTypes())) {
+          needsUpdate = true;
+        }
       }
     } else if (neighbor != null) {
       ConduitConnection conn = connections.get(dir);
@@ -516,6 +528,7 @@ public class ConduitBlockEntity extends BlockEntity {
 
     if (needUpdate) {
       updateWatchers(/* setChanged = */ false);
+      needsUpdate = true;
     }
   }
 
@@ -523,8 +536,12 @@ public class ConduitBlockEntity extends BlockEntity {
     if (setChanged) {
       setChanged();
     }
-    sendClientUpdate();
     shapeManager.markDirty();
+
     requireLevel().sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_ALL);
+
+    JustConduitsPacketHandler.CHANNEL.send(
+        PacketDistributor.TRACKING_CHUNK.with(
+            () -> requireLevel().getChunkAt(getBlockPos())), new ConduitClientStatePacket(this));
   }
 }

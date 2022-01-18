@@ -3,6 +3,7 @@ package com.codeka.justconduits.common.blocks;
 import com.codeka.justconduits.common.capabilities.network.ConduitType;
 import com.codeka.justconduits.common.capabilities.network.NetworkExternalConnection;
 import com.codeka.justconduits.common.capabilities.network.NetworkType;
+import com.codeka.justconduits.packets.ConduitClientStatePacket;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import net.minecraft.core.BlockPos;
@@ -48,6 +49,12 @@ public class ConduitConnection {
   @Nullable
   private HashMap<NetworkType, NetworkExternalConnection> conduitConnections;
 
+  /**
+   * A set of all the conduit types this connection has. This will be a subset of the conduit types in the block: being
+   * only the conduits that are common between this block and the one we're connected to.
+   */
+  private final HashSet<ConduitType> conduitTypes = new HashSet<>();
+
   public ConduitConnection(@Nonnull BlockPos blockPos, @Nonnull Direction dir, @Nonnull ConnectionType connectionType) {
     this.blockPos = checkNotNull(blockPos);
     this.dir = checkNotNull(dir);
@@ -75,23 +82,17 @@ public class ConduitConnection {
   }
 
   /**
-   * Gets the set of {@link ConduitType}s in this connection.
-   *
-   * When {@link #getConnectionType()} is {@link ConnectionType#CONDUIT}, this is the connections in both this block
-   * and the block we are connected to. When it's {@link ConnectionType#EXTERNAL}, it is the connections that can
-   * actually connect to the external block.
-   *
-   * <p>Note: this method does query the level, so it's slightly expensive to be calling it over and over.
+   * Call this when we expect the conduit types might've updated. We'll update our cache.
    */
-  // TODO: we should cache this? it's kind of expensive and should be cachable.
-  public Set<ConduitType> getConduitTypes(Level level) {
+  public void updateConduitTypes(Level level) {
     switch (connectionType) {
       case CONDUIT -> {
         if (level.getBlockEntity(blockPos) instanceof ConduitBlockEntity conduitBlockEntity &&
             getConnectedBlockEntity(level) instanceof ConduitBlockEntity neighbor) {
-          return Sets.intersection(
+          conduitTypes.clear();
+          conduitTypes.addAll(Sets.intersection(
               new HashSet<>(conduitBlockEntity.getConduitTypes()),
-              new HashSet<>(neighbor.getConduitTypes()));
+              new HashSet<>(neighbor.getConduitTypes())));
         } else {
           L.atError().log("Expected neighbor to be a conduit.");
         }
@@ -99,26 +100,45 @@ public class ConduitConnection {
       case EXTERNAL -> {
         if (level.getBlockEntity(blockPos) instanceof ConduitBlockEntity conduitBlockEntity) {
           BlockEntity blockEntity = getConnectedBlockEntity(level);
-          HashSet<ConduitType> conduitTypes = new HashSet<>();
+          conduitTypes.clear();
           for (ConduitType conduitType : conduitBlockEntity.getConduitTypes()) {
             if (conduitType.getConduitImpl().canConnect(blockEntity, blockEntity.getBlockPos(), dir.getOpposite())) {
               conduitTypes.add(conduitType);
             }
           }
-          return conduitTypes;
         } else {
           L.atError().log("Block is not a Conduit?");
         }
       }
     }
-
-    return Set.of();
   }
 
-  public boolean updateFrom(ConduitConnection other) {
+  /**
+   * Gets the set of {@link ConduitType}s in this connection.
+   *
+   * When {@link #getConnectionType()} is {@link ConnectionType#CONDUIT}, this is the connections in both this block
+   * and the block we are connected to. When it's {@link ConnectionType#EXTERNAL}, it is the connections that can
+   * actually connect to the external block.
+   */
+  public Set<ConduitType> getConduitTypes() {
+    return conduitTypes;
+  }
+
+  /**
+   * Called on the client when we get an update from the server.
+   *
+   * @param packet The packet we received from the server with the updates.
+   * @return True if something actually changed, false if we're unchanged based on this new state.
+   */
+  public boolean updateFrom(ConduitClientStatePacket.ConnectionPacket packet) {
     boolean updated = false;
-    if (other.connectionType != connectionType) {
-      connectionType = other.connectionType;
+    if (packet.getConnectionType() != connectionType) {
+      connectionType = packet.getConnectionType();
+      updated = true;
+    }
+    if (!packet.getConduitTypes().equals(conduitTypes)) {
+      conduitTypes.clear();
+      conduitTypes.addAll(packet.getConduitTypes());
       updated = true;
     }
 

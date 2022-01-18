@@ -88,4 +88,9 @@ public class ConduitType {
   public IConduitTypeClientStatePacket newConduitTypeClientStatePacket() {
     return clientStatePacketSupplier.get();
   }
+
+  @Override
+  public String toString() {
+    return getName();
+  }
 }

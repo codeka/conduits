@@ -4,19 +4,23 @@ import com.codeka.justconduits.common.blocks.ConduitConnection;
 import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
 import com.codeka.justconduits.common.blocks.ConduitBlockPacketHandler;
 import com.codeka.justconduits.common.capabilities.network.ConduitType;
+import com.google.common.base.MoreObjects;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.nio.charset.StandardCharsets;
 import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -27,13 +31,17 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 // TODO: can we make this more generic or something?
 public class ConduitClientStatePacket {
+  private static final Logger L = LogManager.getLogger();
   private final BlockPos blockPos;
-  private final ArrayList<ConduitConnection> connections;
+  private final ArrayList<ConnectionPacket> connectionPackets;
   private final HashMap<ConduitType, IConduitTypeClientStatePacket> conduitTypes;
 
   public ConduitClientStatePacket(ConduitBlockEntity conduitBlockEntity) {
     blockPos = conduitBlockEntity.getBlockPos();
-    connections = new ArrayList<>(conduitBlockEntity.getConnections());
+    connectionPackets = new ArrayList<>();
+    for (ConduitConnection conn : conduitBlockEntity.getConnections()) {
+      connectionPackets.add(new ConnectionPacket(conn));
+    }
     conduitTypes = new HashMap<>();
     for (ConduitType conduitType : conduitBlockEntity.getConduitTypes()) {
       conduitTypes.put(conduitType, conduitType.getConduitImpl().createClientState(conduitBlockEntity));
@@ -57,12 +65,7 @@ public class ConduitClientStatePacket {
     for (var entry : entries) {
       conduitTypes.put(entry.getKey(), entry.getValue());
     }
-    connections = buffer.readCollection(ArrayList::new, (buf) -> {
-      Direction dir = buf.readEnum(Direction.class);
-      ConduitConnection.ConnectionType connectionType = buf.readEnum(ConduitConnection.ConnectionType.class);
-
-      return new ConduitConnection(blockPos, dir, connectionType);
-    });
+    connectionPackets = buffer.readCollection(ArrayList::new, ConnectionPacket::new);
   }
 
   public void encode(FriendlyByteBuf buffer) {
@@ -75,9 +78,8 @@ public class ConduitClientStatePacket {
       buf.writeCharSequence(conduitType.getName(), StandardCharsets.UTF_8);
       packet.encode(buffer);
     });
-    buffer.writeCollection(connections, (buf, conn) -> {
-      buf.writeEnum(conn.getDirection());
-      buf.writeEnum(conn.getConnectionType());
+    buffer.writeCollection(connectionPackets, (buf, conn) -> {
+      conn.encode(buf);
     });
   }
 
@@ -96,11 +98,66 @@ public class ConduitClientStatePacket {
     return conduitTypes;
   }
 
-  public HashMap<Direction, ConduitConnection> getConnections() {
-    HashMap<Direction, ConduitConnection> conns = new HashMap<>();
-    for (ConduitConnection conn : connections) {
-      conns.put(conn.getDirection(), conn);
+  public HashMap<Direction, ConnectionPacket> getConnectionPackets() {
+    HashMap<Direction, ConnectionPacket> packets = new HashMap<>();
+    for (ConnectionPacket conn : connectionPackets) {
+      packets.put(conn.getDirection(), conn);
     }
-    return conns;
+    return packets;
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("blockPos", blockPos)
+        .add("connectionPackets", connectionPackets)
+        .add("conduitTypes", conduitTypes)
+        .toString();
+  }
+
+  /** All the info we need about a connection. */
+  public static final class ConnectionPacket {
+    private final Direction direction;
+    private final ConduitConnection.ConnectionType connectionType;
+    private final Set<ConduitType> conduitTypes;
+
+    public ConnectionPacket(ConduitConnection connection) {
+      direction = connection.getDirection();
+      connectionType = connection.getConnectionType();
+      conduitTypes = new HashSet<>(connection.getConduitTypes());
+    }
+
+    public ConnectionPacket(FriendlyByteBuf buffer) {
+      direction = buffer.readEnum(Direction.class);
+      connectionType = buffer.readEnum(ConduitConnection.ConnectionType.class);
+      conduitTypes = buffer.readCollection(HashSet::new, (buf) -> ConduitType.fromName(buf.readUtf()));
+    }
+
+    public void encode(FriendlyByteBuf buffer) {
+      buffer.writeEnum(direction);
+      buffer.writeEnum(connectionType);
+      buffer.writeCollection(conduitTypes, (buf, conduitTypes) -> buf.writeUtf(conduitTypes.getName()));
+    }
+
+    public Direction getDirection() {
+      return direction;
+    }
+
+    public ConduitConnection.ConnectionType getConnectionType() {
+      return connectionType;
+    }
+
+    public Set<ConduitType> getConduitTypes() {
+      return conduitTypes;
+    }
+
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+          .add("direction", direction)
+          .add("connectionType", connectionType)
+          .add("conduitTypes", conduitTypes)
+          .toString();
+    }
   }
 }

@@ -5,6 +5,7 @@ import com.codeka.justconduits.common.blocks.ConduitConnection;
 import com.codeka.justconduits.common.capabilities.network.ConduitType;
 import com.codeka.justconduits.common.capabilities.network.ConnectionMode;
 import com.codeka.justconduits.packets.IConduitTypeClientStatePacket;
+import com.google.common.base.MoreObjects;
 import net.minecraft.core.Direction;
 import net.minecraft.network.FriendlyByteBuf;
 
@@ -31,6 +32,7 @@ public abstract class CommonClientStatePacket implements IConduitTypeClientState
     }
   }
 
+  @SuppressWarnings("unchecked")
   public <T extends CommonExternalConnection> Map<Direction, T> getExternalConnections() {
     return (Map<Direction, T>) externalConnections;
   }
@@ -58,5 +60,13 @@ public abstract class CommonClientStatePacket implements IConduitTypeClientState
 
       externalConnections.put(dir, externalConnection);
     }
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("externalConnections", externalConnections)
+        .add("conduitType", conduitType)
+        .toString();
   }
 }

@@ -51,7 +51,6 @@ public class ConduitBlock extends Block implements EntityBlock {
   public void neighborChanged(@Nonnull BlockState blockState, @Nonnull Level level, @Nonnull BlockPos blockPos,
                               @Nonnull Block neighborBlock, @Nonnull BlockPos neighborBlockPos, boolean isMoving) {
     super.neighborChanged(blockState, level, blockPos, neighborBlock, neighborBlockPos, isMoving);
-    L.atInfo().log("neighborChanged");
 
     // Update our block entity.
     if (level.getBlockEntity(blockPos) instanceof ConduitBlockEntity conduitBlockEntity) {
@@ -65,7 +64,6 @@ public class ConduitBlock extends Block implements EntityBlock {
   public void onNeighborChange(
       BlockState blockState, LevelReader level, BlockPos blockPos, BlockPos neighborBlockPos) {
     super.onNeighborChange(blockState, level, blockPos, neighborBlockPos);
-    L.atInfo().log("onNeighborChange");
 
     // Update our block entity as well.
     if (level.getBlockEntity(blockPos) instanceof ConduitBlockEntity conduitBlockEntity) {
