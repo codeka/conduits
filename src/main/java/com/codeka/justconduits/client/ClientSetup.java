@@ -4,7 +4,7 @@ import com.codeka.justconduits.JustConduitsMod;
 import com.codeka.justconduits.client.blocks.ConduitModelLoader;
 import com.codeka.justconduits.client.gui.ConduitScreen;
 import com.codeka.justconduits.client.gui.ConduitTabMapping;
-import com.codeka.justconduits.client.gui.ConduitToolScreen;
+import com.codeka.justconduits.client.gui.conduittool.ConduitToolScreen;
 import com.codeka.justconduits.client.gui.FluidConduitTab;
 import com.codeka.justconduits.client.gui.ItemConduitTab;
 import com.codeka.justconduits.common.ModBlocks;

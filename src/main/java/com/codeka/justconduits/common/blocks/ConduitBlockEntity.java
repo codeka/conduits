@@ -12,6 +12,7 @@ import com.codeka.justconduits.common.items.ConduitItem;
 import com.codeka.justconduits.common.shape.ShapeManager;
 import com.codeka.justconduits.helpers.SelectionHelper;
 import com.codeka.justconduits.packets.ConduitClientStatePacket;
+import com.codeka.justconduits.packets.ConduitToolStatePacket;
 import com.codeka.justconduits.packets.ConduitUpdatePacket;
 import com.codeka.justconduits.packets.IConduitTypeClientStatePacket;
 import com.codeka.justconduits.packets.JustConduitsPacketHandler;
@@ -50,6 +51,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 public class ConduitBlockEntity extends BlockEntity {
@@ -57,9 +59,19 @@ public class ConduitBlockEntity extends BlockEntity {
 
   public static final String SCREEN_CONDUIT_CONNECTION = "screen.conduit_connection";
 
+  // This means we end up sending 2 packets per second for the conduit tool GUI.
+  private static final int CONDUIT_TOOL_TICKS_PER_PACKET = 10;
+
   private final ConduitNetworkManager conduitNetworkManager = new ConduitNetworkManager();
   private final LazyOptional<IConduitNetworkManager> conduitNetworkManagerLazyOptional =
       LazyOptional.of(() -> this.conduitNetworkManager);
+
+  // When this is >= 0, we are gather statistics to send to the client to show in the conduit tool GUI. When this hits
+  // zero, we send the packet and reset the value back to CONDUIT_TOOLS_TICKS_PER_PACKET. When this is -1, the GUI is
+  // not showing and we can skip gather the necessary stats.
+  private int ticksUntilConduitToolStatePacket = -1;
+  // A set of the players with the conduit tool GUI open.
+  private HashSet<ServerPlayer> conduitToolPlayers = new HashSet<>();
 
   private boolean firstTick = true;
   private boolean needsUpdate = false;
@@ -152,6 +164,20 @@ public class ConduitBlockEntity extends BlockEntity {
     conduitsByType.put(conduitType, conduitHolder);
     needsUpdate = true;
     return conduitHolder;
+  }
+
+  public void onConduitToolGuiOpen(ServerPlayer player) {
+    if (conduitToolPlayers.isEmpty()) {
+      ticksUntilConduitToolStatePacket = CONDUIT_TOOL_TICKS_PER_PACKET;
+    }
+    conduitToolPlayers.add(player);
+  }
+
+  public void onConduitToolGuiClose(ServerPlayer player) {
+    conduitToolPlayers.remove(player);
+    if (conduitToolPlayers.isEmpty()) {
+      ticksUntilConduitToolStatePacket = -1;
+    }
   }
 
   /**
@@ -302,9 +328,19 @@ public class ConduitBlockEntity extends BlockEntity {
       updateWatchers(/* setChanged = */ true);
       needsUpdate = false;
     }
-
     if (conduits.isEmpty()) {
       return;
+    }
+
+    if (ticksUntilConduitToolStatePacket == 0) {
+      ConduitToolStatePacket packet = new ConduitToolStatePacket(this);
+      for (ServerPlayer player : conduitToolPlayers) {
+        JustConduitsPacketHandler.CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), packet);
+      }
+
+      ticksUntilConduitToolStatePacket = CONDUIT_TOOL_TICKS_PER_PACKET;
+    } else if (ticksUntilConduitToolStatePacket > 0) {
+      ticksUntilConduitToolStatePacket --;
     }
 
     // TODO: keep a flag to see if we need to tick, if there's no external connections we can skip the loop

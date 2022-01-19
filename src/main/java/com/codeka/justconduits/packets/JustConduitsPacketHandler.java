@@ -39,5 +39,11 @@ public class JustConduitsPacketHandler {
         DebugPacket::encode,
         DebugPacket::new,
         DebugPacket::handle);
+    CHANNEL.registerMessage(
+        id++,
+        ConduitToolStatePacket.class,
+        ConduitToolStatePacket::encode,
+        ConduitToolStatePacket::new,
+        ConduitToolStatePacket::handle);
   }
 }

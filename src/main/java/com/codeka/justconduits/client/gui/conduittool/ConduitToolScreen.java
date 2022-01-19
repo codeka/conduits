@@ -1,4 +1,4 @@
-package com.codeka.justconduits.client.gui;
+package com.codeka.justconduits.client.gui.conduittool;
 
 import com.codeka.justconduits.JustConduitsMod;
 import com.codeka.justconduits.client.gui.widgets.TabButton;
@@ -12,12 +12,16 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 
 public class ConduitToolScreen extends AbstractContainerScreen<ConduitToolContainerMenu> {
+  private static final Logger L = LogManager.getLogger();
+
   private final ResourceLocation BG =
       new ResourceLocation(JustConduitsMod.MODID, "textures/gui/conduit_tool.png");
 
@@ -44,6 +48,15 @@ public class ConduitToolScreen extends AbstractContainerScreen<ConduitToolContai
       tabButtons.add(tabButton);
     }
     conduitTabButtons.updateButtons(tabButtons);
+
+    ConduitToolScreenPacketHandler.register(onPacketHandler);
+  }
+
+  @Override
+  public void removed() {
+    super.removed();
+
+    ConduitToolScreenPacketHandler.unregister(onPacketHandler);
   }
 
   @Override
@@ -67,4 +80,8 @@ public class ConduitToolScreen extends AbstractContainerScreen<ConduitToolContai
     super.render(poseStack, mouseX, mouseY, partialTick);
     renderTooltip(poseStack, mouseX, mouseY);
   }
+
+  private final ConduitToolScreenPacketHandler.Handler onPacketHandler = (packet) -> {
+    L.atInfo().log("got packet {}", packet);
+  };
 }

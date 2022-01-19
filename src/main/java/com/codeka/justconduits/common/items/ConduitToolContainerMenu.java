@@ -5,6 +5,7 @@ import com.codeka.justconduits.common.ModContainers;
 import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.items.IItemHandler;
@@ -23,7 +24,8 @@ public class ConduitToolContainerMenu extends BaseContainerMenu {
 
   @Nullable // Shouldn't be null, except if the block is destroyed or something before we show up.
   private final ConduitBlockEntity conduitBlockEntity;
-  private final Player player;
+  @Nullable // Null on the client.
+  private final ServerPlayer serverPlayer;
   private final IItemHandler playerInventory;
 
   private final BlockPos blockPos;
@@ -38,8 +40,17 @@ public class ConduitToolContainerMenu extends BaseContainerMenu {
     } else {
       conduitBlockEntity = null;
     }
-    this.player = player;
+    if (player instanceof ServerPlayer serverPlayer) {
+      this.serverPlayer = serverPlayer;
+    } else {
+      this.serverPlayer = null;
+    }
     this.playerInventory = new InvWrapper(playerInventory);
+
+    // Notify the conduit block entity that we want to start receiving updates.
+    if (conduitBlockEntity != null) {
+      conduitBlockEntity.onConduitToolGuiClose(serverPlayer);
+    }
   }
 
   @Nonnull
@@ -50,6 +61,16 @@ public class ConduitToolContainerMenu extends BaseContainerMenu {
   @Override
   public boolean stillValid(@Nonnull Player player) {
     return isStillValid(player, conduitBlockEntity);
+  }
+
+  @Override
+  public void removed(@Nonnull Player player) {
+    super.removed(player);
+
+    // We've removed the container, stop sending updates to the client.
+    if (serverPlayer != null) {
+      checkNotNull(conduitBlockEntity).onConduitToolGuiClose(serverPlayer);
+    }
   }
 
   public static final class MenuExtras implements Consumer<FriendlyByteBuf> {

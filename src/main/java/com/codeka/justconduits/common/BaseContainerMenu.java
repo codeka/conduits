@@ -42,9 +42,7 @@ public abstract class BaseContainerMenu extends AbstractContainerMenu {
     if (level == null) {
       return false;
     }
-    return stillValid(
-        ContainerLevelAccess.create(
-            level, blockEntity.getBlockPos()), player, ModBlocks.CONDUIT.get());
+    return stillValid(ContainerLevelAccess.create(level, blockEntity.getBlockPos()), player, ModBlocks.CONDUIT.get());
   }
 
   private int addInventoryRow(IItemHandler handler, int index, int x, int y) {
