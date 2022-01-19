@@ -68,17 +68,7 @@ public class ConduitContainerMenu extends BaseContainerMenu {
 
   @Override
   public boolean stillValid(@Nonnull Player player) {
-    if (conduitBlockEntity == null) {
-      return false;
-    }
-
-    Level level = conduitBlockEntity.getLevel();
-    if (level == null) {
-      return false;
-    }
-    return stillValid(
-        ContainerLevelAccess.create(
-            level, conduitBlockEntity.getBlockPos()), player, ModBlocks.CONDUIT.get());
+    return isStillValid(player, conduitBlockEntity);
   }
 
   public static final class MenuExtras implements Consumer<FriendlyByteBuf> {

@@ -1,15 +1,12 @@
 package com.codeka.justconduits.common.items;
 
 import com.codeka.justconduits.common.BaseContainerMenu;
-import com.codeka.justconduits.common.ModBlocks;
 import com.codeka.justconduits.common.ModContainers;
 import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ContainerLevelAccess;
-import net.minecraft.world.level.Level;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.wrapper.InvWrapper;
 import org.apache.logging.log4j.LogManager;
@@ -43,8 +40,6 @@ public class ConduitToolContainerMenu extends BaseContainerMenu {
     }
     this.player = player;
     this.playerInventory = new InvWrapper(playerInventory);
-
-    layoutPlayerInventorySlots(30, 108);
   }
 
   @Nonnull
@@ -54,17 +49,7 @@ public class ConduitToolContainerMenu extends BaseContainerMenu {
 
   @Override
   public boolean stillValid(@Nonnull Player player) {
-    if (conduitBlockEntity == null) {
-      return false;
-    }
-
-    Level level = conduitBlockEntity.getLevel();
-    if (level == null) {
-      return false;
-    }
-    return stillValid(
-        ContainerLevelAccess.create(
-            level, conduitBlockEntity.getBlockPos()), player, ModBlocks.CONDUIT.get());
+    return isStillValid(player, conduitBlockEntity);
   }
 
   public static final class MenuExtras implements Consumer<FriendlyByteBuf> {

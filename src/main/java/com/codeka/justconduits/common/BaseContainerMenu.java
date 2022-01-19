@@ -1,12 +1,17 @@
 package com.codeka.justconduits.common;
 
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
 import net.minecraftforge.items.wrapper.InvWrapper;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public abstract class BaseContainerMenu extends AbstractContainerMenu {
@@ -26,6 +31,20 @@ public abstract class BaseContainerMenu extends AbstractContainerMenu {
     // The hotbar is just another inventory row, the first 9 slots in the inventory.
     y += 58;
     addInventoryRow(playerInventory, 0, x, y);
+  }
+
+  protected boolean isStillValid(@Nonnull Player player, @Nullable BlockEntity blockEntity) {
+    if (blockEntity == null) {
+      return false;
+    }
+
+    Level level = blockEntity.getLevel();
+    if (level == null) {
+      return false;
+    }
+    return stillValid(
+        ContainerLevelAccess.create(
+            level, blockEntity.getBlockPos()), player, ModBlocks.CONDUIT.get());
   }
 
   private int addInventoryRow(IItemHandler handler, int index, int x, int y) {
