@@ -49,7 +49,7 @@ public class ConduitToolContainerMenu extends BaseContainerMenu {
 
     // Notify the conduit block entity that we want to start receiving updates.
     if (conduitBlockEntity != null) {
-      conduitBlockEntity.onConduitToolGuiClose(serverPlayer);
+      conduitBlockEntity.onConduitToolGuiOpen(serverPlayer);
     }
   }
 
