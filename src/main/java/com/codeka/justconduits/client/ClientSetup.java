@@ -4,6 +4,7 @@ import com.codeka.justconduits.JustConduitsMod;
 import com.codeka.justconduits.client.blocks.ConduitModelLoader;
 import com.codeka.justconduits.client.gui.ConduitScreen;
 import com.codeka.justconduits.client.gui.ConduitTabMapping;
+import com.codeka.justconduits.client.gui.EnergyConduitTab;
 import com.codeka.justconduits.client.gui.conduittool.ConduitToolScreen;
 import com.codeka.justconduits.client.gui.FluidConduitTab;
 import com.codeka.justconduits.client.gui.ItemConduitTab;
@@ -39,6 +40,7 @@ public class ClientSetup {
     //   just becomes part of the ConduitType itself?
     ConduitTabMapping.addMapping(ConduitType.SIMPLE_ITEM, ItemConduitTab::new);
     ConduitTabMapping.addMapping(ConduitType.SIMPLE_FLUID, FluidConduitTab::new);
+    ConduitTabMapping.addMapping(ConduitType.SIMPLE_ENERGY, EnergyConduitTab::new);
   }
 
   @SubscribeEvent
