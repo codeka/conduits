@@ -38,15 +38,15 @@ public class NetworkRegistry {
   }
 
   public static void register(IConduitNetwork network) {
-    if (networks.containsKey(network.getNetworkRef().getId())) {
+    if (networks.containsKey(network.getId())) {
       // TODO: log error
       return;
     }
 
-    networks.put(network.getNetworkRef().getId(), network);
+    networks.put(network.getId(), network);
   }
 
   public static void unregister(IConduitNetwork network) {
-    networks.remove(network.getNetworkRef().getId());
+    networks.remove(network.getId());
   }
 }

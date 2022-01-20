@@ -317,6 +317,10 @@ public class ConduitBlockEntity extends BlockEntity {
         updateWatchers(/* setChanged = */ false);
       }
 
+      for (ConduitConnection conn : connections.values()) {
+        conn.updateConduitTypes(requireLevel());
+      }
+
       conduitNetworkManager.init(this);
       firstTick = false;
     }

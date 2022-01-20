@@ -114,7 +114,6 @@ public class ConduitToolScreen extends AbstractContainerScreen<ConduitToolContai
   }
 
   private final ConduitToolScreenPacketHandler.Handler onPacketHandler = (packet) -> {
-    L.atInfo().log("got packet {}", packet);
     lastPacket = packet;
   };
 }

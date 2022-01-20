@@ -34,7 +34,7 @@ public class FluidConduit extends CommonConduit {
     // so we can avoid the whole tick method entirely.
 
     // If we haven't been added to a network yet, nothing to tick.
-    if (conduitHolder.getNetworkRef() == null) {
+    if (conduitHolder.getNetworkId() <= 0) {
       return;
     }
 
@@ -59,9 +59,9 @@ public class FluidConduit extends CommonConduit {
         return;
       }
 
-      FluidNetwork network = NetworkRegistry.getNetwork(conduitHolder.getNetworkRef().getId());
+      FluidNetwork network = NetworkRegistry.getNetwork(conduitHolder.getNetworkId());
       if (network == null) {
-        L.atError().log("Network {} does not exist.", conduitHolder.getNetworkRef());
+        L.atError().log("Network {} does not exist.", conduitHolder.getNetworkId());
         continue;
       }
 

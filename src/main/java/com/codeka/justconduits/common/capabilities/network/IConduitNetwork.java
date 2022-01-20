@@ -10,8 +10,8 @@ public interface IConduitNetwork {
   @Nonnull
   NetworkType getNetworkType();
 
-  @Nonnull
-  NetworkRef getNetworkRef();
+  long getId();
+  void updateId(long id);
 
   void addExternalConnection(@Nonnull ConduitConnection conn);
 

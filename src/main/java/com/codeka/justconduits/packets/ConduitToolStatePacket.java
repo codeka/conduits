@@ -36,7 +36,7 @@ public class ConduitToolStatePacket {
 
       networks.put(
           conduitType.getNetworkType(),
-          new ConduitNetworkStatePacket(conduitType.getNetworkType(), conduitHolder.getNetworkRef().getId()));
+          new ConduitNetworkStatePacket(conduitType.getNetworkType(), conduitHolder.getNetworkId()));
     }
   }
 

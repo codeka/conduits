@@ -14,14 +14,14 @@ import java.util.Collection;
 public abstract class AbstractNetwork implements IConduitNetwork {
   private static final Logger L = LogManager.getLogger();
 
-  private final NetworkRef id;
+  private long id;
   private final NetworkType networkType;
 
   // A list of all the external connections we have.
   private final ArrayList<ConduitConnection> externalConnections = new ArrayList<>();
 
   public AbstractNetwork(NetworkType networkType) {
-    id = new NetworkRef(NetworkRegistry.newId());
+    id = NetworkRegistry.newId();
     this.networkType = networkType;
   }
 
@@ -33,8 +33,13 @@ public abstract class AbstractNetwork implements IConduitNetwork {
 
   @Nonnull
   @Override
-  public NetworkRef getNetworkRef() {
+  public long getId() {
     return id;
+  }
+
+  @Override
+  public void updateId(long id) {
+    this.id = id;
   }
 
   @Override

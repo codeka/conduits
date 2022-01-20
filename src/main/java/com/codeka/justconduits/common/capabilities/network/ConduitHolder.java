@@ -13,11 +13,10 @@ public class ConduitHolder {
   private ConduitType conduitType;
 
   /**
-   * The network that this conduit block entity belongs to. Will be null until we first populate it, so we'll need to
+   * The network that this conduit block entity belongs to. Will be -1 until we first populate it, so we'll need to
    * be careful.
    */
-  @Nullable
-  protected NetworkRef networkRef;
+  protected long id;
 
   public ConduitHolder(ConduitType conduitType) {
     this.conduitType = conduitType;
@@ -31,17 +30,23 @@ public class ConduitHolder {
     return conduitType.getConduitImpl();
   }
 
-  /** Gets the {@link NetworkRef} we belong to. Could be null if we haven't populated it yet. */
-  // TODO: this should be per-conduit type.
-  @Nullable
-  public NetworkRef getNetworkRef() {
-    return networkRef;
+  /** Gets the ID of the network we belong to. Could be -1 if we haven't populated it yet. */
+  public long getNetworkId() {
+    return id;
   }
 
-  /** Called to join the given network. */
-  // TODO: this should be per-conduit type.
-  public void setNetworkRef(NetworkRef networkRef) {
-    this.networkRef = networkRef;
+  /**
+   *  Called to join the given network.
+   *
+   * @return True if we actually changed network IDs.
+   */
+  public boolean updateNetworkId(long id) {
+    if (this.id == id) {
+      return false;
+    }
+
+    this.id = id;
+    return true;
   }
 
 }

@@ -38,7 +38,7 @@ public class ItemConduit extends CommonConduit {
     // so we can avoid the whole tick method entirely.
 
     // If we haven't been added to a network yet, nothing to tick.
-    if (conduitHolder.getNetworkRef() == null) {
+    if (conduitHolder.getNetworkId() <= 0) {
       return;
     }
 
@@ -63,9 +63,9 @@ public class ItemConduit extends CommonConduit {
         return;
       }
 
-      ItemNetwork network = NetworkRegistry.getNetwork(conduitHolder.getNetworkRef().getId());
+      ItemNetwork network = NetworkRegistry.getNetwork(conduitHolder.getNetworkId());
       if (network == null) {
-        L.atError().log("Network {} does not exist.", conduitHolder.getNetworkRef());
+        L.atError().log("Network {} does not exist.", conduitHolder.getNetworkId());
         continue;
       }
 
