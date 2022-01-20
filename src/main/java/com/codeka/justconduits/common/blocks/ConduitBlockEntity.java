@@ -167,9 +167,8 @@ public class ConduitBlockEntity extends BlockEntity {
   }
 
   public void onConduitToolGuiOpen(ServerPlayer player) {
-    if (conduitToolPlayers.isEmpty()) {
-      ticksUntilConduitToolStatePacket = CONDUIT_TOOL_TICKS_PER_PACKET;
-    }
+    // Send a packet immediately, regardless of when we sent the last one, so the new client sees it straight away.
+    ticksUntilConduitToolStatePacket = 0;
     conduitToolPlayers.add(player);
   }
 

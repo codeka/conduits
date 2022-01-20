@@ -1,6 +1,7 @@
 package com.codeka.justconduits.datagen;
 
 import com.codeka.justconduits.JustConduitsMod;
+import com.codeka.justconduits.client.gui.conduittool.ConduitToolScreen;
 import com.codeka.justconduits.common.ModBlocks;
 import com.codeka.justconduits.common.ModItems;
 import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
@@ -23,5 +24,7 @@ public class LangGenerator extends LanguageProvider {
 
     add(ConduitBlockEntity.SCREEN_CONDUIT_CONNECTION, "Conduit Connection");
     add(ConduitTool.SCREEN_CONDUIT_TOOL, "Conduit Tool");
+
+    add(ConduitToolScreen.NETWORK_INFO_STRING, "ID:%1$s");
   }
 }

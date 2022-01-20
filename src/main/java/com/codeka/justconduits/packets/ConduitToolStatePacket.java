@@ -13,6 +13,7 @@ import net.minecraftforge.network.NetworkEvent;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 
 /**
@@ -69,8 +70,12 @@ public class ConduitToolStatePacket {
     ctx.get().setPacketHandled(true);
   }
 
+  public Map<NetworkType, ConduitNetworkStatePacket> getNetworks() {
+    return networks;
+  }
+
   /** The state of a single network. */
-  private static class ConduitNetworkStatePacket {
+  public static class ConduitNetworkStatePacket {
     private final NetworkType networkType;
     private final long networkId;
 

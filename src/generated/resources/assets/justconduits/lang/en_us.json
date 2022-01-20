@@ -1,5 +1,6 @@
 {
   "block.justconduits.conduit": "Conduit",
+  "conduit_tool_screen.network_info": "ID:%1$s",
   "item.justconduits.conduit_tool": "Conduit Tool",
   "item.justconduits.simple_energy_conduit": "Simple Energy Conduit",
   "item.justconduits.simple_fluid_conduit": "Simple Fluid Conduit",
