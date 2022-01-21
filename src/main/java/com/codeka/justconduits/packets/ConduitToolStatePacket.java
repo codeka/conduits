@@ -36,7 +36,10 @@ public class ConduitToolStatePacket {
 
       networks.put(
           conduitType.getNetworkType(),
-          new ConduitNetworkStatePacket(conduitType.getNetworkType(), conduitHolder.getNetworkId()));
+          new ConduitNetworkStatePacket(
+              conduitType.getNetworkType(),
+              conduitHolder.getNetworkId(),
+              conduitHolder.getConduitImpl().createConduitToolPacket(conduitBlockEntity, conduitHolder)));
     }
   }
 
@@ -45,7 +48,11 @@ public class ConduitToolStatePacket {
     List<ConduitNetworkStatePacket> packets = buffer.readList((buf) -> {
       NetworkType networkType = NetworkType.fromName(buf.readUtf());
       long networkId = buf.readVarLong();
-      return new ConduitNetworkStatePacket(networkType, networkId);
+      IConduitToolExternalPacket externalPacket = networkType.newConduitToolExternalPacket();
+      if (externalPacket != null) {
+        externalPacket.decode(buf);
+      }
+      return new ConduitNetworkStatePacket(networkType, networkId, externalPacket);
     });
     networks = new HashMap<>();
     for (ConduitNetworkStatePacket packet : packets) {
@@ -61,6 +68,9 @@ public class ConduitToolStatePacket {
 
       buf.writeUtf(networkType.getName());
       buf.writeVarLong(packet.getNetworkId());
+      if (packet.externalPacket != null) {
+        packet.externalPacket.encode(buf);
+      }
     });
   }
 
@@ -78,10 +88,13 @@ public class ConduitToolStatePacket {
   public static class ConduitNetworkStatePacket {
     private final NetworkType networkType;
     private final long networkId;
+    private final IConduitToolExternalPacket externalPacket;
 
-    public ConduitNetworkStatePacket(NetworkType networkType, long networkId) {
+    public ConduitNetworkStatePacket(
+        NetworkType networkType, long networkId, IConduitToolExternalPacket externalPacket) {
       this.networkType = networkType;
       this.networkId = networkId;
+      this.externalPacket = externalPacket;
     }
 
     public NetworkType getNetworkType() {
@@ -90,6 +103,11 @@ public class ConduitToolStatePacket {
 
     public long getNetworkId() {
       return networkId;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T extends IConduitToolExternalPacket> T getExternalPacket() {
+      return (T) externalPacket;
     }
   }
 }

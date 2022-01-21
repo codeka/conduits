@@ -1,6 +1,7 @@
 package com.codeka.justconduits.client.gui.conduittool;
 
 import com.codeka.justconduits.JustConduitsMod;
+import com.codeka.justconduits.client.gui.widgets.ListWidget;
 import com.codeka.justconduits.client.gui.widgets.TabButton;
 import com.codeka.justconduits.client.gui.widgets.TabButtonRow;
 import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
@@ -38,6 +39,9 @@ public class ConduitToolScreen extends AbstractContainerScreen<ConduitToolContai
 
   @Nullable
   private ConduitToolStatePacket lastPacket = null;
+
+  private Object currState;
+  private int lastIndex = -1;
 
   public ConduitToolScreen(ConduitToolContainerMenu menu, Inventory playerInventory, Component title) {
     super(menu, playerInventory, title);
@@ -102,8 +106,33 @@ public class ConduitToolScreen extends AbstractContainerScreen<ConduitToolContai
 
     renderBackground(poseStack);
     super.render(poseStack, mouseX, mouseY, partialTick);
+    IConduitToolScreenRenderer renderer = getRenderer();
+    if (lastPacket != null && renderer != null) {
+      renderer.render(lastPacket, this, poseStack, mouseX, mouseY, partialTick, currState);
+    }
     renderTooltip(poseStack, mouseX, mouseY);
   }
+
+  @Nullable
+  private IConduitToolScreenRenderer getRenderer() {
+    if (networkTypes == null) {
+      return null;
+    }
+
+    int index = conduitTabButtons.getCurrentIndex();
+    if (index < 0 || index >= networkTypes.size()) {
+      return null;
+    }
+
+    IConduitToolScreenRenderer renderer = networkTypes.get(index).getConduitToolScreenRenderer();
+    if (index != lastIndex && renderer != null) {
+      currState = renderer.init(leftPos, topPos);
+      lastIndex = index;
+    }
+
+    return renderer;
+  }
+
 
   @Nullable
   private ConduitToolStatePacket.ConduitNetworkStatePacket getNetworkPacket() {

@@ -8,8 +8,11 @@ import com.google.common.collect.Sets;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.Nameable;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -79,6 +82,16 @@ public class ConduitConnection {
    */
   public BlockEntity getConnectedBlockEntity(Level level) {
     return level.getBlockEntity(blockPos.relative(dir));
+  }
+
+  /** Gets the name of the block that this connection is connected to. */
+  public Component getConnectionName(Level level) {
+    if (getConnectedBlockEntity(level) instanceof Nameable nameable) {
+      return nameable.hasCustomName() ? nameable.getCustomName() : nameable.getDisplayName();
+    }
+
+    BlockState blockState = level.getBlockState(getBlockPos().relative(dir));
+    return blockState.getBlock().getName();
   }
 
   /**

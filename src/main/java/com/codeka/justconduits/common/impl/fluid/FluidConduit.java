@@ -6,6 +6,7 @@ import com.codeka.justconduits.common.impl.ConduitHolder;
 import com.codeka.justconduits.common.impl.ConnectionMode;
 import com.codeka.justconduits.common.impl.NetworkRegistry;
 import com.codeka.justconduits.common.impl.common.CommonConduit;
+import com.codeka.justconduits.packets.IConduitToolExternalPacket;
 import com.codeka.justconduits.packets.IConduitTypeClientStatePacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -17,6 +18,7 @@ import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -95,6 +97,13 @@ public class FluidConduit extends CommonConduit {
   @Nonnull
   public IConduitTypeClientStatePacket createClientState(@Nonnull ConduitBlockEntity conduitBlockEntity) {
     return new FluidConduitClientStatePacket(conduitBlockEntity);
+  }
+
+  @Override
+  public IConduitToolExternalPacket createConduitToolPacket(
+      @NotNull ConduitBlockEntity conduitBlockEntity, @NotNull ConduitHolder conduitHolder) {
+    // TODO: implement.
+    return null;
   }
 
   @Override

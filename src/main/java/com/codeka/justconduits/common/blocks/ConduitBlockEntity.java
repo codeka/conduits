@@ -130,17 +130,6 @@ public class ConduitBlockEntity extends BlockEntity {
     return shapeManager;
   }
 
-  /** Gets the name of the block that this connection is connected to. */
-  public Component getConnectionName(ConduitConnection connection) {
-    BlockPos blockPos = getBlockPos().relative(connection.getDirection());
-    if (requireLevel().getBlockEntity(blockPos) instanceof Nameable nameable) {
-      return nameable.hasCustomName() ? nameable.getCustomName() : nameable.getDisplayName();
-    }
-
-    BlockState blockState = requireLevel().getBlockState(getBlockPos().relative(connection.getDirection()));
-    return blockState.getBlock().getName();
-  }
-
   /**
    * Adds a new conduit of the given type to this block.
    *

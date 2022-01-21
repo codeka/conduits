@@ -53,7 +53,7 @@ public class ConduitScreen extends AbstractContainerScreen<ConduitContainerMenu>
       onClose();
       connectionName = new TextComponent("??");
     } else {
-      connectionName = conduitBlockEntity.getConnectionName(connection);
+      connectionName = connection.getConnectionName(conduitBlockEntity.getLevel());
     }
   }
 

@@ -6,6 +6,7 @@ import com.codeka.justconduits.common.impl.ConduitHolder;
 import com.codeka.justconduits.common.impl.ConnectionMode;
 import com.codeka.justconduits.common.impl.NetworkRegistry;
 import com.codeka.justconduits.common.impl.common.CommonConduit;
+import com.codeka.justconduits.packets.IConduitToolExternalPacket;
 import com.codeka.justconduits.packets.IConduitTypeClientStatePacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -99,6 +100,19 @@ public class ItemConduit extends CommonConduit {
   @Nonnull
   public IConduitTypeClientStatePacket createClientState(@Nonnull ConduitBlockEntity conduitBlockEntity) {
     return new ItemConduitClientStatePacket(conduitBlockEntity);
+  }
+
+  @Override
+  public IConduitToolExternalPacket createConduitToolPacket(
+      @Nonnull ConduitBlockEntity conduitBlockEntity, @Nonnull ConduitHolder conduitHolder) {
+    ItemConduitToolExternalConnectionPacket externalConnectionPacket = new ItemConduitToolExternalConnectionPacket();
+    ItemNetwork network = NetworkRegistry.getNetwork(conduitHolder.getNetworkId());
+    if (network == null) {
+      L.atError().log("network is null");
+      return null;
+    }
+    externalConnectionPacket.init(conduitBlockEntity, network, conduitHolder);
+    return externalConnectionPacket;
   }
 
   @Override

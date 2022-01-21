@@ -3,6 +3,7 @@ package com.codeka.justconduits.common.impl.energy;
 import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
 import com.codeka.justconduits.common.impl.ConduitHolder;
 import com.codeka.justconduits.common.impl.common.CommonConduit;
+import com.codeka.justconduits.packets.IConduitToolExternalPacket;
 import com.codeka.justconduits.packets.IConduitTypeClientStatePacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -10,6 +11,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 
@@ -26,6 +28,13 @@ public class EnergyConduit extends CommonConduit {
   @Nonnull
   public IConduitTypeClientStatePacket createClientState(@Nonnull ConduitBlockEntity conduitBlockEntity) {
     return new EnergyConduitClientStatePacket(conduitBlockEntity);
+  }
+
+  @Override
+  public IConduitToolExternalPacket createConduitToolPacket(
+      @NotNull ConduitBlockEntity conduitBlockEntity, @NotNull ConduitHolder conduitHolder) {
+    // TODO: implement.
+    return null;
   }
 
   @Override

@@ -2,6 +2,7 @@ package com.codeka.justconduits.common.impl;
 
 import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
 import com.codeka.justconduits.packets.ConduitUpdatePacket;
+import com.codeka.justconduits.packets.IConduitToolExternalPacket;
 import com.codeka.justconduits.packets.IConduitTypeClientStatePacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -35,6 +36,13 @@ public interface IConduit {
    */
   @Nonnull
   IConduitTypeClientStatePacket createClientState(@Nonnull ConduitBlockEntity conduitBlockEntity);
+
+  /**
+   * Creates a {@link IConduitToolExternalPacket} so we can display details of the network it on the GUI
+   * screen.
+   */
+  IConduitToolExternalPacket createConduitToolPacket(
+      @Nonnull ConduitBlockEntity conduitBlockEntity, @Nonnull ConduitHolder conduitHolder);
 
   /** Called on the server when the client sends us some update. */
   void onServerUpdate(
