@@ -270,6 +270,7 @@ public class ConduitBlockEntity extends BlockEntity {
 
         // We added the conduit, so we're done.
         conduitItem.onPlacedOrAdded(requireLevel(), player, holdingStack, getBlockState(), getBlockPos(), false);
+        conduitNetworkManager.init(this, conduitItem.getConduitType());
         needsUpdate = true;
         return InteractionResult.SUCCESS;
       }
@@ -368,13 +369,14 @@ public class ConduitBlockEntity extends BlockEntity {
         continue;
       }
 
-      CompoundTag connectionTag = connectionsTag.getCompound(dirName);
-      // TODO: load stuff from the connection?
-
       ConduitConnection conn = getConnection(dir);
       if (conn == null) {
+        CompoundTag connectionTag = connectionsTag.getCompound(dirName);
+        ConduitConnection.ConnectionType connectionType =
+            ConduitConnection.ConnectionType.valueOf(connectionTag.getString("ConnectionType"));
         // If we don't have a connection yet, we'll want to add one.
-        conn = new ConduitConnection(getBlockPos(), dir, ConduitConnection.ConnectionType.EXTERNAL);
+        conn = new ConduitConnection(getBlockPos(), dir, connectionType);
+        conn.load(connectionsTag.getCompound(dirName));
         connections.put(dir, conn);
       }
     }
@@ -420,12 +422,10 @@ public class ConduitBlockEntity extends BlockEntity {
 
     CompoundTag connectionsTag = new CompoundTag();
     for (ConduitConnection conn : connections.values()) {
-      // No need to save non-external connections.
-      if (conn.getConnectionType() != ConduitConnection.ConnectionType.EXTERNAL) {
-        continue;
-      }
       CompoundTag connectionTag = new CompoundTag();
       connectionTag.putString("Direction", conn.getDirection().getName());
+      connectionTag.putString("ConnectionType", conn.getConnectionType().name());
+      conn.save(connectionTag);
       connectionsTag.put(conn.getDirection().getName(), connectionTag);
     }
     tag.put("Connections", connectionsTag);

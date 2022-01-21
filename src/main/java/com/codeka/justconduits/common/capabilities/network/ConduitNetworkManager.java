@@ -39,6 +39,25 @@ public class ConduitNetworkManager implements IConduitNetworkManager {
     }
   }
 
+  /**
+   * This is called when you add a new conduit to a {@link ConduitBlockEntity}. We need to initialize that conduit.
+   *
+   * @param conduitBlockEntity The {@link ConduitBlockEntity}  you're adding a conduit to.
+   * @param conduitType The {@link ConduitType} you've just added.
+   */
+  public void init(ConduitBlockEntity conduitBlockEntity, ConduitType conduitType) {
+    Level level = conduitBlockEntity.getLevel();
+    if (level == null) {
+      L.atError().log("ConduitBlockEntity doesn't have a level.");
+      return;
+    }
+
+    ConduitHolder conduitHolder = conduitBlockEntity.getConduitHolder(conduitType);
+    if (conduitHolder != null) {
+      init(level, conduitBlockEntity, conduitHolder);
+    }
+  }
+
   private void init(Level level, ConduitBlockEntity conduitBlockEntity, ConduitHolder conduitHolder) {
     if (conduitHolder.getNetworkId() > 0) {
       L.atWarn().log("init called on ConduitBlockEntity that already belongs to a network.");

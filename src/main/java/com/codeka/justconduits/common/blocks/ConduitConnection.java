@@ -8,6 +8,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.apache.logging.log4j.LogManager;
@@ -122,6 +123,25 @@ public class ConduitConnection {
    */
   public Set<ConduitType> getConduitTypes() {
     return conduitTypes;
+  }
+
+  public void load(CompoundTag tag) {
+    L.atInfo().log("loading [{}]", tag.getString("ConduitTypes"));
+    for (String s : tag.getString("ConduitTypes").split(" ")) {
+      L.atInfo().log("    [{}]", s);
+      if (!s.isEmpty()) {
+        conduitTypes.add(ConduitType.fromName(s));
+      }
+    }
+  }
+
+  public void save(CompoundTag tag) {
+    StringBuilder sb = new StringBuilder();
+    for (ConduitType conduitType : conduitTypes) {
+      sb.append(" ");
+      sb.append(conduitType.getName());
+    }
+    tag.putString("ConduitTypes", sb.toString().trim());
   }
 
   /**
