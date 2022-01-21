@@ -1,31 +1,21 @@
 package com.codeka.justconduits.client.gui;
 
 import com.codeka.justconduits.JustConduitsMod;
-import com.codeka.justconduits.client.gui.widgets.CheckButton;
-import com.codeka.justconduits.client.gui.widgets.DataSource;
 import com.codeka.justconduits.client.gui.widgets.TabButton;
 import com.codeka.justconduits.client.gui.widgets.TabButtonRow;
 import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
 import com.codeka.justconduits.common.blocks.ConduitConnection;
 import com.codeka.justconduits.common.blocks.ConduitContainerMenu;
-import com.codeka.justconduits.common.capabilities.network.ConduitType;
-import com.codeka.justconduits.common.capabilities.network.NetworkType;
-import com.codeka.justconduits.common.capabilities.network.item.ItemExternalConnection;
-import com.codeka.justconduits.packets.ConduitUpdatePacket;
-import com.codeka.justconduits.packets.JustConduitsPacketHandler;
+import com.codeka.justconduits.common.impl.ConduitType;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractWidget;
-import net.minecraft.client.gui.components.Widget;
-import net.minecraft.client.gui.components.events.GuiEventListener;
-import net.minecraft.client.gui.narration.NarratableEntry;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraftforge.network.PacketDistributor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

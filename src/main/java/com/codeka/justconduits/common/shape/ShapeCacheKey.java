@@ -2,7 +2,7 @@ package com.codeka.justconduits.common.shape;
 
 import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
 import com.codeka.justconduits.common.blocks.ConduitConnection;
-import com.codeka.justconduits.common.capabilities.network.NetworkType;
+import com.codeka.justconduits.common.impl.NetworkType;
 import net.minecraft.core.Direction;
 
 import java.util.ArrayList;

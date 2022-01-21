@@ -1,8 +1,8 @@
-package com.codeka.justconduits.common.capabilities.network.energy;
+package com.codeka.justconduits.common.impl.energy;
 
 import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
-import com.codeka.justconduits.common.capabilities.network.ConduitType;
-import com.codeka.justconduits.common.capabilities.network.common.CommonClientStatePacket;
+import com.codeka.justconduits.common.impl.ConduitType;
+import com.codeka.justconduits.common.impl.common.CommonClientStatePacket;
 import net.minecraft.network.FriendlyByteBuf;
 
 public class EnergyConduitClientStatePacket extends CommonClientStatePacket {

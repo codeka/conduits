@@ -1,8 +1,8 @@
-package com.codeka.justconduits.common.capabilities.network;
+package com.codeka.justconduits.common.impl;
 
-import com.codeka.justconduits.common.capabilities.network.energy.EnergyNetwork;
-import com.codeka.justconduits.common.capabilities.network.fluid.FluidNetwork;
-import com.codeka.justconduits.common.capabilities.network.item.ItemNetwork;
+import com.codeka.justconduits.common.impl.energy.EnergyNetwork;
+import com.codeka.justconduits.common.impl.fluid.FluidNetwork;
+import com.codeka.justconduits.common.impl.item.ItemNetwork;
 
 import java.util.function.Supplier;
 

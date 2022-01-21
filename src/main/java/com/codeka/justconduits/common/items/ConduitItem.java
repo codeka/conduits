@@ -2,7 +2,7 @@ package com.codeka.justconduits.common.items;
 
 import com.codeka.justconduits.common.ModBlocks;
 import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
-import com.codeka.justconduits.common.capabilities.network.ConduitType;
+import com.codeka.justconduits.common.impl.ConduitType;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;

@@ -3,7 +3,7 @@ package com.codeka.justconduits.common.shape;
 import com.codeka.justconduits.client.blocks.ConduitModelLoader;
 import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
 import com.codeka.justconduits.common.blocks.ConduitConnection;
-import com.codeka.justconduits.common.capabilities.network.ConduitType;
+import com.codeka.justconduits.common.impl.ConduitType;
 import com.codeka.justconduits.helpers.QuadHelper;
 import com.mojang.math.Transformation;
 import com.mojang.math.Vector3f;

@@ -2,9 +2,9 @@ package com.codeka.justconduits.packets;
 
 import com.codeka.justconduits.client.gui.conduittool.ConduitToolScreenPacketHandler;
 import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
-import com.codeka.justconduits.common.capabilities.network.ConduitHolder;
-import com.codeka.justconduits.common.capabilities.network.ConduitType;
-import com.codeka.justconduits.common.capabilities.network.NetworkType;
+import com.codeka.justconduits.common.impl.ConduitHolder;
+import com.codeka.justconduits.common.impl.ConduitType;
+import com.codeka.justconduits.common.impl.NetworkType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;

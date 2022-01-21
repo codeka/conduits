@@ -1,7 +1,7 @@
-package com.codeka.justconduits.common.capabilities.network.common;
+package com.codeka.justconduits.common.impl.common;
 
-import com.codeka.justconduits.common.capabilities.network.ConnectionMode;
-import com.codeka.justconduits.common.capabilities.network.NetworkExternalConnection;
+import com.codeka.justconduits.common.impl.ConnectionMode;
+import com.codeka.justconduits.common.impl.NetworkExternalConnection;
 
 /**
  * Base class for "regular" external connections, that support insert and extract modes.

@@ -1,7 +1,7 @@
-package com.codeka.justconduits.common.capabilities.network.energy;
+package com.codeka.justconduits.common.impl.energy;
 
 import com.codeka.justconduits.common.blocks.ConduitConnection;
-import com.codeka.justconduits.common.capabilities.network.common.CommonExternalConnection;
+import com.codeka.justconduits.common.impl.common.CommonExternalConnection;
 
 public class EnergyExternalConnection extends CommonExternalConnection {
   private ConduitConnection connection;

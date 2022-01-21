@@ -1,7 +1,7 @@
 package com.codeka.justconduits.common;
 
 import com.codeka.justconduits.JustConduitsMod;
-import com.codeka.justconduits.common.capabilities.network.ConduitType;
+import com.codeka.justconduits.common.impl.ConduitType;
 import com.codeka.justconduits.common.items.ConduitItem;
 import com.codeka.justconduits.common.items.ConduitTool;
 import net.minecraft.world.item.Item;

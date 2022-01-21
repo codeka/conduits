@@ -1,7 +1,7 @@
 package com.codeka.justconduits.packets;
 
 import com.codeka.justconduits.common.blocks.ConduitBlockPacketHandler;
-import com.codeka.justconduits.common.capabilities.network.NetworkType;
+import com.codeka.justconduits.common.impl.NetworkType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.FriendlyByteBuf;

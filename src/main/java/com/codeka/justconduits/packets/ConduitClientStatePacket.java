@@ -3,7 +3,7 @@ package com.codeka.justconduits.packets;
 import com.codeka.justconduits.common.blocks.ConduitConnection;
 import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
 import com.codeka.justconduits.common.blocks.ConduitBlockPacketHandler;
-import com.codeka.justconduits.common.capabilities.network.ConduitType;
+import com.codeka.justconduits.common.impl.ConduitType;
 import com.google.common.base.MoreObjects;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

@@ -1,10 +1,9 @@
 package com.codeka.justconduits.common.blocks;
 
-import com.codeka.justconduits.common.capabilities.network.ConduitType;
-import com.codeka.justconduits.common.capabilities.network.NetworkExternalConnection;
-import com.codeka.justconduits.common.capabilities.network.NetworkType;
+import com.codeka.justconduits.common.impl.ConduitType;
+import com.codeka.justconduits.common.impl.NetworkExternalConnection;
+import com.codeka.justconduits.common.impl.NetworkType;
 import com.codeka.justconduits.packets.ConduitClientStatePacket;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

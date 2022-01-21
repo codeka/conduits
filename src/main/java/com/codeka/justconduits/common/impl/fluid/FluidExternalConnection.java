@@ -1,7 +1,7 @@
-package com.codeka.justconduits.common.capabilities.network.fluid;
+package com.codeka.justconduits.common.impl.fluid;
 
 import com.codeka.justconduits.common.blocks.ConduitConnection;
-import com.codeka.justconduits.common.capabilities.network.common.CommonExternalConnection;
+import com.codeka.justconduits.common.impl.common.CommonExternalConnection;
 
 public class FluidExternalConnection extends CommonExternalConnection {
   private ConduitConnection connection;

@@ -1,9 +1,9 @@
-package com.codeka.justconduits.common.capabilities.network.common;
+package com.codeka.justconduits.common.impl.common;
 
 import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
 import com.codeka.justconduits.common.blocks.ConduitConnection;
-import com.codeka.justconduits.common.capabilities.network.ConduitType;
-import com.codeka.justconduits.common.capabilities.network.ConnectionMode;
+import com.codeka.justconduits.common.impl.ConduitType;
+import com.codeka.justconduits.common.impl.ConnectionMode;
 import com.codeka.justconduits.packets.IConduitTypeClientStatePacket;
 import com.google.common.base.MoreObjects;
 import net.minecraft.core.Direction;

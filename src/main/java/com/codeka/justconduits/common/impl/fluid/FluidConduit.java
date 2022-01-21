@@ -1,11 +1,11 @@
-package com.codeka.justconduits.common.capabilities.network.fluid;
+package com.codeka.justconduits.common.impl.fluid;
 
 import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
 import com.codeka.justconduits.common.blocks.ConduitConnection;
-import com.codeka.justconduits.common.capabilities.network.ConduitHolder;
-import com.codeka.justconduits.common.capabilities.network.ConnectionMode;
-import com.codeka.justconduits.common.capabilities.network.NetworkRegistry;
-import com.codeka.justconduits.common.capabilities.network.common.CommonConduit;
+import com.codeka.justconduits.common.impl.ConduitHolder;
+import com.codeka.justconduits.common.impl.ConnectionMode;
+import com.codeka.justconduits.common.impl.NetworkRegistry;
+import com.codeka.justconduits.common.impl.common.CommonConduit;
 import com.codeka.justconduits.packets.IConduitTypeClientStatePacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -127,7 +127,6 @@ public class FluidConduit extends CommonConduit {
     }
     return fluidHandler.get();
   }
-
 
   /**
    * Transfers fluid between the given from {@link ConduitConnection} to the given targets, if possible.

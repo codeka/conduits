@@ -1,15 +1,15 @@
-package com.codeka.justconduits.common.capabilities.network;
+package com.codeka.justconduits.common.impl;
 
 import com.codeka.justconduits.client.gui.widgets.Icon;
-import com.codeka.justconduits.common.capabilities.network.energy.EnergyConduit;
-import com.codeka.justconduits.common.capabilities.network.energy.EnergyConduitClientStatePacket;
-import com.codeka.justconduits.common.capabilities.network.energy.EnergyExternalConnection;
-import com.codeka.justconduits.common.capabilities.network.fluid.FluidConduit;
-import com.codeka.justconduits.common.capabilities.network.fluid.FluidConduitClientStatePacket;
-import com.codeka.justconduits.common.capabilities.network.fluid.FluidExternalConnection;
-import com.codeka.justconduits.common.capabilities.network.item.ItemConduit;
-import com.codeka.justconduits.common.capabilities.network.item.ItemConduitClientStatePacket;
-import com.codeka.justconduits.common.capabilities.network.item.ItemExternalConnection;
+import com.codeka.justconduits.common.impl.energy.EnergyConduit;
+import com.codeka.justconduits.common.impl.energy.EnergyConduitClientStatePacket;
+import com.codeka.justconduits.common.impl.energy.EnergyExternalConnection;
+import com.codeka.justconduits.common.impl.fluid.FluidConduit;
+import com.codeka.justconduits.common.impl.fluid.FluidConduitClientStatePacket;
+import com.codeka.justconduits.common.impl.fluid.FluidExternalConnection;
+import com.codeka.justconduits.common.impl.item.ItemConduit;
+import com.codeka.justconduits.common.impl.item.ItemConduitClientStatePacket;
+import com.codeka.justconduits.common.impl.item.ItemExternalConnection;
 import com.codeka.justconduits.packets.IConduitTypeClientStatePacket;
 
 import java.util.function.Supplier;

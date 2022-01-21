@@ -1,10 +1,9 @@
-package com.codeka.justconduits.common.capabilities.network;
+package com.codeka.justconduits.common.impl;
 
 import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
 import com.codeka.justconduits.common.blocks.ConduitConnection;
-import com.codeka.justconduits.common.capabilities.network.item.ItemNetwork;
+import com.codeka.justconduits.common.capabilities.network.IConduitNetworkManager;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

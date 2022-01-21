@@ -1,7 +1,7 @@
 package com.codeka.justconduits.common.shape;
 
 import com.codeka.justconduits.common.blocks.ConduitConnection;
-import com.codeka.justconduits.common.capabilities.network.ConduitType;
+import com.codeka.justconduits.common.impl.ConduitType;
 import com.mojang.math.Vector3f;
 import net.minecraft.core.Direction;
 import net.minecraft.world.phys.Vec3;

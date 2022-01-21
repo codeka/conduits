@@ -1,8 +1,6 @@
-package com.codeka.justconduits.common.capabilities.network;
+package com.codeka.justconduits.common.impl;
 
 import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
-
-import javax.annotation.Nullable;
 
 /**
  * Each block (represented by a {@link ConduitBlockEntity}) can hold multiple "kinds" of conduit (e.g. you can have

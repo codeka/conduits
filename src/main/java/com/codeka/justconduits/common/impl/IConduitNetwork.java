@@ -1,4 +1,4 @@
-package com.codeka.justconduits.common.capabilities.network;
+package com.codeka.justconduits.common.impl;
 
 import com.codeka.justconduits.common.blocks.ConduitConnection;
 

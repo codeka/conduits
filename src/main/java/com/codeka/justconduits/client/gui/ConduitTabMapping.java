@@ -1,6 +1,6 @@
 package com.codeka.justconduits.client.gui;
 
-import com.codeka.justconduits.common.capabilities.network.ConduitType;
+import com.codeka.justconduits.common.impl.ConduitType;
 
 import java.util.HashMap;
 import java.util.function.Supplier;
