@@ -1,6 +1,7 @@
 package com.codeka.justconduits.client.gui.conduittool;
 
 import com.codeka.justconduits.JustConduitsMod;
+import com.codeka.justconduits.client.gui.BaseScreen;
 import com.codeka.justconduits.client.gui.widgets.TabButton;
 import com.codeka.justconduits.client.gui.widgets.TabButtonRow;
 import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
@@ -11,6 +12,7 @@ import com.codeka.justconduits.packets.ConduitToolStatePacket;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.events.ContainerEventHandler;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -26,7 +28,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 
-public class ConduitToolScreen extends AbstractContainerScreen<ConduitToolContainerMenu> {
+public class ConduitToolScreen extends BaseScreen<ConduitToolContainerMenu> {
   private static final Logger L = LogManager.getLogger();
 
   public static final String NETWORK_INFO_STRING = "conduit_tool_screen.network_info";
