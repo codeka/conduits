@@ -8,19 +8,27 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.renderer.entity.ItemRenderer;
-import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nonnull;
 
 public class ItemConduitToolScreenRenderer implements IConduitToolScreenRenderer {
   @Override
-  public Object init(int leftPos, int topPos) {
+  public Object init(ConduitToolScreen screen) {
     State state = new State();
+    state.screen = screen;
     state.itemRenderer = Minecraft.getInstance().getItemRenderer();
     state.itemsList = new ListWidget<>(
-        /* x = */ 7 + leftPos, /* y = */ 37 + topPos, /* width = */ 207, /* height = */ 115, /* itemHeight = */ 23,
-        this::renderItem);
+        /* x = */ 7 + screen.getGuiLeft(), /* y = */ 37 + screen.getGuiTop(), /* width = */ 207, /* height = */ 115,
+        /* itemHeight = */ 23, this::renderItem);
+    screen.add(state.itemsList);
     return state;
+  }
+
+  @Override
+  public void close(Object stateObject) {
+    if (stateObject instanceof State state) {
+      state.screen.remove(state.itemsList);
+    }
   }
 
   @Override
@@ -55,6 +63,7 @@ public class ItemConduitToolScreenRenderer implements IConduitToolScreenRenderer
   }
 
   private static final class State {
+    public ConduitToolScreen screen;
     public ItemRenderer itemRenderer;
     public ListWidget<ItemConduitToolExternalConnectionPacket.ExternalConnection> itemsList;
   }

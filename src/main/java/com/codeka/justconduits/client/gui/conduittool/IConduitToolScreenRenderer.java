@@ -11,12 +11,18 @@ public interface IConduitToolScreenRenderer {
   /**
    * Initializes the renderer.
    *
-   * @param leftPos The leftPos of the screen we're rendering inside.
-   * @param topPos  The topPos of the screen we're rendering inside.
+   * @param screen The {@link ConduitToolScreen} we're being added to.
    * @return A context object that we'll pass back to your {@link #render} method where you can keep various bits of
    *   state.
    */
-  Object init(int leftPos, int topPos);
+  Object init(@Nonnull ConduitToolScreen screen);
+
+  /**
+   * Called when we're closed, or when we switch to a different tab.
+   *
+   * @param state The state you returned from {@link #init}.
+   */
+  void close(Object state);
 
   /**
    * Renders your screen.

@@ -1,7 +1,6 @@
 package com.codeka.justconduits.client.gui.conduittool;
 
 import com.codeka.justconduits.JustConduitsMod;
-import com.codeka.justconduits.client.gui.widgets.ListWidget;
 import com.codeka.justconduits.client.gui.widgets.TabButton;
 import com.codeka.justconduits.client.gui.widgets.TabButtonRow;
 import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
@@ -12,9 +11,10 @@ import com.codeka.justconduits.packets.ConduitToolStatePacket;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.gui.narration.NarratableEntry;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.resources.language.I18n;
-import net.minecraft.client.resources.model.ModelManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -76,6 +76,14 @@ public class ConduitToolScreen extends AbstractContainerScreen<ConduitToolContai
     ConduitToolScreenPacketHandler.unregister(onPacketHandler);
   }
 
+  public <T extends GuiEventListener & NarratableEntry> void add(T eventListener) {
+    super.addWidget(eventListener);
+  }
+
+  public void remove(GuiEventListener eventListener) {
+    super.removeWidget(eventListener);
+  }
+
   @Override
   protected void renderLabels(@Nonnull PoseStack matrixStack, int mouseX, int mouseY) {
     ConduitToolStatePacket.ConduitNetworkStatePacket networkStatePacket = getNetworkPacket();
@@ -126,9 +134,16 @@ public class ConduitToolScreen extends AbstractContainerScreen<ConduitToolContai
     }
 
     IConduitToolScreenRenderer renderer = networkTypes.get(index).getConduitToolScreenRenderer();
-    if (index != lastIndex && renderer != null) {
-      currState = renderer.init(leftPos, topPos);
-      lastIndex = index;
+    if (index != lastIndex) {
+      if (lastIndex >= 0 && lastIndex < networkTypes.size()) {
+        IConduitToolScreenRenderer oldRenderer = networkTypes.get(lastIndex).getConduitToolScreenRenderer();
+        oldRenderer.close(currState);
+      }
+
+      if (renderer != null) {
+        currState = renderer.init(this);
+        lastIndex = index;
+      }
     }
 
     return renderer;
