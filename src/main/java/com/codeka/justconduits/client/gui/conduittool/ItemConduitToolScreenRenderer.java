@@ -7,6 +7,8 @@ import com.codeka.justconduits.packets.ConduitToolStatePacket;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nonnull;
 
@@ -14,6 +16,7 @@ public class ItemConduitToolScreenRenderer implements IConduitToolScreenRenderer
   @Override
   public Object init(int leftPos, int topPos) {
     State state = new State();
+    state.itemRenderer = Minecraft.getInstance().getItemRenderer();
     state.itemsList = new ListWidget<>(
         /* x = */ 7 + leftPos, /* y = */ 37 + topPos, /* width = */ 207, /* height = */ 115, /* itemHeight = */ 23,
         this::renderItem);
@@ -45,10 +48,14 @@ public class ItemConduitToolScreenRenderer implements IConduitToolScreenRenderer
   private void renderItem(
       @Nonnull GuiComponent gui, int index, @Nonnull ItemConduitToolExternalConnectionPacket.ExternalConnection item,
       int x, int y, @Nonnull PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
-    GuiComponent.drawString(poseStack, Minecraft.getInstance().font, item.getBlockName(), x, y, 0xffffffff);
+
+    Minecraft.getInstance().getItemRenderer().renderGuiItem(item.getBlock().asItem().getDefaultInstance(), x, y);
+
+    GuiComponent.drawString(poseStack, Minecraft.getInstance().font, item.getBlockName(), x + 20, y, 0xffffffff);
   }
 
   private static final class State {
+    public ItemRenderer itemRenderer;
     public ListWidget<ItemConduitToolExternalConnectionPacket.ExternalConnection> itemsList;
   }
 }

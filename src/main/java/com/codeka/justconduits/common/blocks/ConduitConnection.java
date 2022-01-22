@@ -77,11 +77,16 @@ public class ConduitConnection {
     return dir;
   }
 
+  /** Gets the {@link BlockPos} we are actually connected to. */
+  public BlockPos getConnectedBlockPos() {
+    return blockPos.relative(dir);
+  }
+
   /**
    * Helper method to get the {@link BlockEntity} that we are actually connected to.
    */
   public BlockEntity getConnectedBlockEntity(Level level) {
-    return level.getBlockEntity(blockPos.relative(dir));
+    return level.getBlockEntity(getConnectedBlockPos());
   }
 
   /** Gets the name of the block that this connection is connected to. */
