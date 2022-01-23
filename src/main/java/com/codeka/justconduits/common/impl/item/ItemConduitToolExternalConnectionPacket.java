@@ -30,13 +30,17 @@ public class ItemConduitToolExternalConnectionPacket implements IConduitToolExte
     }
 
     for (ConduitConnection conn : network.getExternalConnections()) {
+      ItemNetwork.ItemStats stats = network.getStats(conn);
       externalConnections.add(
           new ExternalConnection(
               conn.getBlockPos(),
               conn.getConnectionName(conduitBlockEntity.getLevel()),
               level.getBlockState(conn.getConnectedBlockPos()).getBlock(),
-              conn.getNetworkExternalConnection(conduitHolder.getConduitType())));
+              conn.getNetworkExternalConnection(conduitHolder.getConduitType()),
+              stats.itemsExtracted,
+              stats.itemsInserted));
     }
+    network.resetStats();
   }
 
   @Override
@@ -59,14 +63,19 @@ public class ItemConduitToolExternalConnectionPacket implements IConduitToolExte
     private final Block block;
     private final boolean isExtract;
     private final boolean isInsert;
+    private final float numExtractedPerTick;
+    private final float numInsertedPerTick;
 
     public ExternalConnection(
-        BlockPos blockPos, Component blockName, Block block, ItemExternalConnection itemExternalConnection) {
+        BlockPos blockPos, Component blockName, Block block, ItemExternalConnection itemExternalConnection,
+        float numExtractedPerTick, float numInsertedPerTick) {
       this.blockPos = blockPos;
       this.blockName = blockName;
       this.block = block;
       isExtract = itemExternalConnection.getExtractMode() != ConnectionMode.ALWAYS_OFF;
       isInsert = itemExternalConnection.getInsertMode() != ConnectionMode.ALWAYS_OFF;
+      this.numExtractedPerTick = numExtractedPerTick;
+      this.numInsertedPerTick = numInsertedPerTick;
     }
 
     public ExternalConnection(FriendlyByteBuf buffer) {
@@ -75,6 +84,8 @@ public class ItemConduitToolExternalConnectionPacket implements IConduitToolExte
       block = ForgeRegistries.BLOCKS.getValue(buffer.readResourceLocation());
       isExtract = buffer.readBoolean();
       isInsert = buffer.readBoolean();
+      numExtractedPerTick = buffer.readFloat();
+      numInsertedPerTick = buffer.readFloat();
     }
 
     public void encode(FriendlyByteBuf buffer) {
@@ -87,6 +98,8 @@ public class ItemConduitToolExternalConnectionPacket implements IConduitToolExte
               () -> new ResourceLocation(ResourceLocation.DEFAULT_NAMESPACE, "error")));
       buffer.writeBoolean(isExtract);
       buffer.writeBoolean(isInsert);
+      buffer.writeFloat(numExtractedPerTick);
+      buffer.writeFloat(numInsertedPerTick);
     }
 
     public BlockPos getBlockPos() {
@@ -109,6 +122,14 @@ public class ItemConduitToolExternalConnectionPacket implements IConduitToolExte
     /** Returns true if the insert setting is anything other than "always off". */
     public boolean isInsert() {
       return isInsert;
+    }
+
+    public float getNumExtractedPerTick() {
+      return numExtractedPerTick;
+    }
+
+    public float getNumInsertedPerTick() {
+      return numInsertedPerTick;
     }
   }
 }

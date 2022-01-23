@@ -70,7 +70,7 @@ public class ConduitBlockEntity extends BlockEntity {
   // not showing and we can skip gather the necessary stats.
   private int ticksUntilConduitToolStatePacket = -1;
   // A set of the players with the conduit tool GUI open.
-  private HashSet<ServerPlayer> conduitToolPlayers = new HashSet<>();
+  private final HashSet<ServerPlayer> conduitToolPlayers = new HashSet<>();
 
   private boolean firstTick = true;
   private boolean needsUpdate = false;
@@ -155,6 +155,13 @@ public class ConduitBlockEntity extends BlockEntity {
   }
 
   public void onConduitToolGuiOpen(ServerPlayer player) {
+    if (conduitToolPlayers.isEmpty()) {
+      // Inform the conduits that someone is looking at the tool. They'll want to start recording stats.
+      for (ConduitHolder conduitHolder : conduitsByType.values()) {
+        conduitHolder.getConduitType().getConduitImpl().onConduitToolOpen(this, conduitHolder);
+      }
+    }
+
     // Send a packet immediately, regardless of when we sent the last one, so the new client sees it straight away.
     ticksUntilConduitToolStatePacket = 0;
     conduitToolPlayers.add(player);
@@ -164,6 +171,11 @@ public class ConduitBlockEntity extends BlockEntity {
     conduitToolPlayers.remove(player);
     if (conduitToolPlayers.isEmpty()) {
       ticksUntilConduitToolStatePacket = -1;
+
+      // Inform the conduits that someone is looking at the tool. They'll want to start recording stats.
+      for (ConduitHolder conduitHolder : conduitsByType.values()) {
+        conduitHolder.getConduitType().getConduitImpl().onConduitToolClose(this, conduitHolder);
+      }
     }
   }
 

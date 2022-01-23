@@ -38,6 +38,25 @@ public interface IConduit {
   IConduitTypeClientStatePacket createClientState(@Nonnull ConduitBlockEntity conduitBlockEntity);
 
   /**
+   * Called when the conduit tool is opened. Every now and then, the block will call {@link #createConduitToolPacket}
+   * to populate the packet that gets sent to the client. The network will probably want to keep track of stats that
+   * the client will be interested in.
+   *
+   * @param conduitBlockEntity The {@link ConduitBlockEntity} that the tool is opening for. Note that you may get
+   *                           multiple calls to {@link #onConduitToolOpen} per block, if different users click on
+   *                           different blocks.
+   * @param conduitHolder The {@link ConduitHolder} that was clicked on.
+   */
+  default void onConduitToolOpen(
+      @Nonnull ConduitBlockEntity conduitBlockEntity, @Nonnull ConduitHolder conduitHolder) {}
+
+  /**
+   * Called when the conduit tool GUI is closed for the given block. You can stop keep track of statistics.
+   */
+  default void onConduitToolClose(
+      @Nonnull ConduitBlockEntity conduitBlockEntity, @Nonnull ConduitHolder conduitHolder) {}
+
+  /**
    * Creates a {@link IConduitToolExternalPacket} so we can display details of the network it on the GUI
    * screen.
    */

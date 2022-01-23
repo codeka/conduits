@@ -19,6 +19,7 @@ import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -61,7 +62,7 @@ public class ItemConduit extends CommonConduit {
       // If it's not time to extract yet, then don't do anything.
       if (conn.ticksUntilNextExtract > 0) {
         conn.ticksUntilNextExtract --;
-        return;
+        continue;
       }
 
       ItemNetwork network = NetworkRegistry.getNetwork(conduitHolder.getNetworkId());
@@ -71,7 +72,7 @@ public class ItemConduit extends CommonConduit {
       }
 
       // find an insert-enabled connection to insert items into.
-      ArrayList<IItemHandler> candidateTargets = new ArrayList<>();
+      ArrayList<InsertCandidate> candidateTargets = new ArrayList<>();
       for (ConduitConnection outputConnection : network.getExternalConnections()) {
         ItemExternalConnection outConn = outputConnection.getNetworkExternalConnection(conduitHolder.getConduitType());
         if (outConn.getInsertMode() != ConnectionMode.ALWAYS_ON) {
@@ -85,11 +86,21 @@ public class ItemConduit extends CommonConduit {
           continue;
         }
 
-        candidateTargets.add(getItemHandler(level, outputConnection));
+        candidateTargets.add(new InsertCandidate(outputConnection, getItemHandler(level, outputConnection)));
       }
 
       // TODO: handle speed upgrades.
-      transferItems(level, conduitConnection, candidateTargets, itemsToTransfer);
+      int numItems = transferItems(level, conduitConnection, candidateTargets, itemsToTransfer);
+
+      if (network.isConduitToolOpen()) {
+        // If the conduit tool is open, we need to record these stats.
+        network.getStats(conduitConnection).itemsExtracted += numItems;
+        for (InsertCandidate candidate : candidateTargets) {
+          if (candidate.numTransferred > 0) {
+            network.getStats(candidate.connection).itemsInserted += candidate.numTransferred;
+          }
+        }
+      }
 
       // TODO: config this, and also handle speed upgrades.
       conn.ticksUntilNextExtract = 20;
@@ -100,6 +111,28 @@ public class ItemConduit extends CommonConduit {
   @Nonnull
   public IConduitTypeClientStatePacket createClientState(@Nonnull ConduitBlockEntity conduitBlockEntity) {
     return new ItemConduitClientStatePacket(conduitBlockEntity);
+  }
+
+  @Override
+  public void onConduitToolOpen(@NotNull ConduitBlockEntity conduitBlockEntity, @NotNull ConduitHolder conduitHolder) {
+    ItemNetwork network = NetworkRegistry.getNetwork(conduitHolder.getNetworkId());
+    if (network == null) {
+      L.atError().log("network is null");
+      return;
+    }
+
+    network.onConduitToolOpen();
+  }
+
+  @Override
+  public void onConduitToolClose(@NotNull ConduitBlockEntity conduitBlockEntity, @NotNull ConduitHolder conduitHolder) {
+    ItemNetwork network = NetworkRegistry.getNetwork(conduitHolder.getNetworkId());
+    if (network == null) {
+      L.atError().log("network is null");
+      return;
+    }
+
+    network.onConduitToolClose();
   }
 
   @Override
@@ -141,7 +174,7 @@ public class ItemConduit extends CommonConduit {
    */
   private int transferItems(
       @Nonnull Level level, @Nonnull ConduitConnection fromConnection,
-      @Nonnull Collection<IItemHandler> candidateTargets, int count) {
+      @Nonnull Collection<InsertCandidate> candidateTargets, int count) {
     IItemHandler fromItemHandler = getItemHandler(level, fromConnection);
     if (fromItemHandler == null) {
       return 0;
@@ -153,8 +186,10 @@ public class ItemConduit extends CommonConduit {
     for (int fromSlot = 0; fromSlot < fromItemHandler.getSlots(); fromSlot++) {
       ItemStack itemStack = fromItemHandler.extractItem(fromSlot, count, /* simulate = */ true);
       ItemStack remainingItems = itemStack;
-      for (IItemHandler toInventory : candidateTargets) {
-        remainingItems = insertItems(toInventory, remainingItems);
+      for (InsertCandidate candidate : candidateTargets) {
+        ItemStack thisRemainingItems = insertItems(candidate.itemHandler, remainingItems);
+        candidate.numTransferred += remainingItems.getCount() - thisRemainingItems.getCount();
+        remainingItems = thisRemainingItems;
         if (remainingItems.isEmpty()) {
           break;
         }
@@ -214,5 +249,16 @@ public class ItemConduit extends CommonConduit {
       return null;
     }
     return itemHandler.get();
+  }
+
+  private static final class InsertCandidate {
+    public final IItemHandler itemHandler;
+    public final ConduitConnection connection;
+    public int numTransferred;
+
+    public InsertCandidate(ConduitConnection conn, IItemHandler itemHandler) {
+      this.connection = conn;
+      this.itemHandler = itemHandler;
+    }
   }
 }

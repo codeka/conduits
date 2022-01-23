@@ -10,6 +10,7 @@ import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 
 import javax.annotation.Nonnull;
+import java.util.Locale;
 
 public class ItemConduitToolScreenRenderer implements IConduitToolScreenRenderer {
   @Override
@@ -60,6 +61,11 @@ public class ItemConduitToolScreenRenderer implements IConduitToolScreenRenderer
     Minecraft.getInstance().getItemRenderer().renderGuiItem(item.getBlock().asItem().getDefaultInstance(), x, y);
 
     GuiComponent.drawString(poseStack, Minecraft.getInstance().font, item.getBlockName(), x + 20, y, 0xffffffff);
+    String rate =
+        String.format(
+            Locale.getDefault(), "E: %.1f I: %.1f items/s", item.getNumExtractedPerTick(),
+            item.getNumInsertedPerTick());
+    GuiComponent.drawString(poseStack, Minecraft.getInstance().font, rate, x + 20, y + 12, 0xffffffff);
   }
 
   private static final class State {

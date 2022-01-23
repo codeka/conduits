@@ -14,6 +14,8 @@ import java.util.Collection;
 public abstract class AbstractNetwork implements IConduitNetwork {
   private static final Logger L = LogManager.getLogger();
 
+  private int conduitToolOpenCount;
+
   private long id;
   private final NetworkType networkType;
 
@@ -51,6 +53,22 @@ public abstract class AbstractNetwork implements IConduitNetwork {
   @Override
   public Collection<ConduitConnection> getExternalConnections() {
     return externalConnections;
+  }
+
+  public void onConduitToolOpen() {
+    conduitToolOpenCount ++;
+  }
+
+  public void onConduitToolClose() {
+    conduitToolOpenCount --;
+    if (conduitToolOpenCount < 0) {
+      // This is technically an error, you shouldn't call close more than you called open.
+      conduitToolOpenCount = 0;
+    }
+  }
+
+  public boolean isConduitToolOpen() {
+    return conduitToolOpenCount > 0;
   }
 
   /**
