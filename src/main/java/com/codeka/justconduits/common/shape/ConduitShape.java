@@ -8,6 +8,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -41,14 +42,53 @@ public class ConduitShape {
     return externalConnectionShapes;
   }
 
-  /** The shape of a single conduit. A center and a bunch of directions for each of the pipes. */
+  /**
+   * The shape of a single conduit. A center and a bunch of directions for each of the pipes.
+   *
+   * <p>If a neighbour has a different configuration of conduits, it could result in the center of it's conduit not
+   * matching with ours. In that case, {@code needComplexConduit} will be true, and you can use the min and max to
+   * get the shape of the "combined" conduit connector instead.
+   */
   public static final class SingleConduitShape {
     private final Vec3 center;
+    private boolean needComplexConduit;
+    private Vec3 min;
+    private Vec3 max;
 
     private final HashMap<Direction, ConduitConnectionShape> connectionShapes = new HashMap<>();
 
     public SingleConduitShape(Vec3 center) {
       this.center = center;
+    }
+
+    /**
+     * Adds the center shape from our neighbours. If it's different to our center, then we'll mark ourselves as needing
+     * a complex shape.
+     */
+    public void addCenter(Vec3 center, Direction dir) {
+      // We only care if the centers are different in plane perpendicular to the direction the connection is in. If
+      // it's just further or closer, that's OK because we'll just lengthen/shorten the pipe.
+      double px = 1.0 - Math.abs(dir.getStepX());
+      double py = 1.0 - Math.abs(dir.getStepY());
+      double pz = 1.0 - Math.abs(dir.getStepZ());
+      double dx = this.center.x() * px - center.x() * px;
+      double dy = this.center.y() * py - center.y() * py;
+      double dz = this.center.z() * pz - center.z() * pz;
+      if (new Vec3(dx, dy, dz).length() > 0.01) {
+        if (!needComplexConduit) {
+          needComplexConduit = true;
+          min = new Vec3(this.center.x(), this.center.y(), this.center.z());
+          max = new Vec3(this.center.x(), this.center.y(), this.center.z());
+        }
+        min = new Vec3(
+            Math.min(min.x(), center.x() * px + (min.x() * (1.0 - px))),
+            Math.min(min.y(), center.y() * py + (min.y() * (1.0 - py))),
+            Math.min(min.z(), center.z() * pz + (min.z() * (1.0 - pz))));
+        max = new Vec3(
+            Math.max(max.x(), center.x() * px + (max.x() * (1.0 - px))),
+            Math.max(max.y(), center.y() * py + (max.y() * (1.0 - py))),
+            Math.max(max.z(), center.z() * pz + (max.z() * (1.0 - pz))));
+      }
     }
 
     public void addConnectionShape(ConduitConnectionShape shape) {
@@ -57,6 +97,18 @@ public class ConduitShape {
 
     public Vec3 getCenter() {
       return center;
+    }
+
+    public boolean needComplexConduit() {
+      return needComplexConduit;
+    }
+
+    public Vec3 getMin() {
+      return min;
+    }
+
+    public Vec3 getMax() {
+      return max;
     }
 
     public HashMap<Direction, ConduitConnectionShape> getConnectionShapes() {

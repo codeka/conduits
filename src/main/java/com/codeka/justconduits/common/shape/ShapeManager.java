@@ -160,7 +160,8 @@ public class ShapeManager {
   }
 
   private static void populateSingleShape(
-      ConduitBlockEntity conduitBlockEntity, ConduitShape.SingleConduitShape shape, ConduitType conduitType, Vec3 centerOffset) {
+      ConduitBlockEntity conduitBlockEntity, ConduitShape.SingleConduitShape shape, ConduitType conduitType,
+      Vec3 centerOffset) {
     Level level = conduitBlockEntity.getLevel();
     if (level == null) {
       return;
@@ -173,6 +174,13 @@ public class ShapeManager {
         if (conn.getConnectedBlockEntity(level) instanceof ConduitBlockEntity connectedBlockEntity) {
           Vec3 otherCenterOffset =
               connectedBlockEntity.getShapeManager().getCenterOffset(connectedBlockEntity, conduitType);
+
+          if (dir.getAxisDirection() == Direction.AxisDirection.NEGATIVE) {
+            // We only look in the negative direction to see if we had mis-matched centers, because in the positive
+            // direction, we always draw the connections from the actual center.
+            shape.addCenter(otherCenterOffset, dir);
+          }
+
           Vec3 diff = otherCenterOffset.subtract(centerOffset);
           length += diff.x() * dir.getStepX() + diff.y() * dir.getStepY() + diff.z() * dir.getStepZ();
         }
@@ -242,11 +250,26 @@ public class ShapeManager {
       }
 
       final Vec3 c = conduitShape.getCenter();
-      visualShape.addBox(
-          new VisualShape.Box(
-              new Vector3f((float) c.x - 0.125f, (float) c.y - 0.125f, (float) c.z - 0.125f),
-              new Vector3f((float) c.x + 0.125f, (float) c.y + 0.125f, (float) c.z + 0.125f),
-              material));
+      if (conduitShape.needComplexConduit()) {
+        // The complex conduit shape always uses the SIMPLE_ITEM material (TODO: use a custom material)
+        visualShape.addBox(
+            new VisualShape.Box(
+                new Vector3f(
+                    (float) conduitShape.getMin().x() - 0.125f,
+                    (float) conduitShape.getMin().y() - 0.125f,
+                    (float) conduitShape.getMin().z() - 0.125f),
+                new Vector3f(
+                    (float) conduitShape.getMax().x() + 0.125f,
+                    (float) conduitShape.getMax().y() + 0.125f,
+                    (float) conduitShape.getMax().z() + 0.125f),
+                ConduitModelLoader.SIMPLE_ITEM_CONDUIT_MATERIAL));
+      } else {
+        visualShape.addBox(
+            new VisualShape.Box(
+                new Vector3f((float) c.x - 0.125f, (float) c.y - 0.125f, (float) c.z - 0.125f),
+                new Vector3f((float) c.x + 0.125f, (float) c.y + 0.125f, (float) c.z + 0.125f),
+                material));
+      }
 
       for (ConduitShape.ConduitConnectionShape shape : conduitShape.getConnectionShapes().values()) {
         // We only do the visual for the position axis direction, the conduit in the negative direction will draw
