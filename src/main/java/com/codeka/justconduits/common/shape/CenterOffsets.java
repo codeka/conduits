@@ -42,7 +42,15 @@ public class CenterOffsets {
               new Vec3(0.5f, 0.5f, 0.25f), new Vec3(0.5f, 0.5f, 0.75f), new Vec3(0.5f, 0.75f, 0.5f),
               new Vec3(0.5f, 0.25f, 0.5f), new Vec3(0.5f, 0.75f, 0.75f), new Vec3(0.5f, 0.25f, 0.25f)))
       .put(
+          new Key(Direction.UP),
+          Lists.newArrayList(
+              new Vec3(0.25f, 0.75f, 0.25f), new Vec3(0.75f, 0.25f, 0.75f), new Vec3(0.5f, 0.5f, 0.5f)))
+      .put(
           new Key(Direction.SOUTH, Direction.EAST),
+          Lists.newArrayList(
+              new Vec3(0.25f, 0.75f, 0.25f), new Vec3(0.75f, 0.25f, 0.75f), new Vec3(0.5f, 0.5f, 0.5f)))
+      .put(
+          new Key(Direction.SOUTH, Direction.EAST, Direction.UP),
           Lists.newArrayList(
               new Vec3(0.25f, 0.75f, 0.25f), new Vec3(0.75f, 0.25f, 0.75f), new Vec3(0.5f, 0.5f, 0.5f)))
       .build();
