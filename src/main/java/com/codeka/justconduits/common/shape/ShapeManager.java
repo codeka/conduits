@@ -11,6 +11,7 @@ import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.Material;
 import net.minecraft.core.Direction;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -85,6 +86,24 @@ public class ShapeManager {
     dirty = true;
   }
 
+  /** Gets the center offset for the given {@link ConduitType} in the given {@link ConduitBlockEntity}. */
+  public Vec3 getCenterOffset(ConduitBlockEntity conduitBlockEntity, ConduitType conduitType) {
+    // TODO: this is quite inefficient.
+    HashSet<Direction> directions = new HashSet<>();
+    for (ConduitConnection conn : conduitBlockEntity.getConnections()) {
+      directions.add(conn.getDirection());
+    }
+
+    ArrayList<ConduitType> conduitTypes = new ArrayList<>(conduitBlockEntity.getConduitTypes());
+    for (int i = 0; i < conduitTypes.size(); i++) {
+      if (conduitTypes.get(i) == conduitType) {
+        return CenterOffsets.getCenterOffset(i, conduitTypes.size(), directions);
+      }
+    }
+
+    return null;
+  }
+
   /**
    * Called whenever the shape of the {@link ConduitBlockEntity} needs to be updated (e.g. when a connection changes,
    */
@@ -113,7 +132,7 @@ public class ShapeManager {
     for (int i = 0; i < conduitTypes.size(); i++) {
       Vec3 centerOffset = CenterOffsets.getCenterOffset(i, conduitTypes.size(), directions);
       var shape = mainShape.addConduit(conduitTypes.get(i), centerOffset);
-      populateSingleShape(conduitBlockEntity, shape, conduitTypes.get(i));
+      populateSingleShape(conduitBlockEntity, shape, conduitTypes.get(i), centerOffset);
     }
 
     // Add shapes for the external connections. For the external connections, we record the complete shape of the box
@@ -141,10 +160,23 @@ public class ShapeManager {
   }
 
   private static void populateSingleShape(
-      ConduitBlockEntity conduitBlockEntity, ConduitShape.SingleConduitShape shape, ConduitType conduitType) {
+      ConduitBlockEntity conduitBlockEntity, ConduitShape.SingleConduitShape shape, ConduitType conduitType, Vec3 centerOffset) {
+    Level level = conduitBlockEntity.getLevel();
+    if (level == null) {
+      return;
+    }
+
     for (ConduitConnection conn : conduitBlockEntity.getConnections()) {
       if (conn.getConduitTypes().contains(conduitType)) {
-        shape.addDirection(conn.getDirection());
+        Direction dir = conn.getDirection();
+        double length = 1.0;
+        if (conn.getConnectedBlockEntity(level) instanceof ConduitBlockEntity connectedBlockEntity) {
+          Vec3 otherCenterOffset =
+              connectedBlockEntity.getShapeManager().getCenterOffset(connectedBlockEntity, conduitType);
+          Vec3 diff = otherCenterOffset.subtract(centerOffset);
+          length += diff.x() * dir.getStepX() + diff.y() * dir.getStepY() + diff.z() * dir.getStepZ();
+        }
+        shape.addConnectionShape(new ConduitShape.ConduitConnectionShape(dir, length));
       }
     }
   }
@@ -216,31 +248,25 @@ public class ShapeManager {
               new Vector3f((float) c.x + 0.125f, (float) c.y + 0.125f, (float) c.z + 0.125f),
               material));
 
-      for (Direction dir : conduitShape.getDirections()) {
-        // TODO: do we want to do this for external connections too?
-//        if (conn.getConnectionType() == ConduitConnection.ConnectionType.EXTERNAL) {
-//          // We handle external connections in the next loop.
-//          continue;
-//        }
-
+      for (ConduitShape.ConduitConnectionShape shape : conduitShape.getConnectionShapes().values()) {
         // We only do the visual for the position axis direction, the conduit in the negative direction will draw
         // the other connection for us.
-        if (dir.getAxisDirection() != Direction.AxisDirection.POSITIVE) {
+        if (shape.getDirection().getAxisDirection() != Direction.AxisDirection.POSITIVE) {
           continue;
         }
 
-        Vector3f normal = new Vector3f(dir.getStepX(), dir.getStepY(), dir.getStepZ());
+        Vector3f normal = shape.getDirection().step();
+        float length = (float) shape.getLength();
         Vector3f min = new Vector3f(
             (float) c.x + normal.x() * 0.125f - (1.0f - normal.x()) * 0.09375f,
             (float) c.y + normal.y() * 0.125f - (1.0f - normal.y()) * 0.09375f,
             (float) c.z + normal.z() * 0.125f - (1.0f - normal.z()) * 0.09375f);
         Vector3f max = new Vector3f(
-            (float) c.x + normal.x() * 0.875f + (1.0f - normal.x()) * 0.09375f,
-            (float) c.y + normal.y() * 0.875f + (1.0f - normal.y()) * 0.09375f,
-            (float) c.z + normal.z() * 0.875f + (1.0f - normal.z()) * 0.09375f);
+            (float) c.x + normal.x() * (length - 0.125f) + (1.0f - normal.x()) * 0.09375f,
+            (float) c.y + normal.y() * (length - 0.125f) + (1.0f - normal.y()) * 0.09375f,
+            (float) c.z + normal.z() * (length - 0.125f) + (1.0f - normal.z()) * 0.09375f);
         visualShape.addBox(new VisualShape.Box(min, max, material));
       }
-
     }
 
     for (ConduitShape.ExternalConnectionShape externalConnectionShape : mainShape.getExternalConnectionShapes()) {

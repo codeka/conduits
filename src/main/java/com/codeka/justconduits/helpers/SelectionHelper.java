@@ -84,8 +84,6 @@ public class SelectionHelper {
       if (distanceToEye < closestDistance) {
         closestDistance = distanceToEye;
         closestResult = new SelectionResult(shape.getConnection(), subHitResult, shape.getVoxelShape());
-      } else {
-        L.atInfo().log("  not replacing");
       }
     }
 

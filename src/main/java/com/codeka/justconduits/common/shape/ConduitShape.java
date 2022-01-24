@@ -45,22 +45,45 @@ public class ConduitShape {
   public static final class SingleConduitShape {
     private final Vec3 center;
 
-    private final ArrayList<Direction> directions = new ArrayList<>();
+    private final HashMap<Direction, ConduitConnectionShape> connectionShapes = new HashMap<>();
 
     public SingleConduitShape(Vec3 center) {
       this.center = center;
     }
 
-    public void addDirection(Direction dir) {
-      directions.add(dir);
+    public void addConnectionShape(ConduitConnectionShape shape) {
+      connectionShapes.put(shape.getDirection(), shape);
     }
 
     public Vec3 getCenter() {
       return center;
     }
 
-    public ArrayList<Direction> getDirections() {
-      return directions;
+    public HashMap<Direction, ConduitConnectionShape> getConnectionShapes() {
+      return connectionShapes;
+    }
+  }
+
+  /** The "shape" of a single conduit connection. */
+  public static final class ConduitConnectionShape {
+    private final Direction direction;
+    private final double length;
+
+    public ConduitConnectionShape(Direction direction, double length) {
+      this.direction = direction;
+      this.length = length;
+    }
+
+    public Direction getDirection() {
+      return direction;
+    }
+
+    /**
+     * The length of this connection. Usually this is 1.0, but sometimes around corners and stuff it could be a little
+     * longer or shorter.
+     */
+    public double getLength() {
+      return length;
     }
   }
 

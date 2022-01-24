@@ -8,7 +8,6 @@ import javax.annotation.Nonnull;
 import java.util.HashMap;
 
 public class ItemNetwork extends AbstractNetwork {
-  private long lastConduitToolPacketTick;
   private final HashMap<ConduitConnection, ItemStats> conduitToolStats = new HashMap<>();
 
   public ItemNetwork() {
