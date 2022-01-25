@@ -36,7 +36,7 @@ public class ConduitBlockHighlighter {
     SelectionHelper.SelectionResult selection = SelectionHelper.raycast(conduitBlockEntity, event.getCamera());
     if (selection != null) {
       LineHelper.drawSelectionBox(event.getMultiBufferSource(), event.getPoseStack(), conduitBlockEntity.getBlockPos(),
-          event.getCamera(), selection.shape(), Color.CYAN);
+          event.getCamera(), selection.shape(), Color.BLACK);
       event.setCanceled(true);
     }
   }
