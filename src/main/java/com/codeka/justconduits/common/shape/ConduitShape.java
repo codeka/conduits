@@ -125,14 +125,20 @@ public class ConduitShape {
   public static final class ConduitConnectionShape {
     private final Direction direction;
     private final double length;
+    private final ConduitConnection.ConnectionType connectionType;
 
-    public ConduitConnectionShape(Direction direction, double length) {
+    public ConduitConnectionShape(Direction direction, double length, ConduitConnection.ConnectionType connectionType) {
       this.direction = direction;
       this.length = length;
+      this.connectionType = connectionType;
     }
 
     public Direction getDirection() {
       return direction;
+    }
+
+    public ConduitConnection.ConnectionType getConnectionType() {
+      return connectionType;
     }
 
     /**

@@ -110,9 +110,9 @@ public class ShapeManager {
   private void updateShapes() {
     ConduitShape mainShape = generateMainShape(conduitBlockEntity);
     collisionShape = cache.getCollisionShape(conduitBlockEntity, () -> createCollisionShape(mainShape));
-    visualShape = cache.getVisualShape(conduitBlockEntity, () -> createVisualShape(conduitBlockEntity, mainShape));
+    visualShape = cache.getVisualShape(conduitBlockEntity, () -> createVisualShape(mainShape));
     selectionShape =
-        cache.getSelectionShape(conduitBlockEntity, () -> createSelectionShape(conduitBlockEntity, mainShape));
+        cache.getSelectionShape(conduitBlockEntity, () -> createSelectionShape(mainShape));
     dirty = false;
   }
 
@@ -197,8 +197,20 @@ public class ShapeManager {
 
           Vec3 diff = otherCenterOffset.subtract(centerOffset);
           length += diff.x() * dir.getStepX() + diff.y() * dir.getStepY() + diff.z() * dir.getStepZ();
+        } else if (conn.getConnectionType() == ConduitConnection.ConnectionType.EXTERNAL) {
+          // We want the length to go almost to the edge of this block, and no further: there will be an external
+          // connection at the edge, we don't want to go past that.
+          double dx = Math.abs(dir.getStepX());
+          double dy = Math.abs(dir.getStepY());
+          double dz = Math.abs(dir.getStepZ());
+          double centerLength = centerOffset.x() * dx + centerOffset.y() * dy + centerOffset.z() * dz;
+          centerLength = centerLength - Math.floor(centerLength);
+          if (dir.getAxisDirection() == Direction.AxisDirection.NEGATIVE) {
+            centerLength = 1.0 - centerLength;
+          }
+          length = centerLength;
         }
-        shape.addConnectionShape(new ConduitShape.ConduitConnectionShape(dir, length));
+        shape.addConnectionShape(new ConduitShape.ConduitConnectionShape(dir, length, conn.getConnectionType()));
       }
     }
   }
@@ -224,7 +236,7 @@ public class ShapeManager {
     return collisionShape.optimize();
   }
 
-  private static SelectionShape createSelectionShape(ConduitBlockEntity conduitBlockEntity, ConduitShape mainShape) {
+  private static SelectionShape createSelectionShape(ConduitShape mainShape) {
     SelectionShape selectionShape = new SelectionShape();
     for (ConduitShape.ExternalConnectionShape shape : mainShape.getExternalConnectionShapes()) {
       VoxelShape voxelShape = Shapes.box(
@@ -247,7 +259,7 @@ public class ShapeManager {
     return selectionShape;
   }
 
-  private static VisualShape createVisualShape(ConduitBlockEntity conduitBlockEntity, ConduitShape mainShape) {
+  private static VisualShape createVisualShape(ConduitShape mainShape) {
     VisualShape visualShape = new VisualShape();
     for (var entry : mainShape.getShapes().entrySet()) {
       ConduitType conduitType = entry.getKey();
@@ -287,21 +299,32 @@ public class ShapeManager {
 
       for (ConduitShape.ConduitConnectionShape shape : conduitShape.getConnectionShapes().values()) {
         // We only do the visual for the position axis direction, the conduit in the negative direction will draw
-        // the other connection for us.
-        if (shape.getDirection().getAxisDirection() != Direction.AxisDirection.POSITIVE) {
+        // the other connection for us. Except for external connections, which don't have a conduit in the negative
+        // direction.
+        if (shape.getDirection().getAxisDirection() != Direction.AxisDirection.POSITIVE
+            && shape.getConnectionType() != ConduitConnection.ConnectionType.EXTERNAL) {
           continue;
         }
 
         Vector3f normal = shape.getDirection().step();
         float length = (float) shape.getLength();
+        Vector3f plane =
+            new Vector3f(1.0f - Math.abs(normal.x()), 1.0f - Math.abs(normal.y()), 1.0f - Math.abs(normal.z()));
         Vector3f min = new Vector3f(
-            (float) c.x + normal.x() * 0.125f - (1.0f - normal.x()) * 0.09375f,
-            (float) c.y + normal.y() * 0.125f - (1.0f - normal.y()) * 0.09375f,
-            (float) c.z + normal.z() * 0.125f - (1.0f - normal.z()) * 0.09375f);
+            (float) c.x + normal.x() * 0.125f - plane.x() * 0.09375f,
+            (float) c.y + normal.y() * 0.125f - plane.y() * 0.09375f,
+            (float) c.z + normal.z() * 0.125f - plane.z() * 0.09375f);
         Vector3f max = new Vector3f(
-            (float) c.x + normal.x() * (length - 0.125f) + (1.0f - normal.x()) * 0.09375f,
-            (float) c.y + normal.y() * (length - 0.125f) + (1.0f - normal.y()) * 0.09375f,
-            (float) c.z + normal.z() * (length - 0.125f) + (1.0f - normal.z()) * 0.09375f);
+            (float) c.x + normal.x() * (length - 0.125f) + plane.x() * 0.09375f,
+            (float) c.y + normal.y() * (length - 0.125f) + plane.y() * 0.09375f,
+            (float) c.z + normal.z() * (length - 0.125f) + plane.z() * 0.09375f);
+        if (shape.getDirection().getAxisDirection() == Direction.AxisDirection.NEGATIVE) {
+          // If the normal is negative (which can be the case for external connections), then min & max will be swapped.
+          // So wap them back again.
+          Vector3f tmp = min;
+          min = max;
+          max = tmp;
+        }
         visualShape.addBox(new VisualShape.Box(min, max, material));
       }
     }
