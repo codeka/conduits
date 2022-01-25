@@ -175,10 +175,24 @@ public class ShapeManager {
           Vec3 otherCenterOffset =
               connectedBlockEntity.getShapeManager().getCenterOffset(connectedBlockEntity, conduitType);
 
+          // We only look in the negative direction to see if we had mis-matched centers, because in the positive
+          // direction, we always draw the connections from the actual center.
           if (dir.getAxisDirection() == Direction.AxisDirection.NEGATIVE) {
-            // We only look in the negative direction to see if we had mis-matched centers, because in the positive
-            // direction, we always draw the connections from the actual center.
-            shape.addCenter(otherCenterOffset, dir);
+            if (conduitBlockEntity.getConnections().size() == 1) {
+              // If this is the only connection, then we'll actually change the center to be this, because it looks
+              // way better than having a complex connector with only one connection. But only change the position in
+              // the plane of the connection, not the distance. Because the other conduit will be drawing a connection
+              // to us, expecting it to be at that particular distance.
+              double sx = Math.abs(dir.getStepX());
+              double sy = Math.abs(dir.getStepY());
+              double sz = Math.abs(dir.getStepZ());
+              shape.updateCenter(new Vec3(
+                  shape.getCenter().x() * sx + otherCenterOffset.x() * (1.0 - sx),
+                  shape.getCenter().y() * sy + otherCenterOffset.y() * (1.0 - sy),
+                  shape.getCenter().z() * sz + otherCenterOffset.z() * (1.0 - sz)));
+            } else {
+              shape.addCenter(otherCenterOffset, dir);
+            }
           }
 
           Vec3 diff = otherCenterOffset.subtract(centerOffset);

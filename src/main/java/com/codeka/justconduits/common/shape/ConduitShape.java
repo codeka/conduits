@@ -50,7 +50,7 @@ public class ConduitShape {
    * get the shape of the "combined" conduit connector instead.
    */
   public static final class SingleConduitShape {
-    private final Vec3 center;
+    private Vec3 center;
     private boolean needComplexConduit;
     private Vec3 min;
     private Vec3 max;
@@ -59,6 +59,11 @@ public class ConduitShape {
 
     public SingleConduitShape(Vec3 center) {
       this.center = center;
+    }
+
+    /** In some cases, we'll want to adjust the center after it's been updated. */
+    public void updateCenter(Vec3 newCenter) {
+      center = newCenter;
     }
 
     /**
