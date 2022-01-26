@@ -3,12 +3,14 @@ package com.codeka.justconduits.common.blocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -33,10 +35,13 @@ import javax.annotation.Nonnull;
 public class ConduitBlock extends Block implements EntityBlock {
   private static final Logger L = LogManager.getLogger();
 
-  private static final VoxelShape OCCLUSION_SHAPE = Shapes.box(0.01, 0.01, 0.01, 0.99, 0.99, 0.99);
-
   public ConduitBlock() {
     super(Properties.of(Material.STONE, MaterialColor.STONE)
+        .noOcclusion()
+        .isSuffocating((blockState, level, blockPos) -> false)
+        .isValidSpawn((blockState, level, blockPos, entityType) -> false)
+        .isRedstoneConductor((blockState, level, blockPos) -> false)
+        .isViewBlocking((blockState, level, blockPos) -> false)
         .strength(0.6f, 6.0f));
   }
 
@@ -81,13 +86,6 @@ public class ConduitBlock extends Block implements EntityBlock {
       };
     }
     return null;
-  }
-
-  @SuppressWarnings("deprecation")
-  @Nonnull
-  @Override
-  public VoxelShape getOcclusionShape(@Nonnull BlockState state, @Nonnull BlockGetter reader, @Nonnull BlockPos pos) {
-    return OCCLUSION_SHAPE;
   }
 
   @SuppressWarnings("deprecation")
