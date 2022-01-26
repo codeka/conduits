@@ -126,11 +126,25 @@ public class ShapeBuilder {
       VoxelShape voxelShape =
           Shapes.box(c.x - 0.125f, c.y - 0.125f, c.z - 0.125f, c.x + 0.125f, c.y + 0.125f, c.z + 0.125f);
       collisionShape = Shapes.joinUnoptimized(collisionShape, voxelShape, BooleanOp.OR);
-      /*
-      for (ConduitConnection conn : conduitBlockEntity.getConnections()) {
-        shape = Shapes.or(shape, conn.getVoxelShape());
+
+      for (var conn : shape.getConnectionShapes().values()) {
+        if (conn.getDirection().getAxisDirection() != Direction.AxisDirection.POSITIVE) {
+          continue;
+        }
+
+        Vector3f normal = conn.getDirection().step();
+        float length = (float) conn.getLength();
+        Vector3f plane =
+            new Vector3f(1.0f - Math.abs(normal.x()), 1.0f - Math.abs(normal.y()), 1.0f - Math.abs(normal.z()));
+        voxelShape = Shapes.box(
+            (float) c.x + normal.x() * 0.125f - plane.x() * 0.125f,
+            (float) c.y + normal.y() * 0.125f - plane.y() * 0.125f,
+            (float) c.z + normal.z() * 0.125f - plane.z() * 0.125f,
+            (float) c.x + normal.x() * (length - 0.125f) + plane.x() * 0.125f,
+            (float) c.y + normal.y() * (length - 0.125f) + plane.y() * 0.125f,
+            (float) c.z + normal.z() * (length - 0.125f) + plane.z() * 0.125f);
+        collisionShape = Shapes.joinUnoptimized(collisionShape, voxelShape, BooleanOp.OR);
       }
-      */
     }
 
     for (var shape : mainShape.getExternalConnectionShapes()) {
@@ -202,7 +216,7 @@ public class ShapeBuilder {
       }
 
       for (ConduitShape.ConduitConnectionShape shape : conduitShape.getConnectionShapes().values()) {
-        // We only do the visual for the position axis direction, the conduit in the negative direction will draw
+        // We only do the visual for the positive axis direction, the conduit in the negative direction will draw
         // the other connection for us. Except for external connections, which don't have a conduit in the negative
         // direction.
         if (shape.getDirection().getAxisDirection() != Direction.AxisDirection.POSITIVE
