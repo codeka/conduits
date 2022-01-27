@@ -27,6 +27,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -154,6 +155,28 @@ public class ConduitBlockEntity extends BlockEntity {
     return conduitHolder;
   }
 
+  /**
+   * Removes the given {@link ConduitType} from this {@link ConduitBlockEntity}
+   *
+   * @param dropItem If true, we'll drop an item of the conduit type you dropped.
+   */
+  public void removeConduit(ConduitType conduitType, boolean dropItem) {
+    if (!conduitsByType.containsKey(conduitType)) {
+      // TODO: should we notify the caller? This seems like it would be a bug.
+      return;
+    }
+
+    conduits.remove(conduitType.getNetworkType());
+    conduitsByType.remove(conduitType);
+    conduitNetworkManager.removeConduit(this, conduitType);
+
+    needsUpdate = true;
+
+    if (dropItem) {
+      Block.popResource(requireLevel(), getBlockPos(), conduitType.getItemStack(1));
+    }
+  }
+
   public void onConduitToolGuiOpen(ServerPlayer player) {
     if (conduitToolPlayers.isEmpty()) {
       // Inform the conduits that someone is looking at the tool. They'll want to start recording stats.
@@ -270,7 +293,7 @@ public class ConduitBlockEntity extends BlockEntity {
 
         // We added the conduit, so we're done.
         conduitItem.onPlacedOrAdded(requireLevel(), player, holdingStack, getBlockState(), getBlockPos(), false);
-        conduitNetworkManager.init(this, conduitItem.getConduitType());
+        conduitNetworkManager.addConduit(this, conduitItem.getConduitType());
         needsUpdate = true;
         return InteractionResult.SUCCESS;
       }

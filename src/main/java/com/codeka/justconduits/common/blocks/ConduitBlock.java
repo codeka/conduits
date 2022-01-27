@@ -5,6 +5,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
@@ -61,6 +62,15 @@ public class ConduitBlock extends Block implements EntityBlock {
     if (level.getBlockEntity(blockPos) instanceof ConduitBlockEntity conduitBlockEntity) {
       conduitBlockEntity.onNeighborChanged(blockState, neighborBlockPos);
     }
+  }
+
+  @Override
+  public void playerDestroy(
+      @Nonnull Level level, @Nonnull Player player, @Nonnull BlockPos pos, @Nonnull BlockState blockState,
+      @Nullable BlockEntity blockEntity, @Nonnull ItemStack tool) {
+    // TODO: if the block is destroyed, you probably did e.g. TNT or something. We'll want to drop all our conduits.
+    L.atInfo().log("playerDestroy");
+    super.playerDestroy(level, player, pos, blockState, blockEntity, tool);
   }
 
   // TODO: why is there neighborChanged and onNeighborChanged? They both seem to do similar, but slightly different

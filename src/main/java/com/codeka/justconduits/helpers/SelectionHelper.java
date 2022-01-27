@@ -2,6 +2,7 @@ package com.codeka.justconduits.helpers;
 
 import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
 import com.codeka.justconduits.common.blocks.ConduitConnection;
+import com.codeka.justconduits.common.impl.ConduitType;
 import com.codeka.justconduits.common.shape.SelectionShape;
 import com.mojang.math.Vector3f;
 import net.minecraft.client.Camera;
@@ -26,6 +27,7 @@ public class SelectionHelper {
   private static final Logger L = LogManager.getLogger();
 
   public record SelectionResult(ConduitConnection connection,
+                                ConduitType conduitType,
                                 BlockHitResult subHitResult,
                                 VoxelShape shape) {
   }
@@ -83,7 +85,8 @@ public class SelectionHelper {
       double distanceToEye = subHitResult.getLocation().distanceTo(startPos);
       if (distanceToEye < closestDistance) {
         closestDistance = distanceToEye;
-        closestResult = new SelectionResult(shape.getConnection(), subHitResult, shape.getVoxelShape());
+        closestResult =
+            new SelectionResult(shape.getConnection(), shape.getConduitType(), subHitResult, shape.getVoxelShape());
       }
     }
 

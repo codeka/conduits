@@ -78,6 +78,7 @@ public class ShapeBuilder {
         if (conn.getConnectedBlockEntity(level) instanceof ConduitBlockEntity connectedBlockEntity) {
           Vec3 otherCenterOffset =
               connectedBlockEntity.getShapeManager().getCenterOffset(connectedBlockEntity, conduitType);
+          // TODO: if it's null what do we do?
 
           // We only look in the negative direction to see if we had mis-matched centers, because in the positive
           // direction, we always draw the connections from the actual center.

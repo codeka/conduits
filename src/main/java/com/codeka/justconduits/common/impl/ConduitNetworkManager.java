@@ -1,5 +1,6 @@
 package com.codeka.justconduits.common.impl;
 
+import com.codeka.justconduits.common.blocks.ConduitBlock;
 import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
 import com.codeka.justconduits.common.blocks.ConduitConnection;
 import com.codeka.justconduits.common.capabilities.network.IConduitNetworkManager;
@@ -34,17 +35,17 @@ public class ConduitNetworkManager implements IConduitNetworkManager {
     }
 
     for (ConduitHolder conduitHolder : conduitBlockEntity.getConduitHolders()) {
-      init(level, conduitBlockEntity, conduitHolder);
+      addConduit(level, conduitBlockEntity, conduitHolder);
     }
   }
 
   /**
-   * This is called when you add a new conduit to a {@link ConduitBlockEntity}. We need to initialize that conduit.
+   * This is called when you add a new conduit to a {@link ConduitBlockEntity}. We need to setup the network.
    *
    * @param conduitBlockEntity The {@link ConduitBlockEntity}  you're adding a conduit to.
    * @param conduitType The {@link ConduitType} you've just added.
    */
-  public void init(ConduitBlockEntity conduitBlockEntity, ConduitType conduitType) {
+  public void addConduit(ConduitBlockEntity conduitBlockEntity, ConduitType conduitType) {
     Level level = conduitBlockEntity.getLevel();
     if (level == null) {
       L.atError().log("ConduitBlockEntity doesn't have a level.");
@@ -53,13 +54,24 @@ public class ConduitNetworkManager implements IConduitNetworkManager {
 
     ConduitHolder conduitHolder = conduitBlockEntity.getConduitHolder(conduitType);
     if (conduitHolder != null) {
-      init(level, conduitBlockEntity, conduitHolder);
+      addConduit(level, conduitBlockEntity, conduitHolder);
     }
   }
 
-  private void init(Level level, ConduitBlockEntity conduitBlockEntity, ConduitHolder conduitHolder) {
+  /**
+   * This is called when you remove a conduit from a {@link ConduitBlockEntity}. We need to update the networks that
+   * are neighboring us. They may no longer be connected.
+   *
+   * @param conduitBlockEntity The {@link ConduitBlockEntity} you're removing a conduit from.
+   * @param conduitType The {@link ConduitType} you're removing.
+   */
+  public void removeConduit(ConduitBlockEntity conduitBlockEntity, ConduitType conduitType) {
+    // TODO: implement me.
+  }
+
+  private void addConduit(Level level, ConduitBlockEntity conduitBlockEntity, ConduitHolder conduitHolder) {
     if (conduitHolder.getNetworkId() > 0) {
-      L.atWarn().log("init called on ConduitBlockEntity that already belongs to a network.");
+      L.atWarn().log("addConduit called on ConduitBlockEntity that already belongs to a network.");
       return;
     }
 

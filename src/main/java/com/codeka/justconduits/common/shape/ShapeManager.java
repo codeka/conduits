@@ -14,6 +14,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.function.Function;
@@ -81,7 +82,12 @@ public class ShapeManager {
     dirty = true;
   }
 
-  /** Gets the center offset for the given {@link ConduitType} in the given {@link ConduitBlockEntity}. */
+  /**
+   * Gets the center offset for the given {@link ConduitType} in the given {@link ConduitBlockEntity}.
+   *
+   * @return null if the conduit block entity doesn't have the given conduit type.
+   */
+  @Nullable
   public Vec3 getCenterOffset(ConduitBlockEntity conduitBlockEntity, ConduitType conduitType) {
     // TODO: this is quite inefficient.
     HashSet<Direction> directions = new HashSet<>();

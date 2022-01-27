@@ -1,5 +1,6 @@
-package com.codeka.justconduits.common.blocks;
+package com.codeka.justconduits.client.blocks;
 
+import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
 import com.codeka.justconduits.helpers.LineHelper;
 import com.codeka.justconduits.helpers.SelectionHelper;
 import com.mojang.math.Vector3f;

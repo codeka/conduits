@@ -1,5 +1,6 @@
 package com.codeka.justconduits.common.impl;
 
+import com.codeka.justconduits.JustConduitsMod;
 import com.codeka.justconduits.client.gui.widgets.Icon;
 import com.codeka.justconduits.common.impl.energy.EnergyConduit;
 import com.codeka.justconduits.common.impl.energy.EnergyConduitClientStatePacket;
@@ -11,6 +12,13 @@ import com.codeka.justconduits.common.impl.item.ItemConduit;
 import com.codeka.justconduits.common.impl.item.ItemConduitClientStatePacket;
 import com.codeka.justconduits.common.impl.item.ItemExternalConnection;
 import com.codeka.justconduits.packets.IConduitTypeClientStatePacket;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ItemLike;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.RegistryObject;
 
 import java.util.function.Supplier;
 
@@ -67,6 +75,15 @@ public class ConduitType {
 
   public String getName() {
     return name;
+  }
+
+  public ItemStack getItemStack(int count) {
+    Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(JustConduitsMod.MODID, name + "_conduit"));
+    if (item == null) {
+      return ItemStack.EMPTY;
+    }
+
+    return new ItemStack(item, count);
   }
 
   public NetworkType getNetworkType() {

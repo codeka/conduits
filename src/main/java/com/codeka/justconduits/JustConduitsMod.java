@@ -1,10 +1,12 @@
 package com.codeka.justconduits;
 
 import com.codeka.justconduits.client.ClientSetup;
+import com.codeka.justconduits.client.blocks.ConduitBlockHighlighter;
 import com.codeka.justconduits.common.ModBlockEntities;
 import com.codeka.justconduits.common.ModBlocks;
 import com.codeka.justconduits.common.ModContainers;
 import com.codeka.justconduits.common.ModItems;
+import com.codeka.justconduits.common.blocks.ConduitBlockBreakEventHandler;
 import com.codeka.justconduits.debug.DebugCommands;
 import com.codeka.justconduits.packets.JustConduitsPacketHandler;
 import net.minecraft.commands.Commands;
@@ -34,6 +36,7 @@ public class JustConduitsMod {
     FMLJavaModLoadingContext.get().getModEventBus().addListener(this::enqueueIMC);
     FMLJavaModLoadingContext.get().getModEventBus().addListener(this::processIMC);
 
+    MinecraftForge.EVENT_BUS.register(ConduitBlockBreakEventHandler.class);
     MinecraftForge.EVENT_BUS.addListener(this::registerCommands);
     ModItems.register();
     ModBlocks.register();

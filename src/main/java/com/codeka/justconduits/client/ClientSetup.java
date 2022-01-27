@@ -10,7 +10,7 @@ import com.codeka.justconduits.client.gui.FluidConduitTab;
 import com.codeka.justconduits.client.gui.ItemConduitTab;
 import com.codeka.justconduits.common.ModBlocks;
 import com.codeka.justconduits.common.ModContainers;
-import com.codeka.justconduits.common.blocks.ConduitBlockHighlighter;
+import com.codeka.justconduits.client.blocks.ConduitBlockHighlighter;
 import com.codeka.justconduits.common.impl.ConduitType;
 import com.codeka.justconduits.debug.DebugVoxelShapeHighlighter;
 import net.minecraft.client.gui.screens.MenuScreens;
