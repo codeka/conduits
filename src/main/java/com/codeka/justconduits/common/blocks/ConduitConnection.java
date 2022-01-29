@@ -132,6 +132,20 @@ public class ConduitConnection {
   }
 
   /**
+   * When removing a conduit, we just remove that one conduit type from the connections and the neighbor pointing back
+   * to us. Afterwards, we can then update the network knowing that the conduit is removed at least from this block.
+   */
+  public void removeConduitType(@Nonnull Level level, @Nonnull ConduitType conduitType) {
+    conduitTypes.remove(conduitType);
+    if (getConnectedBlockEntity(level) instanceof ConduitBlockEntity neighbor) {
+      ConduitConnection reverseConnection = neighbor.getConnection(dir.getOpposite());
+      if (reverseConnection != null) {
+        reverseConnection.conduitTypes.remove(conduitType);
+      }
+    }
+  }
+
+  /**
    * Gets the set of {@link ConduitType}s in this connection.
    *
    * When {@link #getConnectionType()} is {@link ConnectionType#CONDUIT}, this is the connections in both this block

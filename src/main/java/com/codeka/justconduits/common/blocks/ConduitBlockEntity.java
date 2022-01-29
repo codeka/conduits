@@ -168,6 +168,11 @@ public class ConduitBlockEntity extends BlockEntity {
 
     conduits.remove(conduitType.getNetworkType());
     conduitsByType.remove(conduitType);
+    // Remove references to this conduit from our connections as well as from our neighbor's connections
+    for (ConduitConnection conn : connections.values()) {
+      conn.removeConduitType(requireLevel(), conduitType);
+    }
+
     conduitNetworkManager.removeConduit(this, conduitType);
 
     needsUpdate = true;
