@@ -9,8 +9,11 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.util.LazyOptional;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * This is the interface that each conduit implements, and it provides the main logic for the conduit (e.g. transferring
@@ -55,6 +58,14 @@ public interface IConduit {
    */
   default void onConduitToolClose(
       @Nonnull ConduitBlockEntity conduitBlockEntity, @Nonnull ConduitHolder conduitHolder) {}
+
+  /** Gets a capability that we'll want to return to our neighbor. */
+  @Nullable
+  default <T> LazyOptional<T> getCapability(
+      @Nonnull ConduitBlockEntity conduitBlockEntity, @Nonnull ConduitHolder conduitHolder,
+      @Nonnull Capability<T> capability, @Nullable Direction direction) {
+    return null;
+  }
 
   /**
    * Creates a {@link IConduitToolExternalPacket} so we can display details of the network it on the GUI

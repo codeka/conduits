@@ -23,7 +23,7 @@ public class NetworkRegistry {
   /** Returns the network with the given ID, or null if the network is not registered. */
   @SuppressWarnings("unchecked")
   @Nullable
-  public static <T extends IConduitNetwork> T getNetwork(long id) {
+  public static <T extends IConduitNetwork> T  getNetwork(long id) {
     IConduitNetwork network = networks.get(id);
     if (network == null) {
       return null;

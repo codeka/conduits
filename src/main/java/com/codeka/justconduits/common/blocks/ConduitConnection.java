@@ -83,8 +83,10 @@ public class ConduitConnection {
   }
 
   /**
-   * Helper method to get the {@link BlockEntity} that we are actually connected to.
+   * Helper method to get the {@link BlockEntity} that we are actually connected to. Could be null if the block entity
+   * was just destroyed and we haven't updated the network yet.
    */
+  @Nullable
   public BlockEntity getConnectedBlockEntity(Level level) {
     return level.getBlockEntity(getConnectedBlockPos());
   }

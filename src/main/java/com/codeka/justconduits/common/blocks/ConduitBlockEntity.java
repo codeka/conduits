@@ -41,6 +41,7 @@ import net.minecraftforge.client.model.ModelDataManager;
 import net.minecraftforge.client.model.data.IModelData;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.network.PacketDistributor;
 import org.apache.logging.log4j.LogManager;
@@ -232,6 +233,14 @@ public class ConduitBlockEntity extends BlockEntity {
   public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> capability, @Nullable Direction direction) {
     if (capability == ModCapabilities.CONDUIT_NETWORK_MANAGER && direction == null) {
       return this.conduitNetworkManagerLazyOptional.cast();
+    }
+
+    for (ConduitHolder conduitHolder : conduits.values()) {
+      LazyOptional<T> lazyOptional =
+          conduitHolder.getConduitImpl().getCapability(this, conduitHolder, capability, direction);
+      if (lazyOptional != null) {
+        return lazyOptional;
+      }
     }
 
     return super.getCapability(capability, direction);
