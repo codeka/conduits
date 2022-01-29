@@ -20,7 +20,7 @@ import net.minecraftforge.network.PacketDistributor;
 import javax.annotation.Nonnull;
 
 public class ItemConduitTab implements IConduitTab {
-  private static final ResourceLocation ITEM_GUI =
+  private static final ResourceLocation BG =
       new ResourceLocation(JustConduitsMod.MODID, "textures/gui/conduit_item.png");
 
   private ConduitScreen screen;
@@ -98,7 +98,7 @@ public class ItemConduitTab implements IConduitTab {
   @Nonnull
   @Override
   public ResourceLocation getBackground() {
-    return ITEM_GUI;
+    return BG;
   }
 
 

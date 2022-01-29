@@ -20,7 +20,7 @@ import javax.annotation.Nonnull;
 
 public class FluidConduitTab implements IConduitTab {
   private static final ResourceLocation FLUID_GUI =
-      new ResourceLocation(JustConduitsMod.MODID, "textures/gui/conduit_fluid.png");
+      new ResourceLocation(JustConduitsMod.MODID, "textures/gui/conduit_basic.png");
 
   private ConduitScreen screen;
   private ConduitConnection connection;

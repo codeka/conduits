@@ -1,6 +1,5 @@
 package com.codeka.justconduits.client.gui;
 
-import com.codeka.justconduits.JustConduitsMod;
 import com.codeka.justconduits.client.gui.widgets.TabButton;
 import com.codeka.justconduits.client.gui.widgets.TabButtonRow;
 import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
@@ -14,7 +13,6 @@ import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -24,9 +22,6 @@ import java.util.ArrayList;
 
 public class ConduitScreen extends AbstractContainerScreen<ConduitContainerMenu> {
   private static final Logger L = LogManager.getLogger();
-
-  private final ResourceLocation ITEM_GUI =
-      new ResourceLocation(JustConduitsMod.MODID, "textures/gui/conduit_item.png");
 
   private final Component connectionName;
   private ConduitBlockEntity conduitBlockEntity;
@@ -91,7 +86,7 @@ public class ConduitScreen extends AbstractContainerScreen<ConduitContainerMenu>
   protected void renderBg(@Nonnull PoseStack poseStack, float partialTick, int mouseX, int mouseY) {
     conduitTabButtons.beforeWindowRender(poseStack, partialTick, mouseX, mouseY);
 
-    RenderSystem.setShaderTexture(0, ITEM_GUI);
+    RenderSystem.setShaderTexture(0, tabs.get(tabIndex).getBackground());
     int relX = (this.width - this.imageWidth) / 2;
     int relY = (this.height - this.imageHeight) / 2;
 
@@ -102,7 +97,7 @@ public class ConduitScreen extends AbstractContainerScreen<ConduitContainerMenu>
 
   @Override
   protected void renderLabels(@Nonnull PoseStack matrixStack, int mouseX, int mouseY) {
-    drawString(matrixStack, Minecraft.getInstance().font, connectionName, 10, 10, 0xffffffff);
+    drawString(matrixStack, Minecraft.getInstance().font, connectionName, 10, 8, 0xffffffff);
   }
 
   @Override

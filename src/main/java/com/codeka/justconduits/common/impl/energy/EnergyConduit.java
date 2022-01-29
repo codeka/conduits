@@ -65,13 +65,12 @@ public class EnergyConduit extends CommonConduit {
       }
 
       EnergyExternalConnection conn = conduitConnection.getNetworkExternalConnection(conduitHolder.getConduitType());
-/*
       if (conn.getInsertMode() != ConnectionMode.ALWAYS_ON) {
         // Energy conduits only do something when extracting.
         // TODO: handle redstone modes.
         continue;
       }
-*/
+
       BlockEntity blockEntity = conduitConnection.getConnectedBlockEntity(level);
       if (blockEntity == null) {
         continue;
