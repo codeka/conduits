@@ -46,6 +46,6 @@ public class VisualShape {
   }
 
   public record MultiTextureBox(
-      Vector3f min, Vector3f max, Map<Direction, Material> materials, Material defaultMaterial) {
+      Vector3f min, Vector3f max, boolean rotateUv, Map<Direction, Material> materials, Material defaultMaterial) {
   }
 }

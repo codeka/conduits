@@ -125,10 +125,25 @@ public class VisualShapeBuilder {
     }
 
     for (ConduitShape.ExternalConnectionShape externalConnectionShape : mainShape.getExternalConnectionShapes()) {
+      Vector3f min =
+          new Vector3f(
+              externalConnectionShape.min().x(), externalConnectionShape.min().y(), externalConnectionShape.min().z());
+      min.add(
+          0.0625f * (1.0f - Math.abs(externalConnectionShape.connection().getDirection().getStepX())),
+          0.0625f * (1.0f - Math.abs(externalConnectionShape.connection().getDirection().getStepY())),
+          0.0625f * (1.0f - Math.abs(externalConnectionShape.connection().getDirection().getStepZ())));
+      Vector3f max =
+          new Vector3f(
+              externalConnectionShape.max().x(), externalConnectionShape.max().y(), externalConnectionShape.max().z());
+      max.add(
+          -0.0625f * (1.0f - Math.abs(externalConnectionShape.connection().getDirection().getStepX())),
+          -0.0625f * (1.0f - Math.abs(externalConnectionShape.connection().getDirection().getStepY())),
+          -0.0625f * (1.0f - Math.abs(externalConnectionShape.connection().getDirection().getStepZ())));
       visualShape.addMultiTextureBox(
           new VisualShape.MultiTextureBox(
-              externalConnectionShape.min(),
-              externalConnectionShape.max(),
+              min, max,
+              externalConnectionShape.connection().getDirection() == Direction.EAST ||
+                  externalConnectionShape.connection().getDirection() == Direction.WEST,
               ImmutableMap.of(
                   externalConnectionShape.connection().getDirection(), CONNECTOR_FRONT_MATERIAL,
                   externalConnectionShape.connection().getDirection().getOpposite(), CONNECTOR_BACK_MATERIAL),
@@ -147,10 +162,12 @@ public class VisualShapeBuilder {
       quads.addAll(QuadHelper.createCube(box.getMin(), box.getMax(), texture));
     }
 
+    // TODO: move the UV stuff to the VisualShape.
     Vec2 minUv = new Vec2(0.0f, 0.0f);
-    Vec2 sideMaxUv = new Vec2(16.0f, 4.0f);
     Vec2 frontBackMaxUv = new Vec2(16.0f, 16.0f);
     for (var multiTextureBox : visualShape.getMultiTextureBoxes()) {
+      final Vec2 sideMaxUv = new Vec2(16.0f, 4.0f);
+
       for (Direction dir : Direction.values()) {
         Material material = multiTextureBox.materials().get(dir);
         Vec2 maxUv = frontBackMaxUv;
@@ -160,7 +177,8 @@ public class VisualShapeBuilder {
         }
         quads.add(
             QuadHelper.createQuad(
-                dir, multiTextureBox.min(), multiTextureBox.max(), minUv, maxUv, spriteGetter.apply(material)));
+                dir, multiTextureBox.min(), multiTextureBox.max(), minUv, maxUv, multiTextureBox.rotateUv(),
+                spriteGetter.apply(material)));
       }
     }
 

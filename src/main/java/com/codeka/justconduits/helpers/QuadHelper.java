@@ -53,32 +53,32 @@ public class QuadHelper {
       case DOWN -> createQuad(
           v(min.x(), min.y(), min.z()), v(max.x(), min.y(), min.z()),
           v(max.x(), min.y(), max.z()), v(min.x(), min.y(), max.z()),
-          new Vec2(0.0f, 0.0f), new Vec2(sw, sh),
+          new Vec2(0.0f, 0.0f), new Vec2(sw, sh), false,
           face, sprite);
       case UP -> createQuad(
           v(min.x(), max.y(), min.z()), v(min.x(), max.y(), max.z()),
           v(max.x(), max.y(), max.z()), v(max.x(), max.y(), min.z()),
-          new Vec2(0.0f, 0.0f), new Vec2(sw, sh),
+          new Vec2(0.0f, 0.0f), new Vec2(sw, sh), false,
           face, sprite);
       case NORTH -> createQuad(
           v(min.x(), max.y(), min.z()), v(max.x(), max.y(), min.z()),
           v(max.x(), min.y(), min.z()), v(min.x(), min.y(), min.z()),
-          new Vec2(0.0f, 0.0f), new Vec2(sw, sh),
+          new Vec2(0.0f, 0.0f), new Vec2(sw, sh), false,
           face, sprite);
       case SOUTH -> createQuad(
           v(min.x(), max.y(), max.z()), v(min.x(), min.y(), max.z()),
           v(max.x(), min.y(), max.z()), v(max.x(), max.y(), max.z()),
-          new Vec2(0.0f, 0.0f), new Vec2(sw, sh),
+          new Vec2(0.0f, 0.0f), new Vec2(sw, sh), false,
           face, sprite);
       case EAST -> createQuad(
           v(max.x(), max.y(), min.z()), v(max.x(), max.y(), max.z()),
           v(max.x(), min.y(), max.z()), v(max.x(), min.y(), min.z()),
-          new Vec2(0.0f, 0.0f), new Vec2(sw, sh),
+          new Vec2(0.0f, 0.0f), new Vec2(sw, sh), false,
           face, sprite);
       case WEST -> createQuad(
           v(min.x(), max.y(), min.z()), v(min.x(), min.y(), min.z()),
           v(min.x(), min.y(), max.z()), v(min.x(), max.y(), max.z()),
-          new Vec2(0.0f, 0.0f), new Vec2(sw, sh),
+          new Vec2(0.0f, 0.0f), new Vec2(sw, sh), false,
           face, sprite);
     };
   }
@@ -94,42 +94,43 @@ public class QuadHelper {
    * @return A {@link BakedQuad}.
    */
   public static BakedQuad createQuad(
-      Direction face, Vector3f min, Vector3f max, Vec2 uvMin, Vec2 uvMax, TextureAtlasSprite sprite) {
+      Direction face, Vector3f min, Vector3f max, Vec2 uvMin, Vec2 uvMax, boolean rotateUv, TextureAtlasSprite sprite) {
     return switch(face) {
       case DOWN -> createQuad(
           v(min.x(), min.y(), min.z()), v(max.x(), min.y(), min.z()),
           v(max.x(), min.y(), max.z()), v(min.x(), min.y(), max.z()),
-          uvMin, uvMax, face, sprite);
+          uvMin, uvMax, rotateUv, face, sprite);
       case UP -> createQuad(
           v(min.x(), max.y(), min.z()), v(min.x(), max.y(), max.z()),
           v(max.x(), max.y(), max.z()), v(max.x(), max.y(), min.z()),
-          uvMin, uvMax, face, sprite);
+          uvMin, uvMax, rotateUv, face, sprite);
       case NORTH -> createQuad(
           v(min.x(), max.y(), min.z()), v(max.x(), max.y(), min.z()),
           v(max.x(), min.y(), min.z()), v(min.x(), min.y(), min.z()),
-          uvMin, uvMax, face, sprite);
+          uvMin, uvMax, rotateUv, face, sprite);
       case SOUTH -> createQuad(
           v(min.x(), max.y(), max.z()), v(min.x(), min.y(), max.z()),
           v(max.x(), min.y(), max.z()), v(max.x(), max.y(), max.z()),
-          uvMin, uvMax, face, sprite);
+          uvMin, uvMax, rotateUv, face, sprite);
       case EAST -> createQuad(
           v(max.x(), max.y(), min.z()), v(max.x(), max.y(), max.z()),
           v(max.x(), min.y(), max.z()), v(max.x(), min.y(), min.z()),
-          uvMin, uvMax, face, sprite);
+          uvMin, uvMax, rotateUv, face, sprite);
       case WEST -> createQuad(
           v(min.x(), max.y(), min.z()), v(min.x(), min.y(), min.z()),
           v(min.x(), min.y(), max.z()), v(min.x(), max.y(), max.z()),
-          uvMin, uvMax, face, sprite);
+          uvMin, uvMax, rotateUv, face, sprite);
     };
   }
 
   private static BakedQuad createQuad(
-      Vector3f v1, Vector3f v2, Vector3f v3, Vector3f v4, Vec2 uvMin, Vec2 uvMax, Direction dir,
+      Vector3f v1, Vector3f v2, Vector3f v3, Vector3f v4, Vec2 uvMin, Vec2 uvMax, boolean rotateUv, Direction dir,
       TextureAtlasSprite sprite) {
     var builder = new BakedQuadBuilder(sprite);
     Vector3f normal = dir.step();
     builder.setQuadOrientation(dir);
-    if (dir.getAxisDirection() == Direction.AxisDirection.POSITIVE) {
+    if ((dir.getAxisDirection() == Direction.AxisDirection.POSITIVE && !rotateUv) ||
+        (dir.getAxisDirection() == Direction.AxisDirection.NEGATIVE && rotateUv)) {
       putVertex(builder, normal, v1, uvMin.x, uvMin.y, sprite);
       putVertex(builder, normal, v2, uvMin.x, uvMax.y, sprite);
       putVertex(builder, normal, v3, uvMax.x, uvMax.y, sprite);
@@ -139,7 +140,6 @@ public class QuadHelper {
       putVertex(builder, normal, v2, uvMax.x, uvMax.y, sprite);
       putVertex(builder, normal, v3, uvMax.x, uvMin.y, sprite);
       putVertex(builder, normal, v4, uvMin.x, uvMin.y, sprite);
-
     }
     return builder.build();
   }
