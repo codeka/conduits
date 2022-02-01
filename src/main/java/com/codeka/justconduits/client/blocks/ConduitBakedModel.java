@@ -1,6 +1,7 @@
 package com.codeka.justconduits.client.blocks;
 
 import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
+import com.codeka.justconduits.common.shape.VisualShapeBuilder;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.ItemOverrides;
@@ -84,7 +85,8 @@ public class ConduitBakedModel implements IDynamicBakedModel {
   @Nonnull
   @Override
   public TextureAtlasSprite getParticleIcon() {
-    return spriteGetter.apply(ConduitModelLoader.SIMPLE_ITEM_CONDUIT_MATERIAL);
+    // TODO: is this the best way to show the particles?
+    return spriteGetter.apply(VisualShapeBuilder.SIMPLE_ITEM_CONDUIT_MATERIAL);
   }
 
   @SuppressWarnings("deprecation")

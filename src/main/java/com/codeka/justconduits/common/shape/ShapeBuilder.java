@@ -1,11 +1,9 @@
 package com.codeka.justconduits.common.shape;
 
-import com.codeka.justconduits.client.blocks.ConduitModelLoader;
 import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
 import com.codeka.justconduits.common.blocks.ConduitConnection;
 import com.codeka.justconduits.common.impl.ConduitType;
 import com.mojang.math.Vector3f;
-import net.minecraft.client.resources.model.Material;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
@@ -132,12 +130,12 @@ public class ShapeBuilder {
       collisionShape = Shapes.joinUnoptimized(collisionShape, voxelShape, BooleanOp.OR);
 
       for (var conn : shape.getConnectionShapes().values()) {
-        if (conn.getDirection().getAxisDirection() != Direction.AxisDirection.POSITIVE) {
+        if (conn.direction().getAxisDirection() != Direction.AxisDirection.POSITIVE) {
           continue;
         }
 
-        Vector3f normal = conn.getDirection().step();
-        float length = (float) conn.getLength();
+        Vector3f normal = conn.direction().step();
+        float length = (float) conn.length();
         Vector3f plane =
             new Vector3f(1.0f - Math.abs(normal.x()), 1.0f - Math.abs(normal.y()), 1.0f - Math.abs(normal.z()));
         voxelShape = Shapes.box(
@@ -162,9 +160,9 @@ public class ShapeBuilder {
     SelectionShape selectionShape = new SelectionShape();
     for (ConduitShape.ExternalConnectionShape shape : mainShape.getExternalConnectionShapes()) {
       VoxelShape voxelShape = Shapes.box(
-          shape.getMin().x(), shape.getMin().y(), shape.getMin().z(),
-          shape.getMax().x(), shape.getMax().y(), shape.getMax().z());
-      selectionShape.addShape(shape.getConnection(), voxelShape);
+          shape.min().x(), shape.min().y(), shape.min().z(),
+          shape.max().x(), shape.max().y(), shape.max().z());
+      selectionShape.addShape(shape.connection(), voxelShape);
     }
 
     for (var entry : mainShape.getShapes().entrySet()) {
@@ -179,86 +177,5 @@ public class ShapeBuilder {
     }
 
     return selectionShape;
-  }
-
-  public static VisualShape createVisualShape(ConduitShape mainShape) {
-    VisualShape visualShape = new VisualShape();
-    for (var entry : mainShape.getShapes().entrySet()) {
-      ConduitType conduitType = entry.getKey();
-      ConduitShape.SingleConduitShape conduitShape = entry.getValue();
-
-      // TODO: make this generic.
-      Material material = ConduitModelLoader.MISSING_MATERIAL;
-      if (conduitType == ConduitType.SIMPLE_ITEM) {
-        material = ConduitModelLoader.SIMPLE_ITEM_CONDUIT_MATERIAL;
-      } else if (conduitType == ConduitType.SIMPLE_FLUID) {
-        material = ConduitModelLoader.SIMPLE_FLUID_CONDUIT_MATERIAL;
-      } else if (conduitType == ConduitType.SIMPLE_ENERGY) {
-        material = ConduitModelLoader.SIMPLE_ENERGY_CONDUIT_MATERIAL;
-      }
-
-      final Vec3 c = conduitShape.getCenter();
-      if (conduitShape.needComplexConduit()) {
-        // The complex conduit shape always uses the SIMPLE_ITEM material (TODO: use a custom material)
-        visualShape.addBox(
-            new VisualShape.Box(
-                new Vector3f(
-                    (float) conduitShape.getMin().x() - 0.125f,
-                    (float) conduitShape.getMin().y() - 0.125f,
-                    (float) conduitShape.getMin().z() - 0.125f),
-                new Vector3f(
-                    (float) conduitShape.getMax().x() + 0.125f,
-                    (float) conduitShape.getMax().y() + 0.125f,
-                    (float) conduitShape.getMax().z() + 0.125f),
-                ConduitModelLoader.SIMPLE_ITEM_CONDUIT_MATERIAL));
-      } else {
-        visualShape.addBox(
-            new VisualShape.Box(
-                new Vector3f((float) c.x - 0.125f, (float) c.y - 0.125f, (float) c.z - 0.125f),
-                new Vector3f((float) c.x + 0.125f, (float) c.y + 0.125f, (float) c.z + 0.125f),
-                material));
-      }
-
-      for (ConduitShape.ConduitConnectionShape shape : conduitShape.getConnectionShapes().values()) {
-        // We only do the visual for the positive axis direction, the conduit in the negative direction will draw
-        // the other connection for us. Except for external connections, which don't have a conduit in the negative
-        // direction.
-        if (shape.getDirection().getAxisDirection() != Direction.AxisDirection.POSITIVE
-            && shape.getConnectionType() != ConduitConnection.ConnectionType.EXTERNAL) {
-          continue;
-        }
-
-        Vector3f normal = shape.getDirection().step();
-        float length = (float) shape.getLength();
-        Vector3f plane =
-            new Vector3f(1.0f - Math.abs(normal.x()), 1.0f - Math.abs(normal.y()), 1.0f - Math.abs(normal.z()));
-        Vector3f min = new Vector3f(
-            (float) c.x + normal.x() * 0.125f - plane.x() * 0.09375f,
-            (float) c.y + normal.y() * 0.125f - plane.y() * 0.09375f,
-            (float) c.z + normal.z() * 0.125f - plane.z() * 0.09375f);
-        Vector3f max = new Vector3f(
-            (float) c.x + normal.x() * (length - 0.125f) + plane.x() * 0.09375f,
-            (float) c.y + normal.y() * (length - 0.125f) + plane.y() * 0.09375f,
-            (float) c.z + normal.z() * (length - 0.125f) + plane.z() * 0.09375f);
-        if (shape.getDirection().getAxisDirection() == Direction.AxisDirection.NEGATIVE) {
-          // If the normal is negative (which can be the case for external connections), then min & max will be swapped.
-          // So wap them back again.
-          Vector3f tmp = min;
-          min = max;
-          max = tmp;
-        }
-        visualShape.addBox(new VisualShape.Box(min, max, material));
-      }
-    }
-
-    for (ConduitShape.ExternalConnectionShape externalConnectionShape : mainShape.getExternalConnectionShapes()) {
-      visualShape.addBox(
-          new VisualShape.Box(
-              externalConnectionShape.getMin(),
-              externalConnectionShape.getMax(),
-              ConduitModelLoader.CONNECTOR_MATERIAL));
-    }
-
-    return visualShape;
   }
 }

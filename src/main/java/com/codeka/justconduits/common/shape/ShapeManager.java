@@ -67,7 +67,7 @@ public class ShapeManager {
     if (dirty) {
       updateShapes();
     }
-    return createBakedQuads(spriteGetter, visualShape);
+    return VisualShapeBuilder.createBakedQuads(spriteGetter, visualShape);
   }
 
   public SelectionShape getSelectionShape() {
@@ -111,21 +111,9 @@ public class ShapeManager {
   private void updateShapes() {
     ConduitShape mainShape = ShapeBuilder.generateMainShape(conduitBlockEntity);
     collisionShape = cache.getCollisionShape(conduitBlockEntity, () -> ShapeBuilder.createCollisionShape(mainShape));
-    visualShape = cache.getVisualShape(conduitBlockEntity, () -> ShapeBuilder.createVisualShape(mainShape));
+    visualShape = cache.getVisualShape(conduitBlockEntity, () -> VisualShapeBuilder.createVisualShape(mainShape));
     selectionShape =
         cache.getSelectionShape(conduitBlockEntity, () -> ShapeBuilder.createSelectionShape(mainShape));
     dirty = false;
-  }
-
-  private static ArrayList<BakedQuad> createBakedQuads(
-      Function<Material, TextureAtlasSprite> spriteGetter, VisualShape visualShape) {
-    ArrayList<BakedQuad> quads = new ArrayList<>();
-
-    for (var box : visualShape.getBoxes()) {
-      TextureAtlasSprite texture = spriteGetter.apply(box.getMaterial());
-      quads.addAll(QuadHelper.createCube(box.getMin(), box.getMax(), Transformation.identity(), texture));
-    }
-
-    return quads;
   }
 }

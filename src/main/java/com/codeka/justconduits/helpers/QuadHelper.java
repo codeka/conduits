@@ -7,6 +7,7 @@ import com.mojang.math.Vector4f;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Direction;
+import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.client.model.pipeline.BakedQuadBuilder;
 
@@ -21,128 +22,131 @@ public class QuadHelper {
   }
 
   /**
-   * Creates the quads for a {@link VoxelShape}.
-   *
-   * @param voxelShape A {@link VoxelShape} you want to turn into quads.
-   * @param transformation A {@link Transformation} to apply to the quads.
-   * @param sprite The {@link TextureAtlasSprite} to apply to all of the faces.
+   * Creates a simple cube with all four sides having the same texture.
    */
-  public static List<BakedQuad> generateQuads(
-      VoxelShape voxelShape, Transformation transformation, TextureAtlasSprite sprite) {
+  public static List<BakedQuad> createCube(Vector3f min, Vector3f max, TextureAtlasSprite sprite) {
     ArrayList<BakedQuad> quads = new ArrayList<>();
-    voxelShape.forAllBoxes((minX, minY, minZ, maxX, maxY, maxZ) ->
-        quads.addAll(
-            createCube(
-                new Vector3f((float) minX, (float) minY, (float) minZ),
-                new Vector3f((float) maxX, (float) maxY, (float) maxZ),
-                transformation, sprite)));
+    quads.add(createQuad(Direction.DOWN, min, max, sprite));
+    quads.add(createQuad(Direction.UP, min, max, sprite));
+    quads.add(createQuad(Direction.NORTH, min, max, sprite));
+    quads.add(createQuad(Direction.SOUTH, min, max, sprite));
+    quads.add(createQuad(Direction.EAST, min, max, sprite));
+    quads.add(createQuad(Direction.WEST, min, max, sprite));
     return quads;
   }
 
   /**
-   * Creates a list of {@link BakedQuad}s representing a cube.
-   *
-   * @param transformation The rotation to apply to the quad.
-   * @param sprite The sprite to use.
-   * @return A list of {@link BakedQuad}s representing a cube with all faces defined.
-   */
-  public static List<BakedQuad> createCube(Transformation transformation, TextureAtlasSprite sprite) {
-    ArrayList<BakedQuad> quads = new ArrayList<>();
-    quads.add(QuadHelper.createQuad(Direction.UP, transformation, sprite));
-    quads.add(QuadHelper.createQuad(Direction.DOWN, transformation, sprite));
-    quads.add(QuadHelper.createQuad(Direction.NORTH, transformation, sprite));
-    quads.add(QuadHelper.createQuad(Direction.SOUTH, transformation, sprite));
-    quads.add(QuadHelper.createQuad(Direction.EAST, transformation, sprite));
-    quads.add(QuadHelper.createQuad(Direction.WEST, transformation, sprite));
-    return quads;
-  }
-
-  public static List<BakedQuad> createCube(Vector3f min, Vector3f max, Transformation transformation,
-                                           TextureAtlasSprite sprite) {
-    ArrayList<BakedQuad> quads = new ArrayList<>();
-    quads.add(createQuad(
-        v(min.x(), min.y(), min.z()), v(max.x(), min.y(), min.z()),
-        v(max.x(), min.y(), max.z()), v(min.x(), min.y(), max.z()), transformation, sprite));
-    quads.add(createQuad(
-        v(min.x(), max.y(), min.z()), v(min.x(), max.y(), max.z()),
-        v(max.x(), max.y(), max.z()), v(max.x(), max.y(), min.z()), transformation, sprite));
-    quads.add(createQuad(
-        v(min.x(), max.y(), min.z()), v(max.x(), max.y(), min.z()),
-        v(max.x(), min.y(), min.z()), v(min.x(), min.y(), min.z()), transformation, sprite));
-    quads.add(createQuad(
-        v(min.x(), max.y(), max.z()), v(min.x(), min.y(), max.z()),
-        v(max.x(), min.y(), max.z()), v(max.x(), max.y(), max.z()), transformation, sprite));
-    quads.add(createQuad(
-        v(max.x(), max.y(), min.z()), v(max.x(), max.y(), max.z()),
-        v(max.x(), min.y(), max.z()), v(max.x(), min.y(), min.z()), transformation, sprite));
-    quads.add(createQuad(
-        v(min.x(), max.y(), min.z()), v(min.x(), min.y(), min.z()),
-        v(min.x(), min.y(), max.z()), v(min.x(), max.y(), max.z()), transformation, sprite));
-    return quads;
-  }
-
-  /**
-   * Creates a quad aligned to the given face.
+   * Creates a quad aligned to the given face. We assume the quad is one face of a cube with the given {@code min} and
+   * {@code max} coordinates.
    *
    * @param face The face you want to create the quad on.
-   * @param transformation The rotation to apply to the quad.
+   * @param min The minimum coordinate of a cube this quad is assumed to be a face of.
+   * @param max The maximum coordinate of a cube this quad is assumed to be a face of.
    * @param sprite The sprite to use.
    * @return A {@link BakedQuad}.
    */
-  public static BakedQuad createQuad(Direction face, Transformation transformation, TextureAtlasSprite sprite) {
+  public static BakedQuad createQuad(Direction face, Vector3f min, Vector3f max, TextureAtlasSprite sprite) {
+    float sw = sprite.getWidth();
+    float sh = sprite.getHeight();
+
     return switch(face) {
-      case DOWN -> createQuad(v(0, 0, 0), v(1, 0, 0), v(1, 0, 1), v(0, 0, 1), transformation, sprite);
-      case UP -> createQuad(v(0, 1, 0), v(0, 1, 1), v(1, 1, 1), v(1, 1, 0), transformation, sprite);
-      case NORTH -> createQuad(v(0, 1, 0), v(1, 1, 0), v(1, 0, 0), v(0, 0, 0), transformation, sprite);
-      case SOUTH -> createQuad(v(0, 1, 1), v(0, 0, 1), v(1, 0, 1), v(1, 1, 1), transformation, sprite);
-      case EAST -> createQuad(v(1, 1, 0), v(1, 1, 1), v(1, 0, 1), v(1, 0, 0), transformation, sprite);
-      case WEST -> createQuad(v(0, 1, 0), v(0, 0, 0), v(0, 0, 1), v(0, 1, 1), transformation, sprite);
+      case DOWN -> createQuad(
+          v(min.x(), min.y(), min.z()), v(max.x(), min.y(), min.z()),
+          v(max.x(), min.y(), max.z()), v(min.x(), min.y(), max.z()),
+          new Vec2(0.0f, 0.0f), new Vec2(sw, sh),
+          face, sprite);
+      case UP -> createQuad(
+          v(min.x(), max.y(), min.z()), v(min.x(), max.y(), max.z()),
+          v(max.x(), max.y(), max.z()), v(max.x(), max.y(), min.z()),
+          new Vec2(0.0f, 0.0f), new Vec2(sw, sh),
+          face, sprite);
+      case NORTH -> createQuad(
+          v(min.x(), max.y(), min.z()), v(max.x(), max.y(), min.z()),
+          v(max.x(), min.y(), min.z()), v(min.x(), min.y(), min.z()),
+          new Vec2(0.0f, 0.0f), new Vec2(sw, sh),
+          face, sprite);
+      case SOUTH -> createQuad(
+          v(min.x(), max.y(), max.z()), v(min.x(), min.y(), max.z()),
+          v(max.x(), min.y(), max.z()), v(max.x(), max.y(), max.z()),
+          new Vec2(0.0f, 0.0f), new Vec2(sw, sh),
+          face, sprite);
+      case EAST -> createQuad(
+          v(max.x(), max.y(), min.z()), v(max.x(), max.y(), max.z()),
+          v(max.x(), min.y(), max.z()), v(max.x(), min.y(), min.z()),
+          new Vec2(0.0f, 0.0f), new Vec2(sw, sh),
+          face, sprite);
+      case WEST -> createQuad(
+          v(min.x(), max.y(), min.z()), v(min.x(), min.y(), min.z()),
+          v(min.x(), min.y(), max.z()), v(min.x(), max.y(), max.z()),
+          new Vec2(0.0f, 0.0f), new Vec2(sw, sh),
+          face, sprite);
     };
   }
-  
+
   /**
-   * Create a quad with the given four vertices. The vertices should always define a plane.
+   * Creates a quad aligned to the given face. We assume the quad is one face of a cube with the given {@code min} and
+   * {@code max} coordinates.
    *
-   * @param v1 The first vertex.
-   * @param v2 The second vertex.
-   * @param v3 The third vertex.
-   * @param v4 The fourth vertex.
-   * @param transformation A transformation to apply to the vertices before baking them.
-   * @param sprite The texture to apply to the quad.
+   * @param face The face you want to create the quad on.
+   * @param min The minimum coordinate of a cube this quad is assumed to be a face of.
+   * @param max The maximum coordinate of a cube this quad is assumed to be a face of.
+   * @param sprite The sprite to use.
    * @return A {@link BakedQuad}.
    */
-  public static BakedQuad createQuad(Vector3f v1, Vector3f v2, Vector3f v3, Vector3f v4, Transformation transformation,
-                                     TextureAtlasSprite sprite) {
-    Vector3f normal = v3.copy();
-    normal.sub(v2);
-    Vector3f temp = v1.copy();
-    temp.sub(v2);
-    normal.cross(temp);
-    normal.normalize();
+  public static BakedQuad createQuad(
+      Direction face, Vector3f min, Vector3f max, Vec2 uvMin, Vec2 uvMax, TextureAtlasSprite sprite) {
+    return switch(face) {
+      case DOWN -> createQuad(
+          v(min.x(), min.y(), min.z()), v(max.x(), min.y(), min.z()),
+          v(max.x(), min.y(), max.z()), v(min.x(), min.y(), max.z()),
+          uvMin, uvMax, face, sprite);
+      case UP -> createQuad(
+          v(min.x(), max.y(), min.z()), v(min.x(), max.y(), max.z()),
+          v(max.x(), max.y(), max.z()), v(max.x(), max.y(), min.z()),
+          uvMin, uvMax, face, sprite);
+      case NORTH -> createQuad(
+          v(min.x(), max.y(), min.z()), v(max.x(), max.y(), min.z()),
+          v(max.x(), min.y(), min.z()), v(min.x(), min.y(), min.z()),
+          uvMin, uvMax, face, sprite);
+      case SOUTH -> createQuad(
+          v(min.x(), max.y(), max.z()), v(min.x(), min.y(), max.z()),
+          v(max.x(), min.y(), max.z()), v(max.x(), max.y(), max.z()),
+          uvMin, uvMax, face, sprite);
+      case EAST -> createQuad(
+          v(max.x(), max.y(), min.z()), v(max.x(), max.y(), max.z()),
+          v(max.x(), min.y(), max.z()), v(max.x(), min.y(), min.z()),
+          uvMin, uvMax, face, sprite);
+      case WEST -> createQuad(
+          v(min.x(), max.y(), min.z()), v(min.x(), min.y(), min.z()),
+          v(min.x(), min.y(), max.z()), v(min.x(), max.y(), max.z()),
+          uvMin, uvMax, face, sprite);
+    };
+  }
 
-    int tw = sprite.getWidth();
-    int th = sprite.getHeight();
-
-    transformation = transformation.blockCenterToCorner();
-    transformation.transformNormal(normal);
-
-    Vector4f vv1 = new Vector4f(v1); transformation.transformPosition(vv1);
-    Vector4f vv2 = new Vector4f(v2); transformation.transformPosition(vv2);
-    Vector4f vv3 = new Vector4f(v3); transformation.transformPosition(vv3);
-    Vector4f vv4 = new Vector4f(v4); transformation.transformPosition(vv4);
-
+  private static BakedQuad createQuad(
+      Vector3f v1, Vector3f v2, Vector3f v3, Vector3f v4, Vec2 uvMin, Vec2 uvMax, Direction dir,
+      TextureAtlasSprite sprite) {
     var builder = new BakedQuadBuilder(sprite);
-    builder.setQuadOrientation(Direction.getNearest(normal.x(), normal.y(), normal.z()));
-    putVertex(builder, normal, vv1, 0, 0, sprite);
-    putVertex(builder, normal, vv2, 0, th, sprite);
-    putVertex(builder, normal, vv3, tw, th, sprite);
-    putVertex(builder, normal, vv4, tw, 0, sprite);
+    Vector3f normal = dir.step();
+    builder.setQuadOrientation(dir);
+    if (dir.getAxisDirection() == Direction.AxisDirection.POSITIVE) {
+      putVertex(builder, normal, v1, uvMin.x, uvMin.y, sprite);
+      putVertex(builder, normal, v2, uvMin.x, uvMax.y, sprite);
+      putVertex(builder, normal, v3, uvMax.x, uvMax.y, sprite);
+      putVertex(builder, normal, v4, uvMax.x, uvMin.y, sprite);
+    } else {
+      putVertex(builder, normal, v1, uvMin.x, uvMax.y, sprite);
+      putVertex(builder, normal, v2, uvMax.x, uvMax.y, sprite);
+      putVertex(builder, normal, v3, uvMax.x, uvMin.y, sprite);
+      putVertex(builder, normal, v4, uvMin.x, uvMin.y, sprite);
+
+    }
     return builder.build();
   }
 
-  private static void putVertex(BakedQuadBuilder builder, Vector3f normal, Vector4f vector, float u, float v,
+  private static void putVertex(BakedQuadBuilder builder, Vector3f normal, Vector3f vector, float u, float v,
                                 TextureAtlasSprite sprite) {
-    var elements = builder.getVertexFormat().getElements().asList();
+    var elements = builder.getVertexFormat().getElements();
     for (int j = 0 ; j < elements.size() ; j++) {
       var e = elements.get(j);
       switch (e.getUsage()) {
@@ -155,8 +159,8 @@ public class QuadHelper {
     }
   }
 
-  private static void putVertexUV(BakedQuadBuilder builder, float u, float v, TextureAtlasSprite sprite, int j,
-                                  VertexFormatElement e) {
+  private static void putVertexUV(
+      BakedQuadBuilder builder, float u, float v, TextureAtlasSprite sprite, int j, VertexFormatElement e) {
     switch (e.getIndex()) {
       case 0  -> builder.put(j, sprite.getU(u), sprite.getV(v));
       case 2  -> builder.put(j, (short) 0, (short) 0);

@@ -1,6 +1,7 @@
 package com.codeka.justconduits.client.blocks;
 
 import com.codeka.justconduits.JustConduitsMod;
+import com.codeka.justconduits.common.shape.VisualShapeBuilder;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonObject;
 import com.mojang.datafixers.util.Pair;
@@ -27,20 +28,6 @@ import java.util.function.Function;
 public class ConduitModelLoader implements IModelLoader<ConduitModelLoader.Geometry> {
   public static final ResourceLocation ID = new ResourceLocation(JustConduitsMod.MODID, "conduit_loader");
 
-  private static final ResourceLocation SIMPLE_ITEM_CONDUIT_TEXTURE =
-      new ResourceLocation(JustConduitsMod.MODID, "blocks/simple_item_conduit");
-  private static final ResourceLocation SIMPLE_FLUID_CONDUIT_TEXTURE =
-      new ResourceLocation(JustConduitsMod.MODID, "blocks/simple_fluid_conduit");
-  private static final ResourceLocation SIMPLE_ENERGY_CONDUIT_TEXTURE =
-      new ResourceLocation(JustConduitsMod.MODID, "blocks/simple_energy_conduit");
-
-  // A missing material for if we make a mistake with our coding and miss a texture.
-  public static final Material MISSING_MATERIAL = ForgeHooksClient.getBlockMaterial(new ResourceLocation(JustConduitsMod.MODID, "error"));
-  public static final Material CONNECTOR_MATERIAL = ForgeHooksClient.getBlockMaterial(SIMPLE_ITEM_CONDUIT_TEXTURE);
-  public static final Material SIMPLE_ITEM_CONDUIT_MATERIAL = ForgeHooksClient.getBlockMaterial(SIMPLE_ITEM_CONDUIT_TEXTURE);
-  public static final Material SIMPLE_FLUID_CONDUIT_MATERIAL = ForgeHooksClient.getBlockMaterial(SIMPLE_FLUID_CONDUIT_TEXTURE);
-  public static final Material SIMPLE_ENERGY_CONDUIT_MATERIAL = ForgeHooksClient.getBlockMaterial(SIMPLE_ENERGY_CONDUIT_TEXTURE);
-
   @Nonnull
   @Override
   public Geometry read(@Nonnull JsonDeserializationContext deserializationContext, @Nonnull JsonObject modelContents) {
@@ -63,7 +50,7 @@ public class ConduitModelLoader implements IModelLoader<ConduitModelLoader.Geome
     public Collection<Material> getTextures(
         IModelConfiguration owner, Function<ResourceLocation, UnbakedModel> modelGetter,
         Set<Pair<String, String>> missingTextureErrors) {
-      return List.of(SIMPLE_ITEM_CONDUIT_MATERIAL, SIMPLE_FLUID_CONDUIT_MATERIAL);
+      return VisualShapeBuilder.getTextures();
     }
   }
 }

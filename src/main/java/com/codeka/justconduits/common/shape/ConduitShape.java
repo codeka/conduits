@@ -8,7 +8,6 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -97,7 +96,7 @@ public class ConduitShape {
     }
 
     public void addConnectionShape(ConduitConnectionShape shape) {
-      connectionShapes.put(shape.getDirection(), shape);
+      connectionShapes.put(shape.direction(), shape);
     }
 
     public Vec3 getCenter() {
@@ -121,59 +120,17 @@ public class ConduitShape {
     }
   }
 
-  /** The "shape" of a single conduit connection. */
-  public static final class ConduitConnectionShape {
-    private final Direction direction;
-    private final double length;
-    private final ConduitConnection.ConnectionType connectionType;
-
-    public ConduitConnectionShape(Direction direction, double length, ConduitConnection.ConnectionType connectionType) {
-      this.direction = direction;
-      this.length = length;
-      this.connectionType = connectionType;
-    }
-
-    public Direction getDirection() {
-      return direction;
-    }
-
-    public ConduitConnection.ConnectionType getConnectionType() {
-      return connectionType;
-    }
-
-    /**
-     * The length of this connection. Usually this is 1.0, but sometimes around corners and stuff it could be a little
-     * longer or shorter.
-     */
-    public double getLength() {
-      return length;
-    }
+  /**
+   * The "shape" of a single conduit connection.
+   */
+  public record ConduitConnectionShape(
+      Direction direction, double length, ConduitConnection.ConnectionType connectionType) {
   }
 
-  /** The shape of an external connection. */
-  public static final class ExternalConnectionShape {
-    private final ConduitConnection connection;
-    private final Vector3f min;
-    private final Vector3f max;
-
-    public ExternalConnectionShape(ConduitConnection connection, Vector3f min, Vector3f max) {
-      this.connection = connection;
-      this.min = min;
-      this.max = max;
-    }
-
-    public ConduitConnection getConnection() {
-      return connection;
-    }
-
-    public Vector3f getMin() {
-      return min;
-    }
-
-    public Vector3f getMax() {
-      return max;
-    }
-
+  /**
+   * The shape of an external connection.
+   */
+  public record ExternalConnectionShape(ConduitConnection connection, Vector3f min, Vector3f max) {
     public VoxelShape getVoxelShape() {
       return Shapes.box(min.x(), min.y(), min.z(), max.x(), max.y(), max.z());
     }
