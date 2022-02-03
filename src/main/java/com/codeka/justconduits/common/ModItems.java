@@ -25,6 +25,12 @@ public class ModItems {
           () -> new ConduitItem(
               ConduitType.SIMPLE_ITEM, new Item.Properties().tab(ConduitCreativeModeTab.TAB_CONDUIT)));
 
+  public static final RegistryObject<Item> ITEM_CONDUIT =
+      ITEMS.register(
+          "item_conduit",
+          () -> new ConduitItem(
+              ConduitType.REGULAR_ITEM, new Item.Properties().tab(ConduitCreativeModeTab.TAB_CONDUIT)));
+
   public static final RegistryObject<Item> SIMPLE_FLUID_CONDUIT =
       ITEMS.register(
           "simple_fluid_conduit",

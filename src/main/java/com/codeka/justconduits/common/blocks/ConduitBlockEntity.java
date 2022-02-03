@@ -134,19 +134,22 @@ public class ConduitBlockEntity extends BlockEntity {
   /**
    * Adds a new conduit of the given type to this block.
    *
+   * @param player The {@link Player} adding this conduit. Can be null if you don't know the player (e.g. when loading
+   *               the chunk). This is only used to decide whether we should drop other items if this conduit replaces
+   *               an existing one, so if the player is unknown, it shouldn't happen anyway.
    * @return The {@link ConduitHolder} that was added, or null if we cannot add this conduit type (e.g. if it already
    *         exists in the block).
    */
   @Nullable
-  public ConduitHolder addConduit(ConduitType conduitType) {
+  public ConduitHolder addConduit(ConduitType conduitType, @Nullable Player player) {
     if (conduitsByType.containsKey(conduitType)) {
       return null;
     }
 
     ConduitHolder existingOfDifferentType = conduits.get(conduitType.getNetworkType());
     if (existingOfDifferentType != null) {
-      // TODO: remove the existing one and add this new one.
-      return null;
+      // Remove the existing one so we can add this new one (and drop the old one on the ground).
+      removeConduit(existingOfDifferentType.getConduitType(), player != null && !player.isCreative());
     }
 
     ConduitHolder conduitHolder = new ConduitHolder(conduitType);
@@ -298,7 +301,7 @@ public class ConduitBlockEntity extends BlockEntity {
         }
 
         // On the server-side, actually try to add the conduit.
-        ConduitHolder conduitHolder = addConduit(conduitItem.getConduitType());
+        ConduitHolder conduitHolder = addConduit(conduitItem.getConduitType(), player);
         if (conduitHolder == null) {
           // We weren't able to add it (e.g. because you're holding a conduit type that we already have), pass through
           // so the normal handling can happen (e.g. adding to the next block over).
@@ -428,7 +431,7 @@ public class ConduitBlockEntity extends BlockEntity {
 
       ConduitHolder conduitHolder = conduitsByType.get(conduitType);
       if (conduitHolder == null) {
-        conduitHolder = addConduit(conduitType);
+        conduitHolder = addConduit(conduitType, /* player= */ null);
       }
       if (conduitHolder != null) {
         conduitType.getConduitImpl().loadAdditional(conduitsTag.getCompound(conduitTypeName), this, conduitHolder);

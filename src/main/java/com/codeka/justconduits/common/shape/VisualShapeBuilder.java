@@ -24,6 +24,8 @@ public class VisualShapeBuilder {
 
   private static final ResourceLocation SIMPLE_ITEM_CONDUIT_TEXTURE =
       new ResourceLocation(JustConduitsMod.MODID, "blocks/simple_item_conduit");
+  private static final ResourceLocation ITEM_CONDUIT_TEXTURE =
+      new ResourceLocation(JustConduitsMod.MODID, "blocks/item_conduit");
   private static final ResourceLocation SIMPLE_FLUID_CONDUIT_TEXTURE =
       new ResourceLocation(JustConduitsMod.MODID, "blocks/simple_fluid_conduit");
   private static final ResourceLocation SIMPLE_ENERGY_CONDUIT_TEXTURE =
@@ -46,6 +48,8 @@ public class VisualShapeBuilder {
   public static final Material CONNECTOR_FRONT_MATERIAL = ForgeHooksClient.getBlockMaterial(CONNECTOR_FRONT);
   public static final Material CONNECTOR_BACK_MATERIAL = ForgeHooksClient.getBlockMaterial(CONNECTOR_BACK);
   public static final Material CONNECTOR_SIDE_MATERIAL = ForgeHooksClient.getBlockMaterial(CONNECTOR_SIDE);
+  public static final Material ITEM_CONDUIT_MATERIAL =
+      ForgeHooksClient.getBlockMaterial(ITEM_CONDUIT_TEXTURE);
   public static final Material SIMPLE_ITEM_CONDUIT_MATERIAL =
       ForgeHooksClient.getBlockMaterial(SIMPLE_ITEM_CONDUIT_TEXTURE);
   public static final Material SIMPLE_FLUID_CONDUIT_MATERIAL =
@@ -54,8 +58,9 @@ public class VisualShapeBuilder {
       ForgeHooksClient.getBlockMaterial(SIMPLE_ENERGY_CONDUIT_TEXTURE);
 
   public static List<Material> getTextures() {
-    return List.of(SIMPLE_ITEM_CONDUIT_MATERIAL, SIMPLE_FLUID_CONDUIT_MATERIAL, SIMPLE_ENERGY_CONDUIT_MATERIAL,
-        CONDUIT_PIPE_MATERIAL, CONNECTOR_BACK_MATERIAL, CONNECTOR_FRONT_MATERIAL, CONNECTOR_SIDE_MATERIAL);
+    return List.of(SIMPLE_ITEM_CONDUIT_MATERIAL, ITEM_CONDUIT_MATERIAL, SIMPLE_FLUID_CONDUIT_MATERIAL,
+        SIMPLE_ENERGY_CONDUIT_MATERIAL, CONDUIT_PIPE_MATERIAL, CONNECTOR_BACK_MATERIAL, CONNECTOR_FRONT_MATERIAL,
+        CONNECTOR_SIDE_MATERIAL);
   }
 
   public static VisualShape createVisualShape(ConduitShape mainShape) {
@@ -68,6 +73,8 @@ public class VisualShapeBuilder {
       Material material = MISSING_MATERIAL;
       if (conduitType == ConduitType.SIMPLE_ITEM) {
         material = SIMPLE_ITEM_CONDUIT_MATERIAL;
+      } else if (conduitType == ConduitType.REGULAR_ITEM) {
+        material = ITEM_CONDUIT_MATERIAL;
       } else if (conduitType == ConduitType.SIMPLE_FLUID) {
         material = SIMPLE_FLUID_CONDUIT_MATERIAL;
       } else if (conduitType == ConduitType.SIMPLE_ENERGY) {

@@ -89,7 +89,7 @@ public class ConduitItem extends Item {
       }
 
       if (level.getBlockEntity(blockPos) instanceof ConduitBlockEntity placedBlockEntity) {
-        placedBlockEntity.addConduit(conduitType);
+        placedBlockEntity.addConduit(conduitType, player);
       }
 
       onPlacedOrAdded(level, player, itemStack, placedBlockState, blockPos, useOnContext.getLevel().isClientSide);

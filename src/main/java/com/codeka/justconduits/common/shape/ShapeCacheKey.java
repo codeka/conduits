@@ -2,23 +2,27 @@ package com.codeka.justconduits.common.shape;
 
 import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
 import com.codeka.justconduits.common.blocks.ConduitConnection;
+import com.codeka.justconduits.common.impl.ConduitType;
 import com.codeka.justconduits.common.impl.NetworkType;
 import net.minecraft.core.Direction;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 /**
- * Key used for caching the shape of conduits. We record everything that makes the *shape* (not counting textures) of
- * a conduit unique, so that different blocks can use the same shape objects, assuming they look the same.
+ * Key used for caching the shape of conduits.
  */
 public class ShapeCacheKey {
+  private final Set<ConduitType> conduitTypes = new HashSet<>();
   private final Map<Direction, ConnectionKey> connections = new HashMap<>();
 
   public ShapeCacheKey(ConduitBlockEntity conduitBlockEntity) {
+    conduitTypes.addAll(conduitBlockEntity.getConduitTypes());
     for (ConduitConnection connection : conduitBlockEntity.getConnections()) {
       connections.put(connection.getDirection(), new ConnectionKey(connection));
     }
@@ -26,13 +30,14 @@ public class ShapeCacheKey {
 
   @Override
   public int hashCode() {
-    return Objects.hash(connections.keySet(), connections.values());
+    return Objects.hash(conduitTypes, connections.keySet(), connections.values());
   }
 
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof ShapeCacheKey other) {
-      return Objects.equals(connections.keySet(), other.connections.keySet()) &&
+      return Objects.equals(conduitTypes, other.conduitTypes) &&
+          Objects.equals(connections.keySet(), other.connections.keySet()) &&
           Objects.equals(connections.values(), other.connections.values());
     }
 
@@ -43,6 +48,10 @@ public class ShapeCacheKey {
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("{");
+    for (ConduitType conduitType : conduitTypes) {
+      sb.append(conduitType.getName());
+      sb.append(" ");
+    }
     for (Map.Entry<Direction, ConnectionKey> entry : connections.entrySet()) {
       sb.append(String.format("{%s : %s}", entry.getKey(), entry.getValue()));
     }

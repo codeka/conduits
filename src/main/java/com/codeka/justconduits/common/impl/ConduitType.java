@@ -34,6 +34,11 @@ public class ConduitType {
           "simple_item", NetworkType.ITEM, Icon.ITEMS, ItemConduit::new, ItemExternalConnection::new,
           ItemConduitClientStatePacket::new);
 
+  public static ConduitType REGULAR_ITEM =
+      new ConduitType(
+          "regular_item", NetworkType.ITEM, Icon.ITEMS, ItemConduit::new, ItemExternalConnection::new,
+          ItemConduitClientStatePacket::new);
+
   public static ConduitType SIMPLE_FLUID =
       new ConduitType(
           "simple_fluid", NetworkType.FLUID, Icon.FLUID, FluidConduit::new, FluidExternalConnection::new,
@@ -55,6 +60,7 @@ public class ConduitType {
     // TODO: actually register these. Or read from config?
     return switch (name) {
       case "simple_item" -> SIMPLE_ITEM;
+      case "regular_item" -> REGULAR_ITEM;
       case "simple_fluid" -> SIMPLE_FLUID;
       case "simple_energy" -> SIMPLE_ENERGY;
       default -> throw new RuntimeException("Unknown ConduitType: " + name);
