@@ -27,7 +27,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
-import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -520,7 +519,7 @@ public class ConduitBlockEntity extends BlockEntity {
 
     for (Map.Entry<ConduitType, IConduitTypeClientStatePacket> entry : packet.getConduits().entrySet()) {
       ConduitType conduitType = entry.getKey();
-      ConduitHolder conduitHolder = conduits.get(conduitType.getNetworkType());
+      ConduitHolder conduitHolder = conduitsByType.get(conduitType);
       if (conduitHolder == null) {
         conduitHolder = new ConduitHolder(conduitType);
         conduits.put(conduitType.getNetworkType(), conduitHolder);
@@ -528,6 +527,14 @@ public class ConduitBlockEntity extends BlockEntity {
         updated = true;
       }
       conduitHolder.getConduitImpl().onClientUpdate(entry.getValue(), this, conduitHolder);
+    }
+    // Also remove conduits that have been removed, too.
+    for (ConduitType conduitType : conduitsByType.keySet()) {
+      if (!packet.getConduits().containsKey(conduitType)) {
+        conduits.remove(conduitType.getNetworkType());
+        conduitsByType.remove(conduitType);
+        updated = true;
+      }
     }
 
     if (updated) {
