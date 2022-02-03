@@ -172,7 +172,7 @@ public class VisualShapeBuilder {
       TextureAtlasSprite texture = spriteGetter.apply(internalConnection.material());
       quads.addAll(
           QuadHelper.createCube(
-              internalConnection.min(), internalConnection.max(), new Vec2(0.0f, 0.0f), new Vec2(16.0f, 4.0f),
+              internalConnection.min(), internalConnection.max(), new Vec2(0.0f, 8.0f), new Vec2(16.0f, 12.0f),
               internalConnection.rotateUv(), texture));
     }
 
