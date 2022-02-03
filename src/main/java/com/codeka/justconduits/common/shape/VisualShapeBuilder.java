@@ -29,6 +29,9 @@ public class VisualShapeBuilder {
   private static final ResourceLocation SIMPLE_ENERGY_CONDUIT_TEXTURE =
       new ResourceLocation(JustConduitsMod.MODID, "blocks/simple_energy_conduit");
 
+  private static final ResourceLocation CONDUIT_PIPE_TEXTURE =
+      new ResourceLocation(JustConduitsMod.MODID, "blocks/conduit_pipe");
+
   private static final ResourceLocation CONNECTOR_FRONT =
       new ResourceLocation(JustConduitsMod.MODID, "blocks/conduit_connector_front");
   private static final ResourceLocation CONNECTOR_BACK =
@@ -39,6 +42,7 @@ public class VisualShapeBuilder {
   // A missing material for if we make a mistake with our coding and miss a texture.
   public static final Material MISSING_MATERIAL =
       ForgeHooksClient.getBlockMaterial(new ResourceLocation(JustConduitsMod.MODID, "error"));
+  public static final Material CONDUIT_PIPE_MATERIAL = ForgeHooksClient.getBlockMaterial(CONDUIT_PIPE_TEXTURE);
   public static final Material CONNECTOR_FRONT_MATERIAL = ForgeHooksClient.getBlockMaterial(CONNECTOR_FRONT);
   public static final Material CONNECTOR_BACK_MATERIAL = ForgeHooksClient.getBlockMaterial(CONNECTOR_BACK);
   public static final Material CONNECTOR_SIDE_MATERIAL = ForgeHooksClient.getBlockMaterial(CONNECTOR_SIDE);
@@ -51,7 +55,7 @@ public class VisualShapeBuilder {
 
   public static List<Material> getTextures() {
     return List.of(SIMPLE_ITEM_CONDUIT_MATERIAL, SIMPLE_FLUID_CONDUIT_MATERIAL, SIMPLE_ENERGY_CONDUIT_MATERIAL,
-        CONNECTOR_BACK_MATERIAL, CONNECTOR_FRONT_MATERIAL, CONNECTOR_SIDE_MATERIAL);
+        CONDUIT_PIPE_MATERIAL, CONNECTOR_BACK_MATERIAL, CONNECTOR_FRONT_MATERIAL, CONNECTOR_SIDE_MATERIAL);
   }
 
   public static VisualShape createVisualShape(ConduitShape mainShape) {
@@ -120,27 +124,29 @@ public class VisualShapeBuilder {
           min = max;
           max = tmp;
         }
-        visualShape.addBox(new VisualShape.Box(min, max, material));
+        boolean rotateUv = shape.direction() == Direction.NORTH || shape.direction() == Direction.SOUTH;
+        visualShape.addInternalConnection(
+            new VisualShape.InternalConnection(min, max, rotateUv, CONDUIT_PIPE_MATERIAL));
       }
     }
 
     for (ConduitShape.ExternalConnectionShape externalConnectionShape : mainShape.getExternalConnectionShapes()) {
-      Vector3f min =
+      final Vector3f min =
           new Vector3f(
               externalConnectionShape.min().x(), externalConnectionShape.min().y(), externalConnectionShape.min().z());
       min.add(
           0.0625f * (1.0f - Math.abs(externalConnectionShape.connection().getDirection().getStepX())),
           0.0625f * (1.0f - Math.abs(externalConnectionShape.connection().getDirection().getStepY())),
           0.0625f * (1.0f - Math.abs(externalConnectionShape.connection().getDirection().getStepZ())));
-      Vector3f max =
+      final Vector3f max =
           new Vector3f(
               externalConnectionShape.max().x(), externalConnectionShape.max().y(), externalConnectionShape.max().z());
       max.add(
           -0.0625f * (1.0f - Math.abs(externalConnectionShape.connection().getDirection().getStepX())),
           -0.0625f * (1.0f - Math.abs(externalConnectionShape.connection().getDirection().getStepY())),
           -0.0625f * (1.0f - Math.abs(externalConnectionShape.connection().getDirection().getStepZ())));
-      visualShape.addMultiTextureBox(
-          new VisualShape.MultiTextureBox(
+      visualShape.addExternalConnection(
+          new VisualShape.ExternalConnection(
               min, max,
               externalConnectionShape.connection().getDirection() == Direction.EAST ||
                   externalConnectionShape.connection().getDirection() == Direction.WEST,
@@ -162,22 +168,30 @@ public class VisualShapeBuilder {
       quads.addAll(QuadHelper.createCube(box.getMin(), box.getMax(), texture));
     }
 
+    for (var internalConnection : visualShape.getInternalConnections()) {
+      TextureAtlasSprite texture = spriteGetter.apply(internalConnection.material());
+      quads.addAll(
+          QuadHelper.createCube(
+              internalConnection.min(), internalConnection.max(), new Vec2(0.0f, 0.0f), new Vec2(16.0f, 4.0f),
+              internalConnection.rotateUv(), texture));
+    }
+
     // TODO: move the UV stuff to the VisualShape.
     Vec2 minUv = new Vec2(0.0f, 0.0f);
     Vec2 frontBackMaxUv = new Vec2(16.0f, 16.0f);
-    for (var multiTextureBox : visualShape.getMultiTextureBoxes()) {
+    for (var externalConnection : visualShape.getExternalConnections()) {
       final Vec2 sideMaxUv = new Vec2(16.0f, 4.0f);
 
       for (Direction dir : Direction.values()) {
-        Material material = multiTextureBox.materials().get(dir);
+        Material material = externalConnection.materials().get(dir);
         Vec2 maxUv = frontBackMaxUv;
         if (material == null) {
-          material = multiTextureBox.defaultMaterial();
+          material = externalConnection.defaultMaterial();
           maxUv = sideMaxUv;
         }
         quads.add(
             QuadHelper.createQuad(
-                dir, multiTextureBox.min(), multiTextureBox.max(), minUv, maxUv, multiTextureBox.rotateUv(),
+                dir, externalConnection.min(), externalConnection.max(), minUv, maxUv, externalConnection.rotateUv(),
                 spriteGetter.apply(material)));
       }
     }

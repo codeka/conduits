@@ -5,7 +5,6 @@ import net.minecraft.client.resources.model.Material;
 import net.minecraft.core.Direction;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -13,22 +12,31 @@ import java.util.Map;
  */
 public class VisualShape {
   private final ArrayList<Box> boxes = new ArrayList<>();
-  private final ArrayList<MultiTextureBox> multiTextureBoxes = new ArrayList<>();
+  private final ArrayList<InternalConnection> internalConnections = new ArrayList<>();
+  private final ArrayList<ExternalConnection> externalConnections = new ArrayList<>();
 
   public void addBox(Box box) {
     boxes.add(box);
   }
 
-  public void addMultiTextureBox(MultiTextureBox multiTextureBox) {
-    this.multiTextureBoxes.add(multiTextureBox);
+  public void addInternalConnection(InternalConnection internalConnection) {
+    internalConnections.add(internalConnection);
+  }
+
+  public void addExternalConnection(ExternalConnection externalConnection) {
+    this.externalConnections.add(externalConnection);
   }
 
   public ArrayList<Box> getBoxes() {
     return boxes;
   }
 
-  public ArrayList<MultiTextureBox> getMultiTextureBoxes() {
-    return multiTextureBoxes;
+  public ArrayList<InternalConnection> getInternalConnections() {
+    return internalConnections;
+  }
+
+  public ArrayList<ExternalConnection> getExternalConnections() {
+    return externalConnections;
   }
 
   public record Box(Vector3f min, Vector3f max, Material material) {
@@ -45,7 +53,11 @@ public class VisualShape {
     }
   }
 
-  public record MultiTextureBox(
+  public record InternalConnection(
+      Vector3f min, Vector3f max, boolean rotateUv, Material material) {
+  }
+
+  public record ExternalConnection(
       Vector3f min, Vector3f max, boolean rotateUv, Map<Direction, Material> materials, Material defaultMaterial) {
   }
 }

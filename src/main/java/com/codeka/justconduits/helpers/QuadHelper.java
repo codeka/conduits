@@ -17,70 +17,37 @@ import java.util.List;
 /** Helper for building baked quads. */
 // TODO: A lot of this can be optimized quite a bit by reducing memory allocations.
 public class QuadHelper {
+  private static final Vec2 ZERO_ZERO = new Vec2(0.0f, 0.0f);
+  private static final Vec2 SIXTEEN_SIXTEEN = new Vec2(16.0f, 16.0f);
+
   public static Vector3f v(float x, float y, float z) {
     return new Vector3f(x, y, z);
+  }
+
+  public static List<BakedQuad> createCube(Vector3f min, Vector3f max, TextureAtlasSprite sprite) {
+    ArrayList<BakedQuad> quads = new ArrayList<>();
+    quads.add(createQuad(Direction.DOWN, min, max, ZERO_ZERO, SIXTEEN_SIXTEEN, false, sprite));
+    quads.add(createQuad(Direction.UP, min, max, ZERO_ZERO, SIXTEEN_SIXTEEN, false, sprite));
+    quads.add(createQuad(Direction.NORTH, min, max, ZERO_ZERO, SIXTEEN_SIXTEEN, false, sprite));
+    quads.add(createQuad(Direction.SOUTH, min, max, ZERO_ZERO, SIXTEEN_SIXTEEN, false, sprite));
+    quads.add(createQuad(Direction.EAST, min, max, ZERO_ZERO, SIXTEEN_SIXTEEN, false, sprite));
+    quads.add(createQuad(Direction.WEST, min, max, ZERO_ZERO, SIXTEEN_SIXTEEN, false, sprite));
+    return quads;
   }
 
   /**
    * Creates a simple cube with all four sides having the same texture.
    */
-  public static List<BakedQuad> createCube(Vector3f min, Vector3f max, TextureAtlasSprite sprite) {
+  public static List<BakedQuad> createCube(
+      Vector3f min, Vector3f max, Vec2 minUv, Vec2 maxUv, boolean rotateUv, TextureAtlasSprite sprite) {
     ArrayList<BakedQuad> quads = new ArrayList<>();
-    quads.add(createQuad(Direction.DOWN, min, max, sprite));
-    quads.add(createQuad(Direction.UP, min, max, sprite));
-    quads.add(createQuad(Direction.NORTH, min, max, sprite));
-    quads.add(createQuad(Direction.SOUTH, min, max, sprite));
-    quads.add(createQuad(Direction.EAST, min, max, sprite));
-    quads.add(createQuad(Direction.WEST, min, max, sprite));
+    quads.add(createQuad(Direction.DOWN, min, max, minUv, maxUv, rotateUv, sprite));
+    quads.add(createQuad(Direction.UP, min, max, minUv, maxUv, rotateUv, sprite));
+    quads.add(createQuad(Direction.NORTH, min, max, minUv, maxUv, rotateUv, sprite));
+    quads.add(createQuad(Direction.SOUTH, min, max, minUv, maxUv, rotateUv, sprite));
+    quads.add(createQuad(Direction.EAST, min, max, minUv, maxUv, rotateUv, sprite));
+    quads.add(createQuad(Direction.WEST, min, max, minUv, maxUv, rotateUv, sprite));
     return quads;
-  }
-
-  /**
-   * Creates a quad aligned to the given face. We assume the quad is one face of a cube with the given {@code min} and
-   * {@code max} coordinates.
-   *
-   * @param face The face you want to create the quad on.
-   * @param min The minimum coordinate of a cube this quad is assumed to be a face of.
-   * @param max The maximum coordinate of a cube this quad is assumed to be a face of.
-   * @param sprite The sprite to use.
-   * @return A {@link BakedQuad}.
-   */
-  public static BakedQuad createQuad(Direction face, Vector3f min, Vector3f max, TextureAtlasSprite sprite) {
-    float sw = sprite.getWidth();
-    float sh = sprite.getHeight();
-
-    return switch(face) {
-      case DOWN -> createQuad(
-          v(min.x(), min.y(), min.z()), v(max.x(), min.y(), min.z()),
-          v(max.x(), min.y(), max.z()), v(min.x(), min.y(), max.z()),
-          new Vec2(0.0f, 0.0f), new Vec2(sw, sh), false,
-          face, sprite);
-      case UP -> createQuad(
-          v(min.x(), max.y(), min.z()), v(min.x(), max.y(), max.z()),
-          v(max.x(), max.y(), max.z()), v(max.x(), max.y(), min.z()),
-          new Vec2(0.0f, 0.0f), new Vec2(sw, sh), false,
-          face, sprite);
-      case NORTH -> createQuad(
-          v(min.x(), max.y(), min.z()), v(max.x(), max.y(), min.z()),
-          v(max.x(), min.y(), min.z()), v(min.x(), min.y(), min.z()),
-          new Vec2(0.0f, 0.0f), new Vec2(sw, sh), false,
-          face, sprite);
-      case SOUTH -> createQuad(
-          v(min.x(), max.y(), max.z()), v(min.x(), min.y(), max.z()),
-          v(max.x(), min.y(), max.z()), v(max.x(), max.y(), max.z()),
-          new Vec2(0.0f, 0.0f), new Vec2(sw, sh), false,
-          face, sprite);
-      case EAST -> createQuad(
-          v(max.x(), max.y(), min.z()), v(max.x(), max.y(), max.z()),
-          v(max.x(), min.y(), max.z()), v(max.x(), min.y(), min.z()),
-          new Vec2(0.0f, 0.0f), new Vec2(sw, sh), false,
-          face, sprite);
-      case WEST -> createQuad(
-          v(min.x(), max.y(), min.z()), v(min.x(), min.y(), min.z()),
-          v(min.x(), min.y(), max.z()), v(min.x(), max.y(), max.z()),
-          new Vec2(0.0f, 0.0f), new Vec2(sw, sh), false,
-          face, sprite);
-    };
   }
 
   /**

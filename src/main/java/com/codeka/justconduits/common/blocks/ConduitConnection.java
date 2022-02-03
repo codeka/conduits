@@ -159,9 +159,7 @@ public class ConduitConnection {
   }
 
   public void load(CompoundTag tag) {
-    L.atInfo().log("loading [{}]", tag.getString("ConduitTypes"));
     for (String s : tag.getString("ConduitTypes").split(" ")) {
-      L.atInfo().log("    [{}]", s);
       if (!s.isEmpty()) {
         conduitTypes.add(ConduitType.fromName(s));
       }
