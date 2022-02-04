@@ -10,6 +10,7 @@ import com.codeka.justconduits.common.impl.fluid.FluidConduitClientStatePacket;
 import com.codeka.justconduits.common.impl.fluid.FluidExternalConnection;
 import com.codeka.justconduits.common.impl.item.ItemConduit;
 import com.codeka.justconduits.common.impl.item.ItemConduitClientStatePacket;
+import com.codeka.justconduits.common.impl.item.ItemConduitConfig;
 import com.codeka.justconduits.common.impl.item.ItemExternalConnection;
 import com.codeka.justconduits.packets.IConduitTypeClientStatePacket;
 import net.minecraft.resources.ResourceLocation;
@@ -31,22 +32,22 @@ import java.util.function.Supplier;
 public class ConduitType {
   public static ConduitType SIMPLE_ITEM =
       new ConduitType(
-          "simple_item", NetworkType.ITEM, Icon.ITEMS, ItemConduit::new, ItemExternalConnection::new,
-          ItemConduitClientStatePacket::new);
+          "simple_item", NetworkType.ITEM, Icon.ITEMS, ItemConduit::new, ItemConduitConfig.SIMPLE,
+          ItemExternalConnection::new, ItemConduitClientStatePacket::new);
 
   public static ConduitType REGULAR_ITEM =
       new ConduitType(
-          "regular_item", NetworkType.ITEM, Icon.ITEMS, ItemConduit::new, ItemExternalConnection::new,
-          ItemConduitClientStatePacket::new);
+          "regular_item", NetworkType.ITEM, Icon.ITEMS, ItemConduit::new, ItemConduitConfig.REGULAR,
+          ItemExternalConnection::new, ItemConduitClientStatePacket::new);
 
   public static ConduitType SIMPLE_FLUID =
       new ConduitType(
-          "simple_fluid", NetworkType.FLUID, Icon.FLUID, FluidConduit::new, FluidExternalConnection::new,
+          "simple_fluid", NetworkType.FLUID, Icon.FLUID, FluidConduit::new, null, FluidExternalConnection::new,
           FluidConduitClientStatePacket::new);
 
   public static ConduitType SIMPLE_ENERGY =
       new ConduitType(
-          "simple_energy", NetworkType.ENERGY, Icon.ENERGY, EnergyConduit::new, EnergyExternalConnection::new,
+          "simple_energy", NetworkType.ENERGY, Icon.ENERGY, EnergyConduit::new, null, EnergyExternalConnection::new,
           EnergyConduitClientStatePacket::new);
 
   private final String name;
@@ -55,6 +56,7 @@ public class ConduitType {
   private final Icon guiIcon;
   private final Supplier<NetworkExternalConnection> externalConnectionSupplier;
   private final Supplier<IConduitTypeClientStatePacket> clientStatePacketSupplier;
+  private final Object config;
 
   public static ConduitType fromName(String name) {
     // TODO: actually register these. Or read from config?
@@ -68,7 +70,7 @@ public class ConduitType {
   }
 
   public ConduitType(
-      String name, NetworkType networkType, Icon guiIcon, Supplier<IConduit> supplier,
+      String name, NetworkType networkType, Icon guiIcon, Supplier<IConduit> supplier, Object config,
       Supplier<NetworkExternalConnection> externalConnectionSupplier,
       Supplier<IConduitTypeClientStatePacket> clientStatePacketSupplier) {
     this.name = name;
@@ -77,6 +79,7 @@ public class ConduitType {
     this.conduitImpl = supplier.get();
     this.externalConnectionSupplier = externalConnectionSupplier;
     this.clientStatePacketSupplier = clientStatePacketSupplier;
+    this.config = config;
   }
 
   public String getName() {
@@ -110,6 +113,11 @@ public class ConduitType {
 
   public IConduitTypeClientStatePacket newConduitTypeClientStatePacket() {
     return clientStatePacketSupplier.get();
+  }
+
+  @SuppressWarnings("unchecked")
+  public <T> T getConfig() {
+    return (T) config;
   }
 
   @Override

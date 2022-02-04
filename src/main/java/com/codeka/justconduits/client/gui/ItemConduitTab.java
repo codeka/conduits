@@ -8,8 +8,10 @@ import com.codeka.justconduits.client.gui.widgets.IconListButton;
 import com.codeka.justconduits.client.gui.widgets.SimpleButton;
 import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
 import com.codeka.justconduits.common.blocks.ConduitConnection;
+import com.codeka.justconduits.common.impl.ConduitHolder;
 import com.codeka.justconduits.common.impl.ConduitType;
 import com.codeka.justconduits.common.impl.NetworkType;
+import com.codeka.justconduits.common.impl.item.ItemConduitConfig;
 import com.codeka.justconduits.common.impl.item.ItemExternalConnection;
 import com.codeka.justconduits.packets.ConduitUpdatePacket;
 import com.codeka.justconduits.packets.JustConduitsPacketHandler;
@@ -26,6 +28,8 @@ public class ItemConduitTab implements IConduitTab {
   private ConduitScreen screen;
   private ConduitConnection connection;
   private ConduitBlockEntity conduitBlockEntity;
+  private ConduitType conduitType;
+  private ItemConduitConfig config;
   private IconListButton insertModeButton;
   private IconListButton extractModeButton;
   private ChannelColorButton insertChannelColorButton;
@@ -42,14 +46,22 @@ public class ItemConduitTab implements IConduitTab {
     this.conduitBlockEntity = conduitBlockEntity;
     this.connection = connection;
 
+    ConduitHolder conduitHolder = conduitBlockEntity.getConduitHolder(NetworkType.ITEM);
+    if (conduitHolder == null) {
+      // TODO: this is an error!
+      return;
+    }
+
+    conduitType = conduitHolder.getConduitType();
+    config = conduitType.getConfig();
+
     insertModeButton =
         new IconListButton.Builder(10, 20)
             .withMessage(new TextComponent("Insert"))
             .addIcon(Icon.ALWAYS_OFF).addIcon(Icon.ALWAYS_ON).addIcon(Icon.REDSTONE_ON).addIcon(Icon.REDSTONE_OFF)
             .withIconIndexDataSource(insertDataSource)
             .build();
-    // TODO: make this generic?
-    ItemExternalConnection externalConnection = connection.getNetworkExternalConnection(ConduitType.SIMPLE_ITEM);
+    ItemExternalConnection externalConnection = connection.getNetworkExternalConnection(conduitType);
     insertModeButton.setIconIndex(externalConnection.getInsertMode().ordinal());
 
     insertChannelColorButton = new ChannelColorButton.Builder(10, 45).build();
@@ -71,11 +83,19 @@ public class ItemConduitTab implements IConduitTab {
   @Override
   public void show() {
     screen.add(insertModeButton);
-    screen.add(insertChannelColorButton);
-    screen.add(testButton1);
-    screen.add(testButton2);
+    if (config.supportColors()) {
+      screen.add(insertChannelColorButton);
+    }
+    if (config.supportFilter()) {
+      screen.add(testButton1);
+    }
+    if (config.supportUpgrade()) {
+      screen.add(testButton2);
+    }
     screen.add(extractModeButton);
-    screen.add(extractChannelColorButton);
+    if (config.supportColors()) {
+      screen.add(extractChannelColorButton);
+    }
   }
 
   @Override
@@ -90,7 +110,7 @@ public class ItemConduitTab implements IConduitTab {
 
   @Override
   public void beforeRender() {
-    ItemExternalConnection externalConnection = connection.getNetworkExternalConnection(ConduitType.SIMPLE_ITEM);
+    ItemExternalConnection externalConnection = connection.getNetworkExternalConnection(conduitType);
     extractModeButton.setIconIndex(externalConnection.getExtractMode().ordinal());
     insertModeButton.setIconIndex(externalConnection.getInsertMode().ordinal());
   }
@@ -101,11 +121,10 @@ public class ItemConduitTab implements IConduitTab {
     return BG;
   }
 
-
-  private final DataSource<Integer> extractDataSource = new DataSource<Integer>() {
+  private final DataSource<Integer> extractDataSource = new DataSource<>() {
     @Override
     public Integer getValue() {
-      ItemExternalConnection externalConnection = connection.getNetworkExternalConnection(ConduitType.SIMPLE_ITEM);
+      ItemExternalConnection externalConnection = connection.getNetworkExternalConnection(conduitType);
       return externalConnection.getExtractMode().ordinal();
     }
 
@@ -128,7 +147,7 @@ public class ItemConduitTab implements IConduitTab {
         return 0;
       }
 
-      ItemExternalConnection externalConnection = connection.getNetworkExternalConnection(ConduitType.SIMPLE_ITEM);
+      ItemExternalConnection externalConnection = connection.getNetworkExternalConnection(conduitType);
       return externalConnection.getInsertMode().ordinal();
     }
 

@@ -86,7 +86,9 @@ public class ConduitScreen extends AbstractContainerScreen<ConduitContainerMenu>
   protected void renderBg(@Nonnull PoseStack poseStack, float partialTick, int mouseX, int mouseY) {
     conduitTabButtons.beforeWindowRender(poseStack, partialTick, mouseX, mouseY);
 
-    RenderSystem.setShaderTexture(0, tabs.get(tabIndex).getBackground());
+    if (tabIndex >= 0) {
+      RenderSystem.setShaderTexture(0, tabs.get(tabIndex).getBackground());
+    }
     int relX = (this.width - this.imageWidth) / 2;
     int relY = (this.height - this.imageHeight) / 2;
 

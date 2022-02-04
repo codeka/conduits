@@ -39,6 +39,7 @@ public class ClientSetup {
     // TODO: make the registration of conduit types in config and therefore this configurable. Or maybe this
     //   just becomes part of the ConduitType itself?
     ConduitTabMapping.addMapping(ConduitType.SIMPLE_ITEM, ItemConduitTab::new);
+    ConduitTabMapping.addMapping(ConduitType.REGULAR_ITEM, ItemConduitTab::new);
     ConduitTabMapping.addMapping(ConduitType.SIMPLE_FLUID, FluidConduitTab::new);
     ConduitTabMapping.addMapping(ConduitType.SIMPLE_ENERGY, EnergyConduitTab::new);
   }
