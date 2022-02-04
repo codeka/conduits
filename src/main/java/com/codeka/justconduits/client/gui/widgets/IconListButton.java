@@ -50,14 +50,23 @@ public class IconListButton extends IconButton {
   }
 
   private void handlePress() {
-    // TODO: handle right-click to go backwards.
     int newIndex = iconIndex.getValue() + 1;
     if (newIndex >= icons.size()) {
       newIndex = 0;
     }
 
     setIconIndex(newIndex);
-    // TODO: do we have to propagate this?
+  }
+
+  @Override
+  public boolean onRightPress() {
+    int newIndex = iconIndex.getValue() - 1;
+    if (newIndex < 0) {
+      newIndex = icons.size() - 1;
+    }
+
+    setIconIndex(newIndex);
+    return true;
   }
 
   public static class Builder extends IconButton.Builder<IconListButton.Builder> {

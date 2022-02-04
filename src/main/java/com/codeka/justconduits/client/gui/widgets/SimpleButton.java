@@ -10,11 +10,15 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nonnull;
 
 /** Base class for our buttons. */
 public class SimpleButton extends Button {
+  private static final Logger L = LogManager.getLogger();
+
   /** The default size (in pixels) of a button. */
   private static final int DEFAULT_BUTTON_SIZE = 20;
 
@@ -29,6 +33,21 @@ public class SimpleButton extends Button {
 
   public void setPressed(boolean pressed) {
     isPressed = pressed;
+  }
+
+  public boolean onRightPress() {
+    return false;
+  }
+
+  @Override
+  public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    if (button == 1 && clicked(mouseX, mouseY)) {
+      if (onRightPress()) {
+        playDownSound(Minecraft.getInstance().getSoundManager());
+      }
+    }
+
+    return super.mouseClicked(mouseX, mouseY, button);
   }
 
   /**
