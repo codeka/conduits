@@ -3,12 +3,10 @@ package com.codeka.justconduits.common.impl.energy;
 import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
 import com.codeka.justconduits.common.blocks.ConduitConnection;
 import com.codeka.justconduits.common.impl.ConduitHolder;
+import com.codeka.justconduits.common.impl.ConduitType;
 import com.codeka.justconduits.common.impl.ConnectionMode;
 import com.codeka.justconduits.common.impl.NetworkRegistry;
 import com.codeka.justconduits.common.impl.common.CommonConduit;
-import com.codeka.justconduits.common.impl.item.ItemConduit;
-import com.codeka.justconduits.common.impl.item.ItemExternalConnection;
-import com.codeka.justconduits.common.impl.item.ItemNetwork;
 import com.codeka.justconduits.packets.IConduitToolExternalPacket;
 import com.codeka.justconduits.packets.IConduitTypeClientStatePacket;
 import net.minecraft.core.BlockPos;
@@ -19,11 +17,8 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.IEnergyStorage;
-import net.minecraftforge.items.CapabilityItemHandler;
-import net.minecraftforge.items.IItemHandler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -144,13 +139,14 @@ public class EnergyConduit extends CommonConduit {
 
   @Override
   @Nonnull
-  public IConduitTypeClientStatePacket createClientState(@Nonnull ConduitBlockEntity conduitBlockEntity) {
+  public IConduitTypeClientStatePacket createClientState(
+      @Nonnull ConduitBlockEntity conduitBlockEntity, @Nonnull ConduitType conduitType) {
     return new EnergyConduitClientStatePacket(conduitBlockEntity);
   }
 
   @Override
   public IConduitToolExternalPacket createConduitToolPacket(
-      @NotNull ConduitBlockEntity conduitBlockEntity, @NotNull ConduitHolder conduitHolder) {
+      @Nonnull ConduitBlockEntity conduitBlockEntity, @Nonnull ConduitHolder conduitHolder) {
     return new EnergyConduitToolExternalConnectionPacket();
   }
 

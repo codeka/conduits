@@ -44,7 +44,7 @@ public class ConduitClientStatePacket {
     }
     conduitTypes = new HashMap<>();
     for (ConduitType conduitType : conduitBlockEntity.getConduitTypes()) {
-      conduitTypes.put(conduitType, conduitType.getConduitImpl().createClientState(conduitBlockEntity));
+      conduitTypes.put(conduitType, conduitType.getConduitImpl().createClientState(conduitBlockEntity, conduitType));
     }
   }
 

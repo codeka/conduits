@@ -1,15 +1,21 @@
 package com.codeka.justconduits.common.impl.item;
 
+import com.codeka.justconduits.common.ChannelColor;
 import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
 import com.codeka.justconduits.common.blocks.ConduitConnection;
 import com.codeka.justconduits.common.impl.ConduitHolder;
+import com.codeka.justconduits.common.impl.ConduitType;
 import com.codeka.justconduits.common.impl.ConnectionMode;
 import com.codeka.justconduits.common.impl.NetworkRegistry;
+import com.codeka.justconduits.common.impl.common.CommonClientStatePacket;
 import com.codeka.justconduits.common.impl.common.CommonConduit;
+import com.codeka.justconduits.common.impl.common.CommonExternalConnection;
+import com.codeka.justconduits.packets.ConduitUpdatePacket;
 import com.codeka.justconduits.packets.IConduitToolExternalPacket;
 import com.codeka.justconduits.packets.IConduitTypeClientStatePacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -19,12 +25,12 @@ import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -108,13 +114,93 @@ public class ItemConduit extends CommonConduit {
   }
 
   @Override
-  @Nonnull
-  public IConduitTypeClientStatePacket createClientState(@Nonnull ConduitBlockEntity conduitBlockEntity) {
-    return new ItemConduitClientStatePacket(conduitBlockEntity);
+  public void onClientUpdate(
+      @Nonnull IConduitTypeClientStatePacket basePacket, @Nonnull ConduitBlockEntity conduitBlockEntity,
+      @Nonnull ConduitHolder conduitHolder) {
+    super.onClientUpdate(basePacket, conduitBlockEntity, conduitHolder);
+    ItemConduitClientStatePacket packet = (ItemConduitClientStatePacket) basePacket;
+    for (Map.Entry<Direction, ItemExternalConnection> entry : packet.getExternalConnections().entrySet()) {
+      Direction dir = entry.getKey();
+
+      ConduitConnection conn = conduitBlockEntity.getConnection(dir);
+      if (conn == null) {
+        // TODO error
+        continue;
+      }
+      ItemExternalConnection existing = conn.getNetworkExternalConnection(conduitHolder.getConduitType());
+      existing.setExtractChannelColor(entry.getValue().getExtractChannelColor());
+      existing.setInsertChannelColor(entry.getValue().getInsertChannelColor());
+    }
   }
 
   @Override
-  public void onConduitToolOpen(@NotNull ConduitBlockEntity conduitBlockEntity, @NotNull ConduitHolder conduitHolder) {
+  public void onServerUpdate(
+      @Nonnull ConduitUpdatePacket packet, @Nonnull ConduitBlockEntity conduitBlockEntity,
+      @Nonnull ConduitHolder conduitHolder) {
+    super.onServerUpdate(packet, conduitBlockEntity, conduitHolder);
+    ConduitConnection connection = conduitBlockEntity.getConnection(packet.getDirection());
+    if (connection == null) {
+      L.atError().log("No connection found when updating from client.");
+      return;
+    }
+
+    ItemExternalConnection conn = connection.getNetworkExternalConnection(conduitHolder.getConduitType());
+    switch (packet.getUpdateType()) {
+      case INSERT_CHANNEL_COLOR -> conn.setInsertChannelColor(ChannelColor.fromNumber(packet.getIntValue()));
+      case EXTRACT_CHANNEL_COLOR -> conn.setExtractChannelColor(ChannelColor.fromNumber(packet.getIntValue()));
+    }
+  }
+
+  @Override
+  @Nonnull
+  public IConduitTypeClientStatePacket createClientState(@Nonnull ConduitBlockEntity conduitBlockEntity, @Nonnull ConduitType conduitType) {
+    return new ItemConduitClientStatePacket(conduitBlockEntity, conduitType);
+  }
+
+  @Override
+  public void saveAdditional(
+      @Nonnull CompoundTag tag, @Nonnull ConduitBlockEntity conduitBlockEntity, @Nonnull ConduitHolder conduitHolder) {
+    super.saveAdditional(tag, conduitBlockEntity, conduitHolder);
+
+    CompoundTag connectionsTag = tag.getCompound("Connections");
+    for (ConduitConnection conduitConnection : conduitBlockEntity.getConnections()) {
+      if (conduitConnection.getConnectionType() != ConduitConnection.ConnectionType.EXTERNAL) {
+        continue;
+      }
+
+      CompoundTag connectionTag = connectionsTag.getCompound(conduitConnection.getDirection().getName());
+      ItemExternalConnection conn = conduitConnection.getNetworkExternalConnection(conduitHolder.getConduitType());
+      connectionTag.putInt("ExtractChannelColor", conn.getExtractChannelColor().getNumber());
+      connectionTag.putInt("InsertChannelColor", conn.getInsertChannelColor().getNumber());
+    }
+  }
+
+  @Override
+  public void loadAdditional(
+      @Nonnull CompoundTag tag, @Nonnull ConduitBlockEntity conduitBlockEntity, @Nonnull ConduitHolder conduitHolder) {
+    super.loadAdditional(tag, conduitBlockEntity, conduitHolder);
+
+    CompoundTag connectionsTag = tag.getCompound("Connections");
+    for (String dirName : connectionsTag.getAllKeys()) {
+      Direction dir = Direction.byName(dirName);
+      if (dir == null) {
+        continue;
+      }
+
+      ConduitConnection conduitConnection = conduitBlockEntity.getConnection(dir);
+      if (conduitConnection == null) {
+        continue;
+      }
+
+      CompoundTag connectionTag = connectionsTag.getCompound(dirName);
+      ItemExternalConnection conn = conduitConnection.getNetworkExternalConnection(conduitHolder.getConduitType());
+      conn.setExtractChannelColor(ChannelColor.fromNumber(connectionTag.getInt("ExtractChannelColor")));
+      conn.setInsertChannelColor(ChannelColor.fromNumber(connectionTag.getInt("InsertChannelColor")));
+    }
+  }
+
+  @Override
+  public void onConduitToolOpen(@Nonnull ConduitBlockEntity conduitBlockEntity, @Nonnull ConduitHolder conduitHolder) {
     ItemNetwork network = NetworkRegistry.getNetwork(conduitHolder.getNetworkId());
     if (network == null) {
       L.atError().log("network is null");
@@ -125,7 +211,7 @@ public class ItemConduit extends CommonConduit {
   }
 
   @Override
-  public void onConduitToolClose(@NotNull ConduitBlockEntity conduitBlockEntity, @NotNull ConduitHolder conduitHolder) {
+  public void onConduitToolClose(@Nonnull ConduitBlockEntity conduitBlockEntity, @Nonnull ConduitHolder conduitHolder) {
     ItemNetwork network = NetworkRegistry.getNetwork(conduitHolder.getNetworkId());
     if (network == null) {
       L.atError().log("network is null");

@@ -33,6 +33,12 @@ public class ConduitUpdatePacket {
 
     // We're updating the value of the extract mode. Pass the ordinal of the ConnectionMode enumeration.
     EXTRACT_MODE,
+
+    // We're updating the channel color for insert.
+    INSERT_CHANNEL_COLOR,
+
+    // We're updating the channel color for extract.
+    EXTRACT_CHANNEL_COLOR,
   }
   private UpdateType updateType;
 

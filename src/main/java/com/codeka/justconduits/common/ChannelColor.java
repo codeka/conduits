@@ -21,10 +21,13 @@ public enum ChannelColor {
   BLACK(DyeColor.BLACK);
 
   public static ChannelColor fromNumber(int number) {
+    if (number == 0) {
+      return PINK;
+    }
     return ChannelColor.values()[number - 1];
   }
 
-  private DyeColor dyeColor;
+  private final DyeColor dyeColor;
 
   ChannelColor(DyeColor dyeColor) {
     this.dyeColor = dyeColor;

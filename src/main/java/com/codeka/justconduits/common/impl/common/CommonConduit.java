@@ -22,8 +22,8 @@ public abstract class CommonConduit extends AbstractConduit {
   public void onClientUpdate(
       @Nonnull IConduitTypeClientStatePacket basePacket, @Nonnull ConduitBlockEntity conduitBlockEntity,
       @Nonnull ConduitHolder conduitHolder) {
-    CommonClientStatePacket packet = (CommonClientStatePacket) basePacket;
-    for (Map.Entry<Direction, CommonExternalConnection> entry : packet.getExternalConnections().entrySet()) {
+    CommonClientStatePacket<? extends CommonExternalConnection> packet = (CommonClientStatePacket<?>) basePacket;
+    for (Map.Entry<Direction, ? extends CommonExternalConnection> entry : packet.getExternalConnections().entrySet()) {
       Direction dir = entry.getKey();
 
       ConduitConnection conn = conduitBlockEntity.getConnection(dir);
@@ -51,7 +51,6 @@ public abstract class CommonConduit extends AbstractConduit {
     switch (packet.getUpdateType()) {
       case INSERT_MODE -> conn.setInsertMode(ConnectionMode.values()[packet.getIntValue()]);
       case EXTRACT_MODE -> conn.setExtractMode(ConnectionMode.values()[packet.getIntValue()]);
-      default -> L.atError().log("Unexpected update type: {}", packet.getUpdateType());
     }
   }
 

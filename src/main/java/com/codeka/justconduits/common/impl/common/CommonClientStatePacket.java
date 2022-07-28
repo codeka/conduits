@@ -13,8 +13,8 @@ import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class CommonClientStatePacket implements IConduitTypeClientStatePacket {
-  private final HashMap<Direction, CommonExternalConnection> externalConnections = new HashMap<>();
+public abstract class CommonClientStatePacket<T extends CommonExternalConnection> implements IConduitTypeClientStatePacket {
+  private final HashMap<Direction, T> externalConnections = new HashMap<>();
   private final ConduitType conduitType;
 
   public CommonClientStatePacket(@Nullable ConduitBlockEntity conduitBlockEntity, ConduitType conduitType) {
@@ -26,35 +26,34 @@ public abstract class CommonClientStatePacket implements IConduitTypeClientState
           continue;
         }
 
-        CommonExternalConnection externalConnection = conn.getNetworkExternalConnection(conduitType);
+        T externalConnection = conn.getNetworkExternalConnection(conduitType);
         externalConnections.put(conn.getDirection(), externalConnection);
       }
     }
   }
 
-  @SuppressWarnings("unchecked")
-  public <T extends CommonExternalConnection> Map<Direction, T> getExternalConnections() {
-    return (Map<Direction, T>) externalConnections;
+  public Map<Direction, T> getExternalConnections() {
+    return externalConnections;
   }
 
   @Override
   public void encode(FriendlyByteBuf buffer) {
     buffer.writeVarInt(externalConnections.size());
-    for (Map.Entry<Direction, CommonExternalConnection> entry : externalConnections.entrySet()) {
+    for (Map.Entry<Direction, T> entry : externalConnections.entrySet()) {
       buffer.writeEnum(entry.getKey());
       buffer.writeEnum(entry.getValue().getExtractMode());
       buffer.writeEnum(entry.getValue().getInsertMode());
     }
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public void decode(FriendlyByteBuf buffer) {
     int n = buffer.readVarInt();
     for (int i = 0; i < n; i++) {
       Direction dir = buffer.readEnum(Direction.class);
 
-      CommonExternalConnection externalConnection =
-          (CommonExternalConnection) conduitType.newNetworkExternalConnection();
+      T externalConnection = (T) conduitType.newNetworkExternalConnection();
       externalConnection.setExtractMode(buffer.readEnum(ConnectionMode.class));
       externalConnection.setInsertMode(buffer.readEnum(ConnectionMode.class));
 

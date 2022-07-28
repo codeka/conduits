@@ -38,7 +38,8 @@ public interface IConduit {
    * {@link ConduitBlockEntity}.
    */
   @Nonnull
-  IConduitTypeClientStatePacket createClientState(@Nonnull ConduitBlockEntity conduitBlockEntity);
+  IConduitTypeClientStatePacket createClientState(
+      @Nonnull ConduitBlockEntity conduitBlockEntity, @Nonnull ConduitType conduitType);
 
   /**
    * Called when the conduit tool is opened. Every now and then, the block will call {@link #createConduitToolPacket}

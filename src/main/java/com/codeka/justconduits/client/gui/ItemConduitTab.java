@@ -6,6 +6,7 @@ import com.codeka.justconduits.client.gui.widgets.DataSource;
 import com.codeka.justconduits.client.gui.widgets.Icon;
 import com.codeka.justconduits.client.gui.widgets.IconListButton;
 import com.codeka.justconduits.client.gui.widgets.SimpleButton;
+import com.codeka.justconduits.common.ChannelColor;
 import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
 import com.codeka.justconduits.common.blocks.ConduitConnection;
 import com.codeka.justconduits.common.impl.ConduitHolder;
@@ -64,7 +65,9 @@ public class ItemConduitTab implements IConduitTab {
     ItemExternalConnection externalConnection = connection.getNetworkExternalConnection(conduitType);
     insertModeButton.setIconIndex(externalConnection.getInsertMode().ordinal());
 
-    insertChannelColorButton = new ChannelColorButton.Builder(10, 45).build();
+    insertChannelColorButton = new ChannelColorButton.Builder(10, 45)
+        .withColor(insertChannelColorDataSource)
+        .build();
 
     testButton1 = new SimpleButton.Builder(35, 45).build();
     testButton2 = new SimpleButton.Builder(60, 45).build();
@@ -77,7 +80,9 @@ public class ItemConduitTab implements IConduitTab {
             .build();
     extractModeButton.setIconIndex(externalConnection.getExtractMode().ordinal());
 
-    extractChannelColorButton = new ChannelColorButton.Builder(100, 45).build();
+    extractChannelColorButton = new ChannelColorButton.Builder(100, 45)
+        .withColor(extractChannelColorDataSource)
+        .build();
   }
 
   @Override
@@ -157,6 +162,50 @@ public class ItemConduitTab implements IConduitTab {
         sendPacketToServer(
             ConduitUpdatePacket.builder(conduitBlockEntity.getBlockPos(), NetworkType.ITEM, connection.getDirection())
                 .withIntUpdate(ConduitUpdatePacket.UpdateType.INSERT_MODE, value)
+                .build());
+      }
+    }
+  };
+
+  private final DataSource<ChannelColor> extractChannelColorDataSource = new DataSource<>() {
+    @Override
+    public ChannelColor getValue() {
+      if (connection == null) {
+        return ChannelColor.BLACK;
+      }
+
+      ItemExternalConnection externalConnection = connection.getNetworkExternalConnection(conduitType);
+      return externalConnection.getExtractChannelColor();
+    }
+
+    @Override
+    public void setValue(ChannelColor value) {
+      if (conduitBlockEntity != null && connection != null) {
+        sendPacketToServer(
+            ConduitUpdatePacket.builder(conduitBlockEntity.getBlockPos(), NetworkType.ITEM, connection.getDirection())
+                .withIntUpdate(ConduitUpdatePacket.UpdateType.EXTRACT_CHANNEL_COLOR, value.getNumber())
+                .build());
+      }
+    }
+  };
+
+  private final DataSource<ChannelColor> insertChannelColorDataSource = new DataSource<>() {
+    @Override
+    public ChannelColor getValue() {
+      if (connection == null) {
+        return ChannelColor.BLACK;
+      }
+
+      ItemExternalConnection externalConnection = connection.getNetworkExternalConnection(conduitType);
+      return externalConnection.getInsertChannelColor();
+    }
+
+    @Override
+    public void setValue(ChannelColor value) {
+      if (conduitBlockEntity != null && connection != null) {
+        sendPacketToServer(
+            ConduitUpdatePacket.builder(conduitBlockEntity.getBlockPos(), NetworkType.ITEM, connection.getDirection())
+                .withIntUpdate(ConduitUpdatePacket.UpdateType.INSERT_CHANNEL_COLOR, value.getNumber())
                 .build());
       }
     }
