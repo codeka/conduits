@@ -50,10 +50,10 @@ public class ConduitClientStatePacket {
 
   public ConduitClientStatePacket(FriendlyByteBuf buffer) {
     blockPos = buffer.readBlockPos();
+
     ArrayList<HashMap.Entry<ConduitType, IConduitTypeClientStatePacket>> entries =
         buffer.readCollection(ArrayList::new, (buf) -> {
-          int len = buf.readVarInt();
-          String name = buf.readCharSequence(len, StandardCharsets.UTF_8).toString();
+          String name = buf.readUtf();
 
           ConduitType conduitType = checkNotNull(ConduitType.fromName(name));
           IConduitTypeClientStatePacket packet = conduitType.newConduitTypeClientStatePacket();
@@ -74,8 +74,7 @@ public class ConduitClientStatePacket {
       ConduitType conduitType = entry.getKey();
       IConduitTypeClientStatePacket packet = entry.getValue();
 
-      buf.writeVarInt(conduitType.getName().length());
-      buf.writeCharSequence(conduitType.getName(), StandardCharsets.UTF_8);
+      buf.writeUtf(conduitType.getName());
       packet.encode(buffer);
     });
     buffer.writeCollection(connectionPackets, (buf, conn) -> {

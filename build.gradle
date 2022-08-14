@@ -24,7 +24,7 @@ java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
 minecraft {
     // We use Parchment mappings, which includes parameter names and Javadoc, in addition to the normal
-    // minecraft stuff. See: https://github-wiki-see.page/m/ParchmentMC/Parchment/wiki/Getting-Started
+    // minecraft stuff. See: https://github.com/ParchmentMC/Parchment/wiki/Getting-Started
     mappings channel: 'parchment', version: '2021.12.19-1.18.1'
 
     // Currently, this location cannot be changed from the default.

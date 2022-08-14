@@ -8,18 +8,19 @@ import com.codeka.justconduits.common.impl.common.CommonClientStatePacket;
 import com.codeka.justconduits.common.impl.common.CommonExternalConnection;
 import net.minecraft.core.Direction;
 import net.minecraft.network.FriendlyByteBuf;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /** Client state packet for {@link ItemConduit}s. */
 public class ItemConduitClientStatePacket extends CommonClientStatePacket<ItemExternalConnection> {
+  private static final Logger L = LogManager.getLogger();
   private final HashMap<Direction, ItemExternalConnection> externalConnections = new HashMap<>();
 
   public ItemConduitClientStatePacket() {
     super(null, ConduitType.SIMPLE_ITEM);
-
-
   }
 
   public ItemConduitClientStatePacket(ConduitBlockEntity conduitBlockEntity, ConduitType conduitType) {
@@ -54,18 +55,19 @@ public class ItemConduitClientStatePacket extends CommonClientStatePacket<ItemEx
     super.decode(buffer);
 
     int numConnections = buffer.readVarInt();
-    if (externalConnections.size() != numConnections) {
-      // TODO: this is an error
-    }
     for (int i = 0; i < numConnections; i++) {
       Direction dir = buffer.readEnum(Direction.class);
+      int extractChannelColor = buffer.readVarInt();
+      int insertChannelColor = buffer.readVarInt();
+
       ItemExternalConnection externalConnection = externalConnections.get(dir);
       if (externalConnection == null) {
-        // TODO: this is an error
-        return;
+        // If we don't have the connection yet, add it now.
+        externalConnection = new ItemExternalConnection();
+        externalConnections.put(dir, externalConnection);
       }
-      externalConnection.setExtractChannelColor(ChannelColor.fromNumber(buffer.readVarInt()));
-      externalConnection.setInsertChannelColor(ChannelColor.fromNumber(buffer.readVarInt()));
+      externalConnection.setExtractChannelColor(ChannelColor.fromNumber(extractChannelColor));
+      externalConnection.setInsertChannelColor(ChannelColor.fromNumber(insertChannelColor));
     }
   }
 }

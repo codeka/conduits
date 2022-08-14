@@ -487,8 +487,12 @@ public class ConduitBlockEntity extends BlockEntity {
 
   @Override
   public void handleUpdateTag(CompoundTag tag) {
-    FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.wrappedBuffer(tag.getByteArray("state")));
-    onClientUpdate(new ConduitClientStatePacket(buffer));
+    try {
+      FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.wrappedBuffer(tag.getByteArray("state")));
+      onClientUpdate(new ConduitClientStatePacket(buffer));
+    } catch (Exception e) {
+      // Exception loading the update tag isn't great, but we'll ignore it for now.
+    }
   }
 
   /** Called on the client when we receive an update packet from the server. */
