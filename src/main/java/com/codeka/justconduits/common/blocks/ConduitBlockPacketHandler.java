@@ -26,11 +26,14 @@ public class ConduitBlockPacketHandler {
   public static void handle(ConduitUpdatePacket packet, Supplier<NetworkEvent.Context> ctx) {
     ServerPlayer serverPlayer = ctx.get().getSender();
     if (serverPlayer == null) {
+      L.warn("Cannot handle ConduitUpdatePacket because Sender is null.");
       return;
     }
 
     if (serverPlayer.level.getBlockEntity(packet.getBlockPos()) instanceof ConduitBlockEntity conduitBlockEntity) {
       conduitBlockEntity.onServerUpdate(packet);
+    } else {
+      L.warn("Cannot handle ConduitUpdatePacket because block is not a ConduitBlockEntity");
     }
   }
 }

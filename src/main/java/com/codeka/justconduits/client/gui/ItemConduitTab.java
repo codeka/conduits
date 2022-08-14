@@ -19,10 +19,13 @@ import com.codeka.justconduits.packets.JustConduitsPacketHandler;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.network.PacketDistributor;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nonnull;
 
 public class ItemConduitTab implements IConduitTab {
+  private static final Logger L = LogManager.getLogger();
   private static final ResourceLocation BG =
       new ResourceLocation(JustConduitsMod.MODID, "textures/gui/conduit_item.png");
 
@@ -129,19 +132,31 @@ public class ItemConduitTab implements IConduitTab {
   private final DataSource<Integer> extractDataSource = new DataSource<>() {
     @Override
     public Integer getValue() {
+      if (connection == null) {
+        L.warn("extractDataSource.getValue() connection is null");
+        return 0;
+      }
+
       ItemExternalConnection externalConnection = connection.getNetworkExternalConnection(conduitType);
       return externalConnection.getExtractMode().ordinal();
     }
 
     @Override
     public void setValue(Integer value) {
-      if (conduitBlockEntity != null && connection != null) {
-        sendPacketToServer(
-            // TODO: make this generic.
-            ConduitUpdatePacket.builder(conduitBlockEntity.getBlockPos(), NetworkType.ITEM, connection.getDirection())
-                .withIntUpdate(ConduitUpdatePacket.UpdateType.EXTRACT_MODE, value)
-                .build());
+      if (conduitBlockEntity == null) {
+        L.warn("extractDataSource.setValue() conduitBlockEntity is null");
+        return;
       }
+      if (connection == null) {
+        L.warn("extractDataSource.setValue() conduitBlockEntity is null");
+        return;
+      }
+
+      sendPacketToServer(
+          // TODO: make this generic.
+          ConduitUpdatePacket.builder(conduitBlockEntity.getBlockPos(), NetworkType.ITEM, connection.getDirection())
+              .withIntUpdate(ConduitUpdatePacket.UpdateType.EXTRACT_MODE, value)
+              .build());
     }
   };
 
@@ -149,6 +164,7 @@ public class ItemConduitTab implements IConduitTab {
     @Override
     public Integer getValue() {
       if (connection == null) {
+        L.warn("insertDataSource.getValue() connection is null");
         return 0;
       }
 
@@ -158,12 +174,19 @@ public class ItemConduitTab implements IConduitTab {
 
     @Override
     public void setValue(Integer value) {
-      if (conduitBlockEntity != null && connection != null) {
-        sendPacketToServer(
-            ConduitUpdatePacket.builder(conduitBlockEntity.getBlockPos(), NetworkType.ITEM, connection.getDirection())
-                .withIntUpdate(ConduitUpdatePacket.UpdateType.INSERT_MODE, value)
-                .build());
+      if (conduitBlockEntity == null) {
+        L.warn("insertDataSource.setValue() conduitBlockEntity is null");
+        return;
       }
+      if (connection == null) {
+        L.warn("insertDataSource.setValue() conduitBlockEntity is null");
+        return;
+      }
+
+      sendPacketToServer(
+          ConduitUpdatePacket.builder(conduitBlockEntity.getBlockPos(), NetworkType.ITEM, connection.getDirection())
+              .withIntUpdate(ConduitUpdatePacket.UpdateType.INSERT_MODE, value)
+              .build());
     }
   };
 

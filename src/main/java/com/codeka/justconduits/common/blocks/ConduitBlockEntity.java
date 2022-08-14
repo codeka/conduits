@@ -553,7 +553,7 @@ public class ConduitBlockEntity extends BlockEntity {
     ConduitHolder conduitHolder = conduits.get(packet.getNetworkType());
     conduitHolder.getConduitImpl().onServerUpdate(packet, this, conduitHolder);
 
-    updateWatchers(/* setChanged = */ false);
+    updateWatchers(/* setChanged = */ true);
   }
 
   /** Gets the {@link Level}, throws an exception if it's null. */
