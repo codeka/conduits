@@ -99,7 +99,7 @@ public class ConduitToolScreen extends BaseScreen<ConduitToolContainerMenu> {
   }
 
   @Override
-  protected void renderBg(@Nullable PoseStack poseStack, float partialTick, int mouseX, int mouseY) {
+  protected void renderBg(@Nonnull PoseStack poseStack, float partialTick, int mouseX, int mouseY) {
     conduitTabButtons.beforeWindowRender(poseStack, partialTick, mouseX, mouseY);
 
     RenderSystem.setShaderTexture(0, BG);

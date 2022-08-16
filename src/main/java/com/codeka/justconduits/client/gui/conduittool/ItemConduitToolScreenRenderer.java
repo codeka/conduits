@@ -12,6 +12,7 @@ import net.minecraft.client.renderer.entity.ItemRenderer;
 import javax.annotation.Nonnull;
 import java.util.Locale;
 
+/** An {@link IConduitToolScreenRenderer} that is specific for the item conduit. */
 public class ItemConduitToolScreenRenderer implements IConduitToolScreenRenderer {
   @Override
   public Object init(ConduitToolScreen screen) {

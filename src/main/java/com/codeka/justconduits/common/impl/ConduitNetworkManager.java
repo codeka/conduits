@@ -1,6 +1,5 @@
 package com.codeka.justconduits.common.impl;
 
-import com.codeka.justconduits.common.blocks.ConduitBlock;
 import com.codeka.justconduits.common.blocks.ConduitBlockEntity;
 import com.codeka.justconduits.common.blocks.ConduitConnection;
 import com.codeka.justconduits.common.capabilities.network.IConduitNetworkManager;
