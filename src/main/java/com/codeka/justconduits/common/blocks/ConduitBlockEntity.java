@@ -615,7 +615,7 @@ public class ConduitBlockEntity extends BlockEntity {
     }
 
     if (needUpdate) {
-      updateWatchers(/* setChanged = */ false);
+      updateWatchers(/* setChanged = */ true);
       needsUpdate = true;
     }
   }
